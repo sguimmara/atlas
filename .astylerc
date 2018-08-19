@@ -1,0 +1,12 @@
+--suffix=none
+--convert-tabs
+--indent-cases
+--indent-classes
+--indent-namespaces
+--indent-switches
+--indent=spaces
+--pad-header
+--pad-oper
+--style=allman
+--unpad-paren
+--recursive "*.cpp"

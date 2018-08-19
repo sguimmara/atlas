@@ -1,0 +1,13 @@
+{
+	"folders":
+	[
+		{
+			"folder_exclude_patterns":
+			[
+				".clang-3.8.0",
+				".gcc-5.4.0"
+			],
+			"path": "/home/sguimmara/Dropbox/Work/cpp/snippets"
+		}
+	]
+}
