@@ -2,7 +2,8 @@
 .gcc*
 .clang*
 .msvc*
-builds
+build*
+.vs*
 
 # Created by https://www.gitignore.io/api/c++,cmake,sublimetext
 

@@ -1,17 +1,16 @@
-add_subdirectory(util)
-add_subdirectory(core)
+set(SOURCES "")
 
-add_library(atlas SHARED util
-                         core
-           )
+macro(add_dir DIRNAME)
+    FILE(GLOB_RECURSE ${DIRNAME}_SOURCES "${DIRNAME}/*.cpp")
+    FILE(GLOB_RECURSE ${DIRNAME}_HEADERS "${CMAKE_SOURCE_DIR}/include/atlas/${DIRNAME}/*.hpp")
+    source_group(${DIRNAME} FILES ${${DIRNAME}_SOURCES} ${${DIRNAME}_HEADERS})
+    set(SOURCES ${SOURCES} ${${DIRNAME}_SOURCES} ${${DIRNAME}_HEADERS})
+endmacro()
 
-target_link_libraries(atlas
-                      util)
+add_dir(core)
+add_dir(util)
+
+add_library(atlas SHARED ${SOURCES})
 
 install(TARGETS atlas
-        LIBRARY DESTINATION lib)
-
-if (CMAKE_BUILD_TYPE MATCHES Debug)
-    enable_testing()
-    add_subdirectory(test)
-endif()
+        RUNTIME DESTINATION bin)
