@@ -1,5 +1,5 @@
-#ifndef ATLAS_GEOGRAPHIC_HPP
-#define ATLAS_GEOGRAPHIC_HPP
+#ifndef ATLAS_CORE_GEOGRAPHIC_HPP
+#define ATLAS_CORE_GEOGRAPHIC_HPP
 
 namespace atlas
 {
@@ -77,4 +77,4 @@ namespace atlas
     }
 }
 
-#endif // !ATLAS_GEOGRAPHIC_HPP
+#endif // !ATLAS_CORE_GEOGRAPHIC_HPP
