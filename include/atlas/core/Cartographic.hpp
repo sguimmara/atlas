@@ -3,12 +3,14 @@
 
 namespace atlas
 {
-
-    /**
-     * @brief      Represents a coordinate in an ellipsoidal reference.
-     */
-    class Cartographic
+    namespace core
     {
+
+        /**
+         * @brief      Represents a coordinate in an ellipsoidal reference.
+         */
+        class Cartographic
+        {
         public:
 
             /**
@@ -25,8 +27,8 @@ namespace atlas
             /**
              * @brief      constructs the coordinate
              *
-             * @param[in]  lon   The longitude, in degrees
-             * @param[in]  lat   The latitude, in degrees
+             * @param[in]  lon   The longitude, in radians
+             * @param[in]  lat   The latitude, in radians
              * @param[in]  alt   The altitude, in meters
              */
             Cartographic(double lon, double lat, double alt = 0) noexcept :
@@ -37,9 +39,9 @@ namespace atlas
             }
 
             /**
-             * @brief      Returns the longitude, in degrees
+             * @brief      Returns the longitude, in radians
              *
-             * @return     the longitude in degrees
+             * @return     the longitude in radians
              */
             inline double longitude() const noexcept
             {
@@ -47,9 +49,9 @@ namespace atlas
             }
 
             /**
-             * @brief      Returns the latitude, in degrees
+             * @brief      Returns the latitude, in radians
              *
-             * @return     the latitude in degrees
+             * @return     the latitude in radians
              */
             inline double latitude() const noexcept
             {
@@ -70,8 +72,9 @@ namespace atlas
             double mLon;
             double mLat;
             double mAlt;
-    };
+        };
 
+    }
 }
 
 #endif // !ATLAS_GEOGRAPHIC_HPP

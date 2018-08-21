@@ -9,8 +9,12 @@ endmacro()
 
 add_dir(core)
 add_dir(util)
+add_dir(graphics)
 
 add_library(atlas SHARED ${SOURCES})
 
 install(TARGETS atlas
         RUNTIME DESTINATION bin)
+
+install(TARGETS atlas
+        RUNTIME DESTINATION test)

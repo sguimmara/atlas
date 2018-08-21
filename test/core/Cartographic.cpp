@@ -2,7 +2,7 @@
 
 #include "atlas/core/Cartographic.hpp"
 
-using namespace atlas;
+using namespace atlas::core;
 
 const lest::test specification[] =
 {

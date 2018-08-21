@@ -1,5 +1,5 @@
-#ifndef ATLAS_GRAPH_HPP
-#define ATLAS_GRAPH_HPP
+#ifndef ATLAS_GRAPHICS_SCENEGRAPH_HPP
+#define ATLAS_GRAPHICS_SCENEGRAPH_HPP
 
 #include <iostream>
 #include <memory>
@@ -8,17 +8,19 @@
 
 namespace atlas
 {
-    template<typename T>
-    class node_iterator;
-
-    /**
-     * @brief      Represents an element of a scene graph.
-     *
-     * @tparam     T     the Node's content type.
-     */
-    template<typename T>
-    class Node
+    namespace graphics
     {
+        template<typename T>
+        class node_iterator;
+
+        /**
+         * @brief      Represents an element of a scene graph.
+         *
+         * @tparam     T     the Node's content type.
+         */
+        template<typename T>
+        class Node
+        {
             typedef node_iterator<T> iterator;
             typedef const node_iterator<T> const_iterator;
 
@@ -169,17 +171,17 @@ namespace atlas
             bool operator ==(const Node<T>& rhs)
             {
                 return mValue == rhs.mValue
-                       && mParent == rhs.mParent
-                       && mRightSibling == rhs.mRightSibling
-                       && mChildren == rhs.mChildren;
+                    && mParent == rhs.mParent
+                    && mRightSibling == rhs.mRightSibling
+                    && mChildren == rhs.mChildren;
             }
 
             bool operator !=(const Node<T>& rhs)
             {
                 return mValue != rhs.mValue
-                       || mParent != rhs.mParent
-                       || mRightSibling != rhs.mRightSibling
-                       || mChildren != rhs.mChildren;
+                    || mParent != rhs.mParent
+                    || mRightSibling != rhs.mRightSibling
+                    || mChildren != rhs.mChildren;
             }
 
             T& operator*()
@@ -230,7 +232,7 @@ namespace atlas
             }
 
         private:
-            T* mValue;
+            T * mValue;
             Node<T>* mParent;
             Node<T>* mRightSibling;
             std::vector<std::unique_ptr<Node<T>>> mChildren;
@@ -242,16 +244,16 @@ namespace atlas
                     throw std::invalid_argument("child index is out of bounds");
                 }
             }
-    };
+        };
 
-    /**
-     * @brief      Provides preorder traversal functionality for nodes.
-     *
-     * @tparam     T     the underlying Node type.
-     */
-    template<typename T>
-    class node_iterator
-    {
+        /**
+         * @brief      Provides preorder traversal functionality for nodes.
+         *
+         * @tparam     T     the underlying Node type.
+         */
+        template<typename T>
+        class node_iterator
+        {
         public:
             node_iterator(Node<T>* current) :
                 mCurrent(current)
@@ -268,7 +270,7 @@ namespace atlas
                 // case 1 : move to the leftmost child.
                 if (mCurrent->child_count() > 0)
                 {
-                    mCurrent =  &(mCurrent->get_child(0));
+                    mCurrent = &(mCurrent->get_child(0));
                 }
                 // case 2 : move to the right sibling
                 else if (mCurrent->right() != nullptr)
@@ -333,7 +335,8 @@ namespace atlas
 
         private:
             Node<T>* mCurrent;
-    };
+        };
+    }
 }
 
-#endif // !ATLAS_GRAPH_HPP
+#endif // !ATLAS_GRAPHICS_SCENEGRAPH_HPP

@@ -29,19 +29,21 @@
 //     }
 // };
 
+using namespace atlas::graphics;
+
 const lest::test scene_graph[] =
 {
     {
         CASE("passing a nullptr to the ctor throws a std::invalid_argument")
         {
-            EXPECT_THROWS_AS(atlas::Node<int> node(nullptr), std::invalid_argument);
+            EXPECT_THROWS_AS(Node<int> node(nullptr), std::invalid_argument);
         }
     },
     {
         CASE("passing a non-null ptr to the ctor")
         {
             int value(3);
-            EXPECT_NO_THROW(atlas::Node<int> node(&value));
+            EXPECT_NO_THROW(Node<int> node(&value));
         }
     },
     {
@@ -49,7 +51,7 @@ const lest::test scene_graph[] =
         {
             int value1 = 0;
             int value2 = 5;
-            atlas::Node<int> node(&value1);
+            Node<int> node(&value1);
             node.add_child(&value2);
 
             *node = 4;
@@ -63,7 +65,7 @@ const lest::test scene_graph[] =
         CASE("size returns 1 when node has no children")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
             EXPECT(node.size() == 1);
         }
     },
@@ -71,7 +73,7 @@ const lest::test scene_graph[] =
         CASE("size() returns (n + 1) when node has n children")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
 
             size_t child_count = 10;
 
@@ -87,7 +89,7 @@ const lest::test scene_graph[] =
         CASE("parent() returns nullptr for orphan node")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
             EXPECT(node.parent() == nullptr);
         }
     },
@@ -95,7 +97,7 @@ const lest::test scene_graph[] =
         CASE("parent() returns correct value")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
             int value2 = 1;
             node.add_child(&value2);
             EXPECT(node.get_child(0).parent() == &node);
@@ -105,7 +107,7 @@ const lest::test scene_graph[] =
         CASE("iterator on no children")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
 
             auto it = node.begin();
             EXPECT((*it == node));
@@ -115,7 +117,7 @@ const lest::test scene_graph[] =
         CASE("iterator preincrement and comparison with end()")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
 
             auto it = node.begin();
             EXPECT((it != node.end()));
@@ -127,7 +129,7 @@ const lest::test scene_graph[] =
         CASE("iterator postincrement and comparison with end()")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
 
             auto it = node.begin();
             EXPECT((it != node.end()));
@@ -142,7 +144,7 @@ const lest::test scene_graph[] =
             int child1 = 1;
             int child2 = 2;
 
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
             node.add_child(&child1);
             node.add_child(&child2);
 
@@ -164,7 +166,7 @@ const lest::test scene_graph[] =
             int child3 = 3;
             int child4 = 4;
 
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
             node.add_child(&child1);
             node.add_child(&child2);
             node.add_child(&child3);
@@ -180,7 +182,7 @@ const lest::test scene_graph[] =
         CASE("the for range loop performs a preorder traversal")
         {
             int value = 0;
-            atlas::Node<int> node(&value);
+            Node<int> node(&value);
 
             int value1 = 1;
             int value2 = 2;
