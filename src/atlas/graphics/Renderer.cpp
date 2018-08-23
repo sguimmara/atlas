@@ -1,11 +1,4 @@
-#include "atlas/graphics/Renderer.hpp"
-
-#include "spdlog/sinks/stdout_color_sinks.h"
-
-#include "VulkanTools.hpp"
-#include "SwapchainSupportDetails.hpp"
-
-#include <set>
+#include "Renderer.hpp"
 
 #ifdef DEBUG
 const bool enableValidationLayers = true;
@@ -46,23 +39,26 @@ Renderer::~Renderer()
     }
 
     destroySemaphores();
-    //destroyFramebuffer();
+    destroyFramebuffer();
     destroyCommandPool();
     destroyLogicalDevice();
-    destroy_instance();
+    destroyInstance();
 
     mLog->debug("destroyed");
 }
 
 void Renderer::init(GLFWwindow * window)
 {
-    create_instance();
-    setup_debug_callback();
-    create_surface(window);
-    pick_physical_device();
+    mWindow = window;
+
+    createInstance();
+    setupDebugCallback();
+    createSurface(window);
+    selectPhysicalDevice();
     createLogicalDevice();
     createSemaphores();
     createCommandPool();
+    createFramebuffer();
 }
 
 bool checkValidationLayerSupport()
@@ -117,7 +113,7 @@ std::vector<const char*> getRequiredExtensions()
 }
 
 /* creates the Vulkan instance, checking for supported layers and extensions */
-void Renderer::create_instance()
+void Renderer::createInstance()
 {
     if (enableValidationLayers && !checkValidationLayerSupport())
     {
@@ -172,7 +168,7 @@ void Renderer::create_instance()
     mLog->debug("Vulkan instance created");
 }
 
-void Renderer::destroy_instance()
+void Renderer::destroyInstance()
 {
     vkDestroyInstance(mVkInstance, nullptr);
 }
@@ -204,7 +200,7 @@ VkResult createDebugReportCallbackEXT(
     }
 }
 
-void Renderer::setup_debug_callback()
+void Renderer::setupDebugCallback()
 {
     if (!enableValidationLayers) return;
 
@@ -218,7 +214,7 @@ void Renderer::setup_debug_callback()
     mLog->debug("setup debug callback");
 }
 
-void Renderer::create_surface(GLFWwindow* window)
+void Renderer::createSurface(GLFWwindow* window)
 {
     VK_CHECK_RESULT(glfwCreateWindowSurface(mVkInstance, window, nullptr, &mVkSurface));
     mLog->debug("surface created");
@@ -312,7 +308,7 @@ bool Renderer::checkSupportedImageFormat(VkFormat format)
 }
 
 /* select an appropriate physical device, eg GPU */
-void Renderer::pick_physical_device()
+void Renderer::selectPhysicalDevice()
 {
     uint32_t deviceCount = 0;
     VK_CHECK_RESULT(vkEnumeratePhysicalDevices(mVkInstance, &deviceCount, nullptr));
@@ -447,4 +443,17 @@ void Renderer::destroyCommandPool()
 {
     vkDestroyCommandPool(mVkDevice, mVkCommandPool, nullptr);
     mLog->debug("destroyed command pool");
+}
+
+void Renderer::createFramebuffer()
+{
+    framebuffer = new Framebuffer(mWindow, mVkDevice, mVkPhysicalDevice, mVkSurface, mFamilyIndices.graphicsFamily, mFamilyIndices.presentFamily);
+}
+
+void Renderer::destroyFramebuffer()
+{
+    assert(framebuffer);
+    delete framebuffer;
+    framebuffer = nullptr;
+    mLog->debug("destroyed framebuffer");
 }

@@ -1,4 +1,4 @@
-#include "atlas/core/Atlas.hpp"
+#include "Atlas.hpp"
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 

@@ -1,11 +1,8 @@
 #ifndef ATLAS_HPP
 #define ATLAS_HPP
 
-#include "spdlog/spdlog.h"
+#include "atlas/graphics/AtlasGraphics.hpp"
 #include "atlas/graphics/Renderer.hpp"
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 
 namespace atlas
 {

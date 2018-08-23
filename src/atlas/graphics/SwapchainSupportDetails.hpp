@@ -1,7 +1,7 @@
 #ifndef ATLAS_SWAPCHAINSUPPORTDETAILS_HPP
 #define ATLAS_SWAPCHAINSUPPORTDETAILS_HPP
 
-#include "atlas/core/Atlas.hpp"
+#include "AtlasGraphics.hpp"
 
 namespace atlas
 {

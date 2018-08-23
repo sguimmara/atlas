@@ -1,10 +1,7 @@
 #ifndef ATLAS_GRAPHICS_SCENEGRAPH_HPP
 #define ATLAS_GRAPHICS_SCENEGRAPH_HPP
 
-#include <iostream>
-#include <memory>
-#include <vector>
-#include <iterator>
+#include "AtlasGraphics.hpp"
 
 namespace atlas
 {
