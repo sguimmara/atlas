@@ -59,14 +59,14 @@ include_directories(${Boost_INCLUDE_DIR})
 
 find_package(Doxygen)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/third_party)
+include_directories(SYSTEM third_party)
 
 include_directories(src)
 
 add_subdirectory(doc)
 add_subdirectory(src)
 add_subdirectory(apps)
+add_subdirectory(shaders)
 
 # if (CMAKE_BUILD_TYPE MATCHES Debug)
     enable_testing()
