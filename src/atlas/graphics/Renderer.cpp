@@ -61,6 +61,11 @@ void Renderer::init(GLFWwindow * window)
     createFramebuffer();
 }
 
+void Renderer::onWindowResized(int newWidth, int newHeight)
+{
+    mWindowResized = true;
+}
+
 bool checkValidationLayerSupport()
 {
     uint32_t layerCount;
@@ -456,4 +461,46 @@ void Renderer::destroyFramebuffer()
     delete framebuffer;
     framebuffer = nullptr;
     mLog->debug("destroyed framebuffer");
+}
+
+void Renderer::mainLoop()
+{
+    mLog->debug("enter main loop");
+
+    while (!glfwWindowShouldClose(mWindow))
+    {
+        auto start = std::chrono::steady_clock::now();
+
+        glfwPollEvents();
+        checkFramebufferResized();
+        //renderFrame();
+        //vkDeviceWaitIdle(device);
+        //vkQueueWaitIdle(graphicsQueue);
+        //vkQueueWaitIdle(presentQueue);
+
+        //getc(stdin);
+
+        auto end = std::chrono::steady_clock::now();
+
+        mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    }
+
+    vkDeviceWaitIdle(mVkDevice);
+
+    mLog->debug("exit main loop");
+}
+
+void Renderer::checkFramebufferResized()
+{
+    if (mWindowResized)
+    {
+        mLog->debug("framebuffer resized");
+        mWindowResized = false;
+
+        vkDeviceWaitIdle(mVkDevice);
+        destroyFramebuffer();
+        createFramebuffer();
+
+        //scene->prepareRenderState();
+    }
 }

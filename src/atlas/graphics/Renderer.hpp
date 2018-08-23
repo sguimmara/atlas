@@ -30,9 +30,16 @@ namespace atlas
             ~Renderer();
 
             /**
+            * @brief Executes the render loop.
+            */
+            void mainLoop();
+
+            /**
             * @brief Initializes the renderer on the specified window.
             */
             void init(GLFWwindow * window);
+
+            void onWindowResized(int newWidth, int newHeight);
 
         private:
             void createInstance();
@@ -56,6 +63,7 @@ namespace atlas
             void destroyCommandPool();
 
             void createFramebuffer();
+            void checkFramebufferResized();
             void destroyFramebuffer();
 
             std::shared_ptr<spdlog::logger> mLog;
@@ -74,6 +82,10 @@ namespace atlas
             VkSemaphore mSemaphoreImageAvailable = VK_NULL_HANDLE;
 
             Framebuffer* framebuffer = nullptr;
+
+            std::chrono::milliseconds mFrameDuration;
+
+            bool mWindowResized;
         };
     }
 }

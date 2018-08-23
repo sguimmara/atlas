@@ -16,6 +16,8 @@ atlas::Atlas::Atlas() :
     init_window();
 
     mRenderer.init(mWindow);
+
+    mRenderer.mainLoop();
 }
 
 void atlas::Atlas::window_resized_callback(GLFWwindow* window, int width, int height)
@@ -27,7 +29,7 @@ void atlas::Atlas::window_resized_callback(GLFWwindow* window, int width, int he
 
 void atlas::Atlas::window_resized(int width, int height)
 {
-    mLog->debug("window resized");
+    mRenderer.onWindowResized(width, height);
 }
 
 /* initializes the GLFW window */
