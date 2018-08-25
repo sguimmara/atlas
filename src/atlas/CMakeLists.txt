@@ -1,29 +1,38 @@
 set(SOURCES "")
 
-macro(add_dir DIRNAME)
-    FILE(GLOB ${DIRNAME}_SOURCES "${DIRNAME}/*.cpp")
-    FILE(GLOB ${DIRNAME}_HEADERS "${DIRNAME}/*.hpp")
-    source_group(${DIRNAME} FILES ${${DIRNAME}_SOURCES} ${${DIRNAME}_HEADERS})
-    set(SOURCES ${SOURCES} ${${DIRNAME}_SOURCES} ${${DIRNAME}_HEADERS})
-    install(FILES ${${DIRNAME}_HEADERS}
-        	DESTINATION include/atlas/${DIRNAME})
+macro(add_sources DIRNAME)
+  FILE(GLOB ${DIRNAME}_SOURCES "${DIRNAME}/*.cpp")
+  FILE(GLOB ${DIRNAME}_HEADERS "${DIRNAME}/*.hpp")
+  source_group(${DIRNAME} FILES ${${DIRNAME}_SOURCES} ${${DIRNAME}_HEADERS})
+  set(SOURCES ${SOURCES} ${${DIRNAME}_SOURCES} ${${DIRNAME}_HEADERS})
+  install(FILES ${${DIRNAME}_HEADERS}
+          DESTINATION include/atlas/${DIRNAME})
 endmacro()
 
-add_dir(core)
-add_dir(util)
-add_dir(graphics)
+add_sources(core)
+add_sources(util)
+add_sources(graphics)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_library(atlas SHARED ${SOURCES})
-target_link_libraries(atlas ${Vulkan_LIBRARY}
-							${GLFW_LIBRARY})
+add_library(atlas OBJECT ${SOURCES})
 
-install(TARGETS atlas
-        RUNTIME DESTINATION bin)
+set(ATLAS_VERSION_MAJOR 0)
+set(ATLAS_VERSION_MINOR 1)
+set(ATLAS_VERSION_PATCH 0)
+set(ATLAS_VERSION_STRING ${ATLAS_VERSION_MAJOR}.${ATLAS_VERSION_MINOR}.${ATLAS_VERSION_PATCH})
 
-# install(TARGETS atlas_i
-#         RUNTIME DESTINATION bin)
+set(LIBNAME atlas)
 
-install(TARGETS atlas
-        RUNTIME DESTINATION test)
+macro(create_library NAME TYPE SOURCES)
+  add_library(${NAME} ${TYPE} ${SOURCES})
+  set_target_properties(${NAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
+  set_target_properties(${NAME} PROPERTIES VERSION ${ATLAS_VERSION_STRING} SOVERSION ${ATLAS_VERSION_MAJOR})
+  target_link_libraries(${NAME} ${Vulkan_LIBRARY} ${GLFW_LIBRARY})
+endmacro()
+
+create_library(atlas_dll  SHARED $<TARGET_OBJECTS:atlas>)
+install(TARGETS atlas_dll RUNTIME DESTINATION bin)
+
+create_library(atlas_static STATIC $<TARGET_OBJECTS:atlas>)
+install(TARGETS atlas_static ARCHIVE DESTINATION lib)

@@ -1,14 +1,14 @@
 macro(register_test NAME FOLDER)
-    add_executable(test_${NAME} ${NAME}.cpp)
-    install(TARGETS test_${NAME}
-            RUNTIME DESTINATION test)
+	set(TEST_NAME test_${NAME})
+    add_executable(${TEST_NAME} ${NAME}.cpp)
+    add_test(NAME ${TEST_NAME}
+             COMMAND ${TEST_NAME})
 
-    add_test(NAME test_${NAME}
-             COMMAND test_${NAME})
-
-    set_target_properties(test_${NAME} 
-                          PROPERTIES 
+    set_target_properties(${TEST_NAME}
+                          PROPERTIES
                           FOLDER "test/${FOLDER}")
+
+    target_link_libraries(${TEST_NAME} atlas_dll)
 endmacro()
 
 add_subdirectory(core)
