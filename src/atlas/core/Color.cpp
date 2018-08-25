@@ -1,6 +1,6 @@
-#include "Color.hpp"
-
 #include <algorithm>
+
+#include "Color.hpp"
 
 namespace atlas
 {
@@ -25,7 +25,7 @@ namespace atlas
         return std::max(0.0f, std::min(x, 1.0f));
     }
 
-    Color Color::operator *(const float rhs)
+    Color Color::operator *(const float rhs) const noexcept
     {
         float f = clamp01(rhs);
 

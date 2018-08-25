@@ -28,6 +28,32 @@ namespace atlas
         */
         uint8_t a;
 
+        Color() : r(0), g(0), b(0), a(0) {}
+
+        Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) :
+            r(r), g(g), b(b), a(a)
+        {
+        }
+
+        bool operator ==(const Color& rhs) const noexcept;
+        bool operator !=(const Color& rhs) const noexcept;
+
+        /**
+        * @brief      Multiply by a constant.
+        */
+        Color operator *(const float rhs) const noexcept;
+
+        friend std::ostream& operator<< (
+            std::ostream& os,
+            const Color& c)
+        {
+            return os << "RGBA ["
+                << static_cast<int>(c.r) << " "
+                << static_cast<int>(c.g) << " "
+                << static_cast<int>(c.b) << " "
+                << static_cast<int>(c.a) << "]";
+        }
+
         /**
         * @brief      Pure red
         */
@@ -48,38 +74,17 @@ namespace atlas
         */
         static const Color white;
 
-
-        Color() : r(0), g(0), b(0), a(0) {}
-
-        Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) :
-            r(r), g(g), b(b), a(a)
-        {
-        }
-
-        bool operator ==(const Color& rhs) const noexcept;
-        bool operator !=(const Color& rhs) const noexcept;
-
         /**
-        * @brief      Multiply by a constant.
+        * @brief      Pure black
         */
-        Color operator *(const float rhs);
-
-        friend std::ostream& operator<< (
-            std::ostream& os,
-            const Color& c)
-        {
-            return os << "RGBA ["
-                << static_cast<int>(c.r) << " "
-                << static_cast<int>(c.g) << " "
-                << static_cast<int>(c.b) << " "
-                << static_cast<int>(c.a) << "]";
-        }
+        static const Color black;
     };
 
     const Color Color::red = { 255, 0, 0, 255 };
     const Color Color::green = { 0, 255, 0, 255 };
     const Color Color::blue = { 0, 0, 255, 255 };
     const Color Color::white = { 255, 255, 255, 255 };
+    const Color Color::black = { 0, 0, 0, 255 };
 }
 
 #endif
