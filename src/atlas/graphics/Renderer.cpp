@@ -1,5 +1,7 @@
 #include "Renderer.hpp"
 
+#include "Mesh.hpp"
+
 #ifdef DEBUG
 const bool enableValidationLayers = true;
 #else
@@ -38,6 +40,8 @@ Renderer::~Renderer()
         vkDestroyDebugReportCallbackEXT(mVkInstance, mVkValidationCallback, nullptr);
     }
 
+    delete mDrawable;
+
     destroySemaphores();
     destroyFramebuffer();
     destroyCommandPool();
@@ -59,6 +63,12 @@ void Renderer::init(GLFWwindow * window)
     createSemaphores();
     createCommandPool();
     createFramebuffer();
+
+    //TEMP
+    mClearColor = { 1, 0, 0, 1 };
+    auto mesh = new Mesh(this, nullptr, nullptr);
+    mDrawable = mesh;
+    
 }
 
 void Renderer::onWindowResized(int newWidth, int newHeight)
@@ -185,6 +195,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const char* layerPrefix, const char* msg, void* userData)
 {
     spdlog::get("renderer")->error(msg);
+    std::terminate();
     return VK_FALSE;
 }
 
@@ -349,11 +360,11 @@ void Renderer::selectPhysicalDevice()
 
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties(mVkPhysicalDevice, &deviceProperties);
-    mLog->debug("physical device selected : {0}", deviceProperties.deviceName);
-    mLog->debug("driver version {0}", deviceProperties.driverVersion);
+    mLog->info("physical device selected : {0}", deviceProperties.deviceName);
+    mLog->info("driver version {0}", deviceProperties.driverVersion);
 
     int apiVer = deviceProperties.apiVersion;
-    mLog->debug("Vulkan API version {0}.{1}.{2}",
+    mLog->info("Vulkan API version {0}.{1}.{2}",
         VK_VERSION_MAJOR(apiVer),
         VK_VERSION_MINOR(apiVer),
         VK_VERSION_PATCH(apiVer));
@@ -452,14 +463,14 @@ void Renderer::destroyCommandPool()
 
 void Renderer::createFramebuffer()
 {
-    framebuffer = new Framebuffer(mWindow, mVkDevice, mVkPhysicalDevice, mVkSurface, mFamilyIndices.graphicsFamily, mFamilyIndices.presentFamily);
+    mFramebuffer = new Framebuffer(mWindow, mVkDevice, mVkPhysicalDevice, mVkSurface, mFamilyIndices.graphicsFamily, mFamilyIndices.presentFamily);
 }
 
 void Renderer::destroyFramebuffer()
 {
-    assert(framebuffer);
-    delete framebuffer;
-    framebuffer = nullptr;
+    assert(mFramebuffer);
+    delete mFramebuffer;
+    mFramebuffer = nullptr;
     mLog->debug("destroyed framebuffer");
 }
 
@@ -473,10 +484,10 @@ void Renderer::mainLoop()
 
         glfwPollEvents();
         checkFramebufferResized();
-        //renderFrame();
-        //vkDeviceWaitIdle(device);
-        //vkQueueWaitIdle(graphicsQueue);
-        //vkQueueWaitIdle(presentQueue);
+        renderFrame();
+        vkDeviceWaitIdle(mVkDevice);
+        vkQueueWaitIdle(mVkGraphicsQueue);
+        vkQueueWaitIdle(mVkPresentQueue);
 
         //getc(stdin);
 
@@ -502,5 +513,62 @@ void Renderer::checkFramebufferResized()
         createFramebuffer();
 
         //scene->prepareRenderState();
+        mDrawable->prepareRenderState();
     }
+}
+
+void Renderer::renderFrame()
+{
+    currentFrame++;
+
+    uint32_t imageIndex = mFramebuffer->acquire(mSemaphoreImageAvailable);
+
+    submitCommands(imageIndex);
+
+    mFramebuffer->present(imageIndex, mSemaphoreRenderFinished);
+}
+
+void Renderer::submitCommands(uint32_t imageIndex)
+{
+    VkSemaphore waitSemaphores[] = { mSemaphoreImageAvailable };
+    VkSemaphore signalSemaphores[] = { mSemaphoreRenderFinished };
+
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+    std::vector<VkCommandBuffer> commands;
+
+    //for (Drawable * drawable : getRenderList(*scene))
+    //{
+    //    commands.push_back(drawable->getCommandBuffer(imageIndex));
+    //}
+
+    //commands.push_back(mDrawable->getCommandBuffer(imageIndex));
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = (uint32_t)commands.size();
+    submitInfo.pCommandBuffers = commands.data();
+
+    VK_CHECK_RESULT(vkQueueSubmit(mVkGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE));
+}
+
+uint32_t Renderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("could not find appropriate memory type");
 }

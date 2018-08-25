@@ -7,11 +7,11 @@ atlas::Atlas::Atlas() :
 {
     mLog = spdlog::stdout_color_mt("atlas");
 
+    mLog->info("started");
 #if DEBUG
     mLog->set_level(spdlog::level::trace);
+    mLog->info("configuration is Debug");
 #endif
-
-    mLog->info("started");
 
     init_window();
 

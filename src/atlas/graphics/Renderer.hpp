@@ -3,6 +3,7 @@
 
 #include "AtlasGraphics.hpp"
 #include "Framebuffer.hpp"
+#include "Drawable.hpp"
 
 namespace atlas
 {
@@ -39,7 +40,21 @@ namespace atlas
             */
             void init(GLFWwindow * window);
 
+            /**
+            * @brief Warns the renderer the window size changed.
+            */
             void onWindowResized(int newWidth, int newHeight);
+
+            inline Framebuffer * framebuffer() const noexcept { return mFramebuffer; }
+            inline VkCommandPool commandPool() const noexcept { return mVkCommandPool; }
+            inline VkDevice device() const noexcept { return mVkDevice; }
+
+            inline const VkClearValue* clearColor() const noexcept { return &mClearColor; }
+
+            /* the duration of the last frame, in seconds. */
+            float dt() const;
+
+            uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
         private:
             void createInstance();
@@ -65,6 +80,9 @@ namespace atlas
             void createFramebuffer();
             void checkFramebufferResized();
             void destroyFramebuffer();
+            
+            void renderFrame();
+            void submitCommands(uint32_t imageIndex);
 
             std::shared_ptr<spdlog::logger> mLog;
 
@@ -80,12 +98,16 @@ namespace atlas
             VkQueue mVkPresentQueue = VK_NULL_HANDLE;
             VkSemaphore mSemaphoreRenderFinished = VK_NULL_HANDLE;
             VkSemaphore mSemaphoreImageAvailable = VK_NULL_HANDLE;
+            VkClearValue mClearColor = { 0, 0, 0, 1.0f };
 
-            Framebuffer* framebuffer = nullptr;
+            Framebuffer* mFramebuffer = nullptr;
 
             std::chrono::milliseconds mFrameDuration;
 
-            bool mWindowResized;
+            bool mWindowResized = false;
+            uint32_t currentFrame = 0;
+
+            Drawable * mDrawable;
         };
     }
 }

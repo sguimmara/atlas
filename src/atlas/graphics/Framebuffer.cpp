@@ -87,7 +87,7 @@ namespace atlas
         destroyFramebuffers();
         destroySwapchain();
 
-        logger->debug("swapchain destroyed");
+        logger->debug("framebuffer destroyed");
     }
 
     void Framebuffer::createSwapchain(uint32_t graphicsFamily, uint32_t presentFamily)
@@ -300,15 +300,12 @@ namespace atlas
 
     void Framebuffer::present(uint32_t imageIndex, VkSemaphore renderFinished)
     {
-        VkSwapchainKHR swapChains[] = { swapChain };
-        VkSemaphore signalSemaphores[] = { renderFinished };
-
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
+        presentInfo.pWaitSemaphores = &renderFinished;
         presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = swapChains;
+        presentInfo.pSwapchains = &swapChain;
         presentInfo.pImageIndices = &imageIndex;
 
         VK_CHECK_RESULT(vkQueuePresentKHR(presentQueue, &presentInfo));
