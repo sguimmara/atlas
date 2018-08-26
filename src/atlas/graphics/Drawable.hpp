@@ -3,6 +3,7 @@
 
 #include "AtlasGraphics.hpp"
 #include "GraphicsObject.hpp"
+#include "Renderer.hpp"
 
 namespace atlas
 {
@@ -16,7 +17,12 @@ namespace atlas
 
             virtual void prepareRenderState() = 0;
             virtual void tick(float dt) {}
-            virtual VkCommandBuffer getCommandBuffer(uint32_t imageIndex) = 0;
+            virtual void UpdateCommandBuffers() = 0;
+            virtual vk::CommandBuffer GetCommandBuffer(uint32_t imageIndex) = 0;
+
+        protected:
+            std::vector<vk::CommandBuffer> _commandBuffers;
+            Renderer* _renderer;
         };
     }
 }

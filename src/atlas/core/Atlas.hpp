@@ -10,7 +10,6 @@ namespace atlas
      * @brief Encapsulate the Atlas application.
      * @details The Atlas class contains the modules required to run an Atlas application, such
                 as renderer, layer manager, and so on.
-     * 
      */
     class Atlas
     {
@@ -18,16 +17,16 @@ namespace atlas
         Atlas();
 
     private:
-        static void window_resized_callback(GLFWwindow* window, int width, int height);
+        static void WindowResizedCallback(GLFWwindow* window, int width, int height);
 
-        void init_window();
-        void window_resized(int width, int height);
+        void InitWindow();
+        void WindowResized(int width, int height);
 
-        std::shared_ptr<spdlog::logger> mLog;
+        std::shared_ptr<spdlog::logger> _log;
 
-        graphics::Renderer mRenderer;
+        graphics::Renderer _renderer;
 
-        GLFWwindow * mWindow;
+        GLFWwindow * _window;
 
     };
 }

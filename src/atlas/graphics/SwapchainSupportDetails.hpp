@@ -12,32 +12,32 @@ namespace atlas
         */
         struct SwapChainSupportDetails
         {
-            VkSurfaceCapabilitiesKHR capabilities;
-            std::vector<VkSurfaceFormatKHR> formats;
-            std::vector<VkPresentModeKHR> presentModes;
+            vk::SurfaceCapabilitiesKHR capabilities;
+            std::vector<vk::SurfaceFormatKHR> formats;
+            std::vector<vk::PresentModeKHR> presentModes;
 
-            static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+            static SwapChainSupportDetails QuerySwapChainSupport(vk::PhysicalDevice device, vk::SurfaceKHR surface)
             {
                 SwapChainSupportDetails details;
 
-                vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+                device.getSurfaceCapabilitiesKHR(surface, &details.capabilities);
 
                 uint32_t formatCount;
-                vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+                device.getSurfaceFormatsKHR(surface, &formatCount, nullptr);
 
                 if (formatCount != 0)
                 {
                     details.formats.resize(formatCount);
-                    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+                    device.getSurfaceFormatsKHR(surface, &formatCount, details.formats.data());
                 }
 
                 uint32_t presentModeCount;
-                vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+                device.getSurfacePresentModesKHR(surface, &presentModeCount, nullptr);
 
                 if (presentModeCount != 0)
                 {
                     details.presentModes.resize(presentModeCount);
-                    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+                    device.getSurfacePresentModesKHR(surface, &presentModeCount, details.presentModes.data());
                 }
 
                 return details;

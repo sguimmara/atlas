@@ -3,53 +3,52 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 atlas::Atlas::Atlas() :
-    mRenderer(graphics::Renderer())
+    _renderer(graphics::Renderer())
 {
-    mLog = spdlog::stdout_color_mt("atlas");
+    _log = spdlog::stdout_color_mt("atlas");
 
-    mLog->info("started");
+    _log->info("started");
 #if DEBUG
-    mLog->set_level(spdlog::level::trace);
-    mLog->info("configuration is Debug");
+    _log->set_level(spdlog::level::trace);
+    _log->info("configuration is Debug");
 #endif
 
-    init_window();
+    InitWindow();
 
-    mRenderer.init(mWindow);
-
-    mRenderer.mainLoop();
+    _renderer.Setup(_window);
 }
 
-void atlas::Atlas::window_resized_callback(GLFWwindow* window, int width, int height)
+void atlas::Atlas::WindowResizedCallback(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<atlas::Atlas*>(glfwGetWindowUserPointer(window));
 
-    app->window_resized(width, height);
+    app->WindowResized(width, height);
 }
 
-void atlas::Atlas::window_resized(int width, int height)
+void atlas::Atlas::WindowResized(int width, int height)
 {
-    mRenderer.onWindowResized(width, height);
+    //FIXME
+    // _renderer.onWindowResized(width, height);
 }
 
 /* initializes the GLFW window */
-void atlas::Atlas::init_window()
+void atlas::Atlas::InitWindow()
 {
     if (glfwInit() != GLFW_TRUE)
     {
-        mLog->critical("GLFW failed to initialize.");
+        _log->critical("GLFW failed to initialize.");
         std::terminate();
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    if (!(mWindow = glfwCreateWindow(800, 600, APP_NAME, nullptr, nullptr)))
+    if (!(_window = glfwCreateWindow(800, 600, APP_NAME, nullptr, nullptr)))
     {
         throw std::runtime_error("GLFW failed to create window");
     }
 
-    glfwSetWindowUserPointer(mWindow, this);
-    glfwSetFramebufferSizeCallback(mWindow, window_resized_callback);
+    glfwSetWindowUserPointer(_window, this);
+    glfwSetFramebufferSizeCallback(_window, WindowResizedCallback);
     
-    mLog->debug("initialized window");
+    _log->debug("initialized window");
 }

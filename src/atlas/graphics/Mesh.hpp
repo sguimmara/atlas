@@ -3,7 +3,7 @@
 
 #include "AtlasGraphics.hpp"
 
-#include "Renderer.hpp"
+#include "Renderer2.hpp"
 #include "Drawable.hpp"
 #include "Shader.hpp"
 
@@ -14,7 +14,7 @@ namespace atlas
         class Mesh : public Drawable
         {
         public:
-            Mesh(Renderer* renderer, Shader* vertexShader, Shader* fragmentShader);
+            Mesh(Renderer2* renderer, Shader* vertexShader, Shader* fragmentShader);
             ~Mesh();
 
             VkCommandBuffer getCommandBuffer(uint32_t imageIndex);
@@ -25,7 +25,7 @@ namespace atlas
             void setColors(std::vector<glm::vec3>);
 
         private:
-            Renderer * renderer = nullptr;
+            Renderer2 * renderer = nullptr;
             Shader* vertexShader = nullptr;
             Shader* fragmentShader = nullptr;
 
