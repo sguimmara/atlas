@@ -93,16 +93,6 @@ const lest::test specification[] =
             EXPECT((c1 * 2.0f) == c1);
         }
     },
-    {
-        CASE("constants")
-        {
-            EXPECT(Color::red == Color(255, 0, 0, 255));
-            EXPECT(Color::green == Color(0, 255, 0, 255));
-            EXPECT(Color::blue == Color(0, 0, 255, 255));
-            EXPECT(Color::black == Color(0, 0, 0, 255));
-            EXPECT(Color::white == Color(255, 255, 255, 255));
-        }
-    },
 };
 
 int main(int argc, char * argv[])

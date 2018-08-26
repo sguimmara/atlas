@@ -53,38 +53,7 @@ namespace atlas
                 << static_cast<int>(c.b) << " "
                 << static_cast<int>(c.a) << "]";
         }
-
-        /**
-        * @brief      Pure red
-        */
-        static const Color red;
-
-        /**
-        * @brief      Pure green
-        */
-        static const Color green;
-
-        /**
-        * @brief      Pure blue
-        */
-        static const Color blue;
-
-        /**
-        * @brief      Pure white
-        */
-        static const Color white;
-
-        /**
-        * @brief      Pure black
-        */
-        static const Color black;
     };
-
-    const Color Color::red = { 255, 0, 0, 255 };
-    const Color Color::green = { 0, 255, 0, 255 };
-    const Color Color::blue = { 0, 0, 255, 255 };
-    const Color Color::white = { 255, 255, 255, 255 };
-    const Color Color::black = { 0, 0, 0, 255 };
 }
 
 #endif
