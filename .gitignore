@@ -4,6 +4,7 @@
 .msvc*
 build*
 .vs*
+*.spv
 
 # Created by https://www.gitignore.io/api/c++,cmake,sublimetext
 

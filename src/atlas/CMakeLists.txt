@@ -26,7 +26,7 @@ set(LIBNAME atlas)
 
 macro(create_library NAME TYPE SOURCES)
   add_library(${NAME} ${TYPE} ${SOURCES})
-  set_target_properties(${NAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
+  set_target_properties(${NAME} PROPERTIES OUTPUT_NAME atlas)
   set_target_properties(${NAME} PROPERTIES VERSION ${ATLAS_VERSION_STRING} SOVERSION ${ATLAS_VERSION_MAJOR})
   target_link_libraries(${NAME} ${Vulkan_LIBRARY} ${GLFW_LIBRARY})
 endmacro()

@@ -1,3 +1,4 @@
+#include "Drawable.hpp"
 #include "Renderer.hpp"
 
 #ifdef DEBUG
@@ -20,7 +21,8 @@ namespace atlas
 {
     namespace graphics
     {
-        Renderer::Renderer()
+        Renderer::Renderer() :
+            _imageIndex(0)
         {
             _log = spdlog::stdout_color_mt("renderer");
 
@@ -43,6 +45,8 @@ namespace atlas
             CreateCommandPool();
             CreateFramebuffer();
             CreateImages();
+
+            _drawable = new Drawable(this);
         }
 
         Renderer::~Renderer()
@@ -54,15 +58,16 @@ namespace atlas
                 vkDestroyDebugReportCallbackEXT(_instance, _debugCallback, nullptr);
             }
 
-            DestroyFrameBuffer();
-            DestroyCommandPool();
-            DestroyDevice();
-            DestroyInstance();
+            delete _drawable;
 
             for (auto img : _images)
             {
                 img.destroy();
             }
+            DestroyFrameBuffer();
+            DestroyCommandPool();
+            DestroyDevice();
+            DestroyInstance();
         }
 
         bool checkValidationLayerSupport()
@@ -203,7 +208,8 @@ namespace atlas
                 glfwPollEvents();
                 RenderFrame();
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                //TODO: framerate management
+                std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
                 _graphicsQueue.waitIdle();
                 _device.waitIdle();
@@ -439,13 +445,17 @@ namespace atlas
 
         void Renderer::RenderFrame()
         {
-            ImageStruct& img = _images[_imageIndex];
+            uint32_t image = _imageIndex;
+            ImageStruct& img = _images[image];
 
             ++_imageIndex;
-            _imageIndex %= 2;
+            _imageIndex %= 3;
 
             vk::Result result;
             uint32_t target = _framebuffer->AcquireImage(img.imageAcquired);
+
+            // TODO: fetch buffers from the render list
+            auto buffer = _drawable->GetCommandBuffer(image);
 
             // Render code
 
@@ -455,7 +465,8 @@ namespace atlas
                 .setPWaitSemaphores(&img.imageAcquired)
                 .setSignalSemaphoreCount(1)
                 .setPSignalSemaphores(&img.renderComplete)
-                .setCommandBufferCount(0)
+                .setCommandBufferCount(1)
+                .setPCommandBuffers(&buffer)
                 .setPWaitDstStageMask(&pipeStage);
 
             result = _graphicsQueue.submit(1, &info, vk::Fence());

@@ -16,18 +16,18 @@ namespace graphics
         /**
         * @brief       Loads a shader from a SPIR-V file
         */
-        Shader(const std::string name, const std::string path, const VkDevice device);
+        Shader(const std::string name, const std::string path, const vk::Device device);
         ~Shader();
 
         /**
         * @brief       Returns the underlying Vulkan shader module
         */
-        inline VkShaderModule shaderModule() const noexcept { return this->_shaderModule; }
+        inline vk::ShaderModule shaderModule() const noexcept { return _shaderModule; }
 
     private:
-        std::string name;
-        VkShaderModule _shaderModule;
-        VkDevice device;
+        std::string _name;
+        vk::ShaderModule _shaderModule;
+        vk::Device _device;
     };
 }
 }

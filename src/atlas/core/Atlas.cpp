@@ -16,6 +16,7 @@ atlas::Atlas::Atlas() :
     InitWindow();
 
     _renderer.Setup(_window);
+    _renderer.Run();
 }
 
 void atlas::Atlas::WindowResizedCallback(GLFWwindow* window, int width, int height)

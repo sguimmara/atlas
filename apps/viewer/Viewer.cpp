@@ -5,6 +5,5 @@
 int main(int argc, char *argv[])
 {
     atlas::Atlas app;
-
     return 0;
 }

@@ -21,8 +21,10 @@ namespace atlas
 
             ~Framebuffer();
 
+            inline uint32_t imageCount() const noexcept { return static_cast<uint32_t>(_images.size()); }
             inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
             inline vk::Framebuffer framebuffer(uint32_t i) const noexcept { return _framebuffers[i]; }
+            inline vk::Image image(uint32_t i) const noexcept { return _images[i]; }
 
             uint32_t AcquireImage(vk::Semaphore semaphore);
             void PresentImage(uint32_t imageIndex, vk::Semaphore wait);

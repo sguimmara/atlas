@@ -5,15 +5,17 @@
 
 #include "Drawable.hpp"
 
+
 namespace atlas
 {
     namespace graphics
     {
+        class Renderer;
+
         class Blank : public Drawable
         {
-            virtual void prepareRenderState() override;
-            virtual vk::CommandBuffer GetCommandBuffer(uint32_t imageIndex) override;
-            virtual void UpdateCommandBuffers() override;
+        public:
+            Blank(Renderer* renderer) : Drawable(renderer) {}
         };
     }
 }

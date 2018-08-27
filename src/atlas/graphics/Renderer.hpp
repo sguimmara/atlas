@@ -8,6 +8,8 @@ namespace atlas
 {
     namespace graphics
     {
+        class Drawable;
+
         class Renderer
         {
         public:
@@ -15,6 +17,8 @@ namespace atlas
             void Setup(GLFWwindow* window);
             ~Renderer();
 
+            inline vk::Device device() const noexcept { return _device; }
+            inline vk::CommandPool pool() const noexcept { return _commandPool; }
             inline vk::Extent2D extent() const noexcept { return _extent; }
             inline Framebuffer* framebuffer() const noexcept { return _framebuffer; }
 
@@ -84,6 +88,8 @@ namespace atlas
 
             std::vector<const char*> _enabledExtensions;
             std::vector<ImageStruct> _images;
+
+            Drawable* _drawable;
 
             GLFWwindow * _window;
         };
