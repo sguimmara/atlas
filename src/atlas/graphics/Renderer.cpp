@@ -35,7 +35,10 @@ namespace atlas
 
         void Renderer::Setup(GLFWwindow* window)
         {
+            int w, h;
+            glfwGetWindowSize(window, &w, &h);
             _window = window;
+            _viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
 
             CreateInstance();
             SetupDebugCallbacks();
@@ -45,7 +48,10 @@ namespace atlas
             CreateCommandPool();
             CreateFramebuffer();
             CreateImages();
+            CreateCommandBuffers();
+            UpdateCommandBuffers();
 
+            _log->debug("setup completed");
             _drawable = new Drawable(this);
         }
 
@@ -60,10 +66,7 @@ namespace atlas
 
             delete _drawable;
 
-            for (auto img : _images)
-            {
-                img.destroy();
-            }
+            DestroyImages();
             DestroyFrameBuffer();
             DestroyCommandPool();
             DestroyDevice();
@@ -443,6 +446,69 @@ namespace atlas
             }
         }
 
+        void Renderer::DestroyImages()
+        {
+            assert(!_images.empty());
+            for (auto img : _images)
+            {
+                img.destroy();
+            }
+            _images.clear();
+        }
+
+        void Renderer::CreateCommandBuffers()
+        {
+            _commandBuffers.resize(_framebuffer->imageCount());
+
+            auto const allocInfo = vk::CommandBufferAllocateInfo()
+                .setCommandBufferCount(static_cast<uint32_t>(_commandBuffers.size()))
+                .setCommandPool(_commandPool)
+                .setLevel(vk::CommandBufferLevel::ePrimary);
+
+            auto result = _device.allocateCommandBuffers(&allocInfo, _commandBuffers.data());
+            VERIFY(result == vk::Result::eSuccess);
+
+            UpdateCommandBuffers();
+        }
+
+        void Renderer::UpdateCommandBuffers()
+        {
+            vk::ClearValue const clearValues[2] = {
+                vk::ClearColorValue(std::array<float, 4>({ { 0.2f, 0.2f, 0.2f, 0.2f } })),
+                vk::ClearDepthStencilValue(1.0f, 0u) };
+
+            for (uint32_t i = 0; i < _commandBuffers.size(); i++)
+            {
+                auto buffer = _commandBuffers[i];
+
+                auto const begin = vk::CommandBufferBeginInfo()
+                    .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+
+                auto result = buffer.begin(&begin);
+                VERIFY(result == vk::Result::eSuccess);
+                {
+                    auto const renderPassInfo = vk::RenderPassBeginInfo()
+                        .setRenderPass(_framebuffer->renderPass())
+                        .setFramebuffer(_framebuffer->framebuffer(i))
+                        .setRenderArea(vk::Rect2D(vk::Offset2D(0, 0), _extent))
+                        .setClearValueCount(2)
+                        .setPClearValues(clearValues);
+
+                    buffer.setViewport(0, 1, &_viewport);
+                    buffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
+                    {
+
+                        //glm::mat4 mvp(1.0);
+                        //buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &mvp);
+                        //buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
+                        //buffer.draw(1, 1, 0, 0);
+                    }
+                    buffer.endRenderPass();
+                }
+                buffer.end();
+            }
+        }
+
         void Renderer::RenderFrame()
         {
             uint32_t image = _imageIndex;
@@ -454,8 +520,7 @@ namespace atlas
             vk::Result result;
             uint32_t target = _framebuffer->AcquireImage(img.imageAcquired);
 
-            // TODO: fetch buffers from the render list
-            auto buffer = _drawable->GetCommandBuffer(image);
+            auto buffer = _commandBuffers[image];
 
             // Render code
 

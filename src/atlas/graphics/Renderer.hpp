@@ -20,6 +20,7 @@ namespace atlas
             inline vk::Device device() const noexcept { return _device; }
             inline vk::CommandPool pool() const noexcept { return _commandPool; }
             inline vk::Extent2D extent() const noexcept { return _extent; }
+            inline vk::Viewport viewport() const noexcept { return _viewport; }
             inline Framebuffer* framebuffer() const noexcept { return _framebuffer; }
 
             void Run();
@@ -59,12 +60,19 @@ namespace atlas
             bool CheckExtensionSupport(vk::PhysicalDevice gpu);
             void CreateDevice();
             void DestroyDevice();
-            void CreateCommandPool();
-            void DestroyCommandPool();
+
             void CreateFramebuffer();
             void DestroyFrameBuffer();
-            void RenderFrame();
+
+            void CreateCommandPool();
+            void DestroyCommandPool();
+            void CreateCommandBuffers();
+            void UpdateCommandBuffers();
+
             void CreateImages();
+            void DestroyImages();
+
+            void RenderFrame();
 
             uint32_t _imageLag = 3;
 
@@ -79,6 +87,7 @@ namespace atlas
             vk::Queue _presentQueue;
             vk::Queue _graphicsQueue;
             vk::Extent2D _extent;
+            vk::Viewport _viewport;
             VkDebugReportCallbackEXT _debugCallback;
 
             Framebuffer * _framebuffer = nullptr;
@@ -88,6 +97,7 @@ namespace atlas
 
             std::vector<const char*> _enabledExtensions;
             std::vector<ImageStruct> _images;
+            std::vector<vk::CommandBuffer> _commandBuffers;
 
             Drawable* _drawable;
 
