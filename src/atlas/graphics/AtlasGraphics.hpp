@@ -27,6 +27,8 @@ typedef glm::mat4 Transform;
 #include "VulkanInitializers.hpp"
 #include "SwapchainSupportDetails.hpp"
 
+#define CHECK_SUCCESS(x) (assert(x == vk::Result::eSuccess))
+
 #ifndef DEBUG
 #define VERIFY(x) assert(x)
 #else

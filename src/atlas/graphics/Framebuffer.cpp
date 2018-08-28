@@ -190,6 +190,7 @@ namespace atlas
         void Framebuffer::CreateImageViews()
         {
             _views.resize(_images.size());
+            vk::Result result;
 
             for (size_t i = 0; i < _views.size(); i++)
             {
@@ -201,7 +202,8 @@ namespace atlas
                     .setSubresourceRange(
                         vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 
-                VERIFY(_device.createImageView(&info, nullptr, &_views[i]) == vk::Result::eSuccess);
+                result = _device.createImageView(&info, nullptr, &_views[i]);
+                CHECK_SUCCESS(result);
             }
         }
 
@@ -251,7 +253,8 @@ namespace atlas
                 .setDependencyCount(1)
                 .setPDependencies(&dependency);
 
-            VERIFY(_device.createRenderPass(&info, nullptr, &_renderPass) == vk::Result::eSuccess);
+            auto const result = _device.createRenderPass(&info, nullptr, &_renderPass);
+            CHECK_SUCCESS(result);
             _log->debug("created render pass");
         }
 
@@ -264,6 +267,7 @@ namespace atlas
         void Framebuffer::CreateFramebuffers()
         {
             _framebuffers.resize(_views.size());
+            vk::Result result;
 
             for (size_t i = 0; i < _views.size(); i++)
             {
@@ -276,7 +280,8 @@ namespace atlas
                     .setHeight(_extent.height)
                     .setLayers(1);
 
-                _device.createFramebuffer(&info, nullptr, &_framebuffers[i]);
+                result = _device.createFramebuffer(&info, nullptr, &_framebuffers[i]);
+                CHECK_SUCCESS(result);
             }
         }
 
@@ -293,11 +298,13 @@ namespace atlas
         void Framebuffer::CreateSemaphores()
         {
             _semaphores.resize(_views.size());
+            vk::Result result;
 
             for (size_t i = 0; i < _images.size(); i++)
             {
                 auto const info = vk::SemaphoreCreateInfo();
-                VERIFY(_device.createSemaphore(&info, nullptr, &_semaphores[i]) == vk::Result::eSuccess);
+                result = _device.createSemaphore(&info, nullptr, &_semaphores[i]);
+                CHECK_SUCCESS(result);
             }
         }
 
