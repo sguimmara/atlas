@@ -1,17 +1,18 @@
 #include "Drawable.hpp"
 
+#define SHADER_DIR "C:/Users/sguimmara/Documents/work/c++/atlas/build/msvc/bin/Debug/shaders/"
+
 namespace atlas
 {
     namespace graphics
     {
         Drawable::Drawable(Renderer* renderer) :
             _renderer(renderer),
-            _fragmentShader(Shader("unlit-frag", "./shaders/blank.frag.spv", renderer->device())),
-            _vertexShader(Shader("unlit-vert", "./shaders/blank.vert.spv", renderer->device())),
+            _fragmentShader(Shader("unlit-frag", SHADER_DIR "blank.frag.spv", renderer->device())),
+            _vertexShader(Shader("unlit-vert", SHADER_DIR "blank.vert.spv", renderer->device())),
             GraphicsObject()
         {
-            CreatePipeline(vk::Viewport(0, 0, 100, 100), _vertexShader.shaderModule(), _fragmentShader.shaderModule());
-            CreateCommandBuffers();
+            CreatePipeline(_vertexShader.shaderModule(), _fragmentShader.shaderModule());
         }
 
         Drawable::~Drawable()
@@ -19,17 +20,20 @@ namespace atlas
             DestroyPipeline();
         }
 
-        vk::CommandBuffer Drawable::GetCommandBuffer(uint32_t imageIndex)
+        void Drawable::Draw(vk::CommandBuffer buffer)
         {
-            return _commandBuffers[imageIndex];
+            buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
+            buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, _descriptors, {});
+            buffer.bindVertexBuffers(0, { _mesh.positions, _mesh.normals, _mesh.uv }, { 0, 0, 0 });
+            buffer.bindIndexBuffer(_mesh.indices, 0, vk::IndexType::eUint16);
+            buffer.draw(_mesh.vertexCount, 1, 0, 0);
         }
 
         void Drawable::CreatePipeline(
-            vk::Viewport viewport,
             vk::ShaderModule vertexShader,
             vk::ShaderModule fragmentShader)
         {
-            _viewport = viewport;
+            auto const viewport = _renderer->viewport();
             auto const vertices = VertexInput(sizeof(glm::vec3), 0);
             auto const colors = VertexInput(sizeof(glm::vec3), 1);
 
@@ -124,60 +128,6 @@ namespace atlas
         {
             _renderer->device().destroyPipeline(_pipeline);
             _renderer->device().destroyPipelineLayout(_pipelineLayout);
-        }
-
-        void Drawable::CreateCommandBuffers()
-        {
-            _commandBuffers.resize(_renderer->framebuffer()->imageCount());
-
-            auto const allocInfo = vk::CommandBufferAllocateInfo()
-                .setCommandBufferCount(static_cast<uint32_t>(_commandBuffers.size()))
-                .setCommandPool(_renderer->pool())
-                .setLevel(vk::CommandBufferLevel::ePrimary);
-
-            auto result = _renderer->device().allocateCommandBuffers(&allocInfo, _commandBuffers.data());
-            VERIFY(result == vk::Result::eSuccess);
-
-            UpdateCommandBuffers();
-        }
-
-        void Drawable::UpdateCommandBuffers()
-        {
-            for (uint32_t i = 0; i < _commandBuffers.size(); i++)
-            {
-                auto buffer = _commandBuffers[i];
-
-                auto const begin = vk::CommandBufferBeginInfo()
-                    .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
-
-                auto result = buffer.begin(&begin);
-                VERIFY(result == vk::Result::eSuccess);
-                {
-                    auto const clearColor = vk::ClearColorValue()
-                        .setFloat32({ 1.0f,1.0f,1.0f,1.0f });
-
-                    auto const clear = vk::ClearValue()
-                        .setColor(clearColor);
-
-                    auto const renderPassInfo = vk::RenderPassBeginInfo()
-                        .setRenderPass(_renderer->framebuffer()->renderPass())
-                        .setFramebuffer(_renderer->framebuffer()->framebuffer(i))
-                        .setRenderArea(vk::Rect2D(vk::Offset2D(0, 0), _renderer->extent()))
-                        .setClearValueCount(1)
-                        .setPClearValues(&clear);
-
-                    buffer.setViewport(0, 1, &_viewport);
-                    buffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
-                    {
-                        //glm::mat4 mvp(1.0);
-                        //buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &mvp);
-                        //buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
-                        //buffer.draw(1, 1, 0, 0);
-                    }
-                    buffer.endRenderPass();
-                }
-                buffer.end();
-            }
         }
     }
 }

@@ -10,67 +10,71 @@ namespace atlas
 {
     namespace graphics
     {
-        struct VertexInput
-        {
-            vk::VertexInputBindingDescription binding;
-            vk::VertexInputAttributeDescription attribute;
-
-            VertexInput(uint32_t stride, uint32_t location, vk::Format format = vk::Format::eR32G32B32Sfloat)
-            {
-                binding = vk::VertexInputBindingDescription()
-                    .setBinding(location)
-                    .setStride(stride)
-                    .setInputRate(vk::VertexInputRate::eVertex);
-
-                attribute = vk::VertexInputAttributeDescription()
-                    .setBinding(location)
-                    .setLocation(location)
-                    .setFormat(format)
-                    .setOffset(0);
-            }
-        };
-
-        struct ShaderStages
-        {
-            vk::PipelineShaderStageCreateInfo vertexStage;
-            vk::PipelineShaderStageCreateInfo fragmentStage;
-
-            ShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment)
-            {
-                vertexStage = vk::PipelineShaderStageCreateInfo()
-                    .setStage(vk::ShaderStageFlagBits::eVertex)
-                    .setModule(vertex)
-                    .setPName("main");
-
-                fragmentStage = vk::PipelineShaderStageCreateInfo()
-                    .setStage(vk::ShaderStageFlagBits::eFragment)
-                    .setModule(fragment)
-                    .setPName("main");
-            }
-        };
-
-        /* A drawable is a node that can issue render commands */
+        /**
+        * @brief A GraphicsObject that can issue render commands
+        */
         class Drawable : public GraphicsObject
         {
         public:
             Drawable(Renderer* renderer);
             ~Drawable();
 
-            virtual void UpdateCommandBuffers();
-            virtual vk::CommandBuffer GetCommandBuffer(uint32_t imageIndex);
+            /**
+            * @brief Fills the command buffer with draw commands
+            */
+            void Draw(vk::CommandBuffer buffer);
 
         protected:
-            void CreatePipeline(vk::Viewport, vk::ShaderModule, vk::ShaderModule);
-            void DestroyPipeline();
-            void CreateCommandBuffers();
+            struct VertexInput
+            {
+                vk::VertexInputBindingDescription binding;
+                vk::VertexInputAttributeDescription attribute;
 
-            std::vector<vk::CommandBuffer> _commandBuffers;
-            vk::Viewport _viewport;
+                VertexInput(uint32_t stride, uint32_t location, vk::Format format = vk::Format::eR32G32B32Sfloat)
+                {
+                    binding = vk::VertexInputBindingDescription()
+                        .setBinding(location)
+                        .setStride(stride)
+                        .setInputRate(vk::VertexInputRate::eVertex);
+
+                    attribute = vk::VertexInputAttributeDescription()
+                        .setBinding(location)
+                        .setLocation(location)
+                        .setFormat(format)
+                        .setOffset(0);
+                }
+            };
+
+            struct ShaderStages
+            {
+                vk::PipelineShaderStageCreateInfo vertexStage;
+                vk::PipelineShaderStageCreateInfo fragmentStage;
+
+                ShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment)
+                {
+                    vertexStage = vk::PipelineShaderStageCreateInfo()
+                        .setStage(vk::ShaderStageFlagBits::eVertex)
+                        .setModule(vertex)
+                        .setPName("main");
+
+                    fragmentStage = vk::PipelineShaderStageCreateInfo()
+                        .setStage(vk::ShaderStageFlagBits::eFragment)
+                        .setModule(fragment)
+                        .setPName("main");
+                }
+            };
+
+            void CreatePipeline(vk::ShaderModule, vk::ShaderModule);
+            void DestroyPipeline();
+
             vk::Pipeline _pipeline;
             vk::PipelineLayout _pipelineLayout;
+            std::vector<vk::DescriptorSet> _descriptors;
             Renderer* _renderer;
             Shader _fragmentShader;
             Shader _vertexShader;
+
+            Mesh _mesh;
         };
     }
 }
