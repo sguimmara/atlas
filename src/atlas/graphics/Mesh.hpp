@@ -9,7 +9,7 @@ namespace atlas
     {
         struct Mesh
         {
-            uint32_t vertexCount;
+            uint32_t indexCount;
             vk::Buffer indices;
             vk::IndexType indexType;
 

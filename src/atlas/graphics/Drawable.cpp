@@ -16,24 +16,27 @@ namespace atlas
             
             vk::PhysicalDevice gpu = _renderer->gpu();
             vk::Device device = _renderer->device();
-            _mesh.vertexCount = 3;
-            _mesh.SetIndices(gpu, device, { 0, 1, 2 });
+            _mesh.indexCount = 6;
+            _mesh.SetIndices(gpu, device, { 0, 2, 3, 0, 1, 2 });
             _mesh.SetPositions(gpu, device,
                 {
                     { 0.1, 0.1, 0 },
-                    { 0.5, 0.7, 0 },
-                    { 0.9, 0.5, 0 },
+                    { 0.1, 0.4, 0 },
+                    { 0.4, 0.4, 0 },
+                    { 0.4, 0.1, 0 },
                 });
             _mesh.SetNormals(gpu, device,
                 {
                     { 1, 0, 0 },
                     { 0, 1, 0 },
                     { 0, 0, 1 },
+                    { 1, 1, 1 },
                 });
             _mesh.SetUV(gpu, device,
                 {
                     { 0.1, 0.1 },
                     { 0.5, 0.7 },
+                    { 0.9, 0.1 },
                     { 0.9, 0.1 },
                 });
         }
@@ -47,11 +50,11 @@ namespace atlas
         void Drawable::Draw(vk::CommandBuffer buffer)
         {
             buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
-            buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &_modelView);
             //buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, _descriptors, {});
             buffer.bindVertexBuffers(0, { _mesh.positions, _mesh.normals, _mesh.uv }, { 0, 0, 0 });
             buffer.bindIndexBuffer(_mesh.indices, 0, vk::IndexType::eUint16);
-            buffer.draw(_mesh.vertexCount, 1, 0, 0);
+            buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &_modelView);
+            buffer.drawIndexed(_mesh.indexCount, 1, 0, 0, 0);
         }
 
         void Drawable::CreatePipeline(
@@ -129,10 +132,7 @@ namespace atlas
                 .setPushConstantRangeCount(1)
                 .setPPushConstantRanges(&constants);
 
-            vk::Result result;
-
-            result = _renderer->device().createPipelineLayout(&pipelineLayoutInfo, nullptr, &_pipelineLayout);
-            VERIFY(result == vk::Result::eSuccess);
+            CHECK_SUCCESS(_renderer->device().createPipelineLayout(&pipelineLayoutInfo, nullptr, &_pipelineLayout));
 
             auto const pipelineInfo = vk::GraphicsPipelineCreateInfo()
                 .setStageCount(2)
@@ -148,8 +148,7 @@ namespace atlas
                 .setRenderPass(_renderer->renderPass())
                 .setSubpass(0);
 
-            result = _renderer->device().createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &_pipeline);
-            VERIFY(result == vk::Result::eSuccess);
+            CHECK_SUCCESS(_renderer->device().createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &_pipeline));
         }
 
         void Drawable::DestroyPipeline()
