@@ -47,8 +47,7 @@ namespace atlas
             SelectGpu();
             CreateDevice();
             CreateCommandPool();
-            CreateFramebuffer();
-            CreateImages();
+            CreateSwapchain();
             CreateCommandBuffers();
 
             _log->debug("setup completed");
@@ -66,8 +65,7 @@ namespace atlas
 
             delete _drawable;
 
-            DestroyImages();
-            DestroyFrameBuffer();
+            DestroySwapchain();
             DestroyCommandPool();
             DestroyDevice();
             DestroyInstance();
@@ -202,8 +200,6 @@ namespace atlas
 
         void Renderer::Run()
         {
-            assert(_framebuffer);
-
             _log->debug("entered main loop");
 
             while (!glfwWindowShouldClose(_window))
@@ -409,6 +405,215 @@ namespace atlas
             _log->debug("destroyed device");
         }
 
+        vk::PresentModeKHR Renderer::ChooseSwapPresentMode(const std::vector<vk::PresentModeKHR> availablePresentModes)
+        {
+            vk::PresentModeKHR bestMode = vk::PresentModeKHR::eFifo;
+
+            for (const auto& availablePresentMode : availablePresentModes)
+            {
+                if (availablePresentMode == vk::PresentModeKHR::eMailbox)
+                {
+                    return availablePresentMode;
+                }
+                else if (availablePresentMode == vk::PresentModeKHR::eImmediate)
+                {
+                    bestMode = availablePresentMode;
+                }
+            }
+
+            return bestMode;
+        }
+
+        vk::Extent2D Renderer::ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, GLFWwindow* window)
+        {
+            if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+            {
+                return capabilities.currentExtent;
+            }
+            else
+            {
+                int width, height;
+                glfwGetFramebufferSize(window, &width, &height);
+
+                vk::Extent2D actualExtent =
+                {
+                    static_cast<uint32_t>(width),
+                    static_cast<uint32_t>(height)
+                };
+
+                actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+                actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+
+                return actualExtent;
+            }
+        }
+
+        vk::SurfaceFormatKHR Renderer::ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
+        {
+            if (availableFormats.size() == 1 && availableFormats[0].format == vk::Format::eUndefined)
+            {
+                return { vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
+            }
+
+            for (const auto& availableFormat : availableFormats)
+            {
+                if (availableFormat.format == vk::Format::eB8G8R8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+                {
+                    return availableFormat;
+                }
+            }
+
+            return availableFormats[0];
+        }
+
+        void Renderer::CreateSwapchain()
+        {
+            SwapChainSupportDetails swapChainSupport = SwapChainSupportDetails::QuerySwapChainSupport(_gpu, _surface);
+            _swapchainFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+
+            auto const attachment = vk::AttachmentDescription()
+                .setFormat(_swapchainFormat.format)
+                .setSamples(vk::SampleCountFlagBits::e1)
+                .setLoadOp(vk::AttachmentLoadOp::eClear)
+                .setStoreOp(vk::AttachmentStoreOp::eStore)
+                .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+                .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+                .setInitialLayout(vk::ImageLayout::eUndefined)
+                .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+            auto const attachmentRef = vk::AttachmentReference()
+                .setAttachment(0)
+                .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+            auto const subpass = vk::SubpassDescription()
+                .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
+                .setColorAttachmentCount(1)
+                .setPColorAttachments(&attachmentRef);
+
+            auto const dependency = vk::SubpassDependency()
+                .setSrcSubpass(VK_SUBPASS_EXTERNAL)
+                .setDstSubpass(0)
+                .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setSrcAccessMask((vk::AccessFlagBits)0)
+                .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+
+            auto const info = vk::RenderPassCreateInfo()
+                .setAttachmentCount(1)
+                .setPAttachments(&attachment)
+                .setSubpassCount(1)
+                .setPSubpasses(&subpass)
+                .setDependencyCount(1)
+                .setPDependencies(&dependency);
+
+            CHECK_SUCCESS(_device.createRenderPass(&info, nullptr, &_renderPass));
+            _log->debug("created render pass");
+
+            vk::PresentModeKHR mode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+            _extent = ChooseSwapExtent(swapChainSupport.capabilities, _window);
+            uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+            if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+            {
+                imageCount = swapChainSupport.capabilities.maxImageCount;
+            }
+
+            _log = spdlog::get("renderer");
+            _log->debug("swapchain image count :  {0:d}", imageCount);
+
+            auto swapChainInfo = vk::SwapchainCreateInfoKHR()
+                .setSurface(_surface)
+                .setMinImageCount(imageCount)
+                .setImageFormat(_swapchainFormat.format)
+                .setImageColorSpace(_swapchainFormat.colorSpace)
+                .setImageExtent(_extent)
+                .setImageArrayLayers(1)
+                .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
+                .setPreTransform(swapChainSupport.capabilities.currentTransform)
+                .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
+                .setPresentMode(mode)
+                .setClipped(VK_TRUE);
+
+            uint32_t queueFamilyIndices[] = { _graphicsFamily, _presentFamily };
+
+            if (_graphicsFamily != _presentFamily)
+            {
+                swapChainInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+                swapChainInfo.queueFamilyIndexCount = 2;
+                swapChainInfo.pQueueFamilyIndices = queueFamilyIndices;
+            }
+            else
+            {
+                swapChainInfo.imageSharingMode = vk::SharingMode::eExclusive;
+            }
+
+            _device.createSwapchainKHR(&swapChainInfo, nullptr, &_swapchain);
+            _device.getSwapchainImagesKHR(_swapchain, &imageCount, nullptr);
+
+            std::vector<vk::Image> images;
+            images.resize(imageCount);
+            _device.getSwapchainImagesKHR(_swapchain, &imageCount, images.data());
+
+            for (uint32_t i = 0; i < images.size(); i++)
+            {
+                RenderTarget target;
+
+                target.device = _device;
+                target.index = i;
+                target.image = images[i];
+
+                auto const semaphoreInfo = vk::SemaphoreCreateInfo();
+                _device.createSemaphore(&semaphoreInfo, nullptr, &target.imageAcquired);
+                _device.createSemaphore(&semaphoreInfo, nullptr, &target.renderComplete);
+                _device.createSemaphore(&semaphoreInfo, nullptr, &target.imageOwnership);
+
+                auto imgViewInfo = vk::ImageViewCreateInfo()
+                    .setImage(target.image)
+                    .setViewType(vk::ImageViewType::e2D)
+                    .setFormat(_swapchainFormat.format)
+                    .setComponents(vk::ComponentMapping())
+                    .setSubresourceRange(
+                        vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+
+                CHECK_SUCCESS(_device.createImageView(&imgViewInfo, nullptr, &target.view));
+
+                vk::ImageView attachments[] = { target.view };
+                auto const fbinfo = vk::FramebufferCreateInfo()
+                    .setRenderPass(_renderPass)
+                    .setAttachmentCount(1)
+                    .setPAttachments(attachments)
+                    .setWidth(_extent.width)
+                    .setHeight(_extent.height)
+                    .setLayers(1);
+
+                CHECK_SUCCESS(_device.createFramebuffer(&fbinfo, nullptr, &target.framebuffer));
+
+                _renderTargets.push_back(target);
+            }
+
+            _log->debug("created swapchain");
+        }
+
+        void Renderer::DestroySwapchain()
+        {
+            for (auto target : _renderTargets)
+            {
+                _device.destroySemaphore(target.imageAcquired);
+                _device.destroySemaphore(target.renderComplete);
+                _device.destroySemaphore(target.imageOwnership);
+
+                _device.destroyFramebuffer(target.framebuffer);
+                _device.destroyImageView(target.view);
+            }
+
+            _renderTargets.clear();
+
+            _device.destroySwapchainKHR(_swapchain, nullptr);
+            _log->debug("destroyed swapchain");
+
+            _device.destroyRenderPass(_renderPass, nullptr);
+            _log->debug("destroyed render pass");
+        }
+
         void Renderer::CreateCommandPool()
         {
             auto const info = vk::CommandPoolCreateInfo()
@@ -424,41 +629,9 @@ namespace atlas
             _log->debug("destroyed command pool");
         }
         
-        void Renderer::CreateFramebuffer()
-        {
-            assert(!_framebuffer);
-            _framebuffer = new Framebuffer(_window, _device, _gpu, _surface, _graphicsFamily, _presentFamily);
-        }
-
-        void Renderer::DestroyFrameBuffer()
-        {
-            assert(_framebuffer);
-            delete _framebuffer;
-            _framebuffer = nullptr;
-        }
-        
-        void Renderer::CreateImages()
-        {
-            _images.clear();
-            for (size_t i = 0; i < _imageLag; i++)
-            {
-                _images.emplace_back(_device);
-            }
-        }
-
-        void Renderer::DestroyImages()
-        {
-            assert(!_images.empty());
-            for (auto img : _images)
-            {
-                img.destroy();
-            }
-            _images.clear();
-        }
-
         void Renderer::CreateCommandBuffers()
         {
-            _commandBuffers.resize(_framebuffer->imageCount());
+            _commandBuffers.resize(_renderTargets.size());
 
             auto const allocInfo = vk::CommandBufferAllocateInfo()
                 .setCommandBufferCount(static_cast<uint32_t>(_commandBuffers.size()))
@@ -488,8 +661,8 @@ namespace atlas
                 VERIFY(result == vk::Result::eSuccess);
                 {
                     auto const renderPassInfo = vk::RenderPassBeginInfo()
-                        .setRenderPass(_framebuffer->renderPass())
-                        .setFramebuffer(_framebuffer->framebuffer(i))
+                        .setRenderPass(_renderPass)
+                        .setFramebuffer(_renderTargets[i].framebuffer)
                         .setRenderArea(vk::Rect2D(vk::Offset2D(0, 0), _extent))
                         .setClearValueCount(2)
                         .setPClearValues(clearValues);
@@ -506,7 +679,7 @@ namespace atlas
             }
         }
 
-        void Renderer::SubmitFrame(FrameInfo frame, vk::CommandBuffer buffer)
+        void Renderer::SubmitFrame(RenderTarget frame, vk::CommandBuffer buffer)
         {
             vk::PipelineStageFlags const pipeStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
             auto const info = vk::SubmitInfo()
@@ -535,7 +708,17 @@ namespace atlas
             }
 
             _device.waitIdle();
-            _framebuffer->PresentImage(frame.index, separateQueues ? frame.imageOwnership : frame.renderComplete);
+
+            auto const presentInfo = vk::PresentInfoKHR()
+                .setWaitSemaphoreCount(1)
+                .setPWaitSemaphores(separateQueues ? &frame.imageOwnership : &frame.renderComplete)
+                .setSwapchainCount(1)
+                .setPSwapchains(&_swapchain)
+                .setPImageIndices(&frame.index);
+
+            CHECK_SUCCESS(_presentQueue.presentKHR(&presentInfo));
+
+            _presentQueue.waitIdle();
         }
 
         void Renderer::RenderFrame()
@@ -545,16 +728,14 @@ namespace atlas
             assert(_viewport.height > 0);
             assert(_viewport.width > 0);
 
-            FrameInfo& img = _images[_imageIndex];
-            img.index = _imageIndex;
-
-            uint32_t target = _framebuffer->AcquireImage(img.imageAcquired);
+            RenderTarget& img = _renderTargets[_imageIndex];
+            CHECK_SUCCESS(_device.acquireNextImageKHR(_swapchain, _swapWaitTimeout, img.imageAcquired, vk::Fence(), &_imageIndex));
 
             UpdateCommandBuffers();
             SubmitFrame(img, _commandBuffers[_imageIndex]);
 
             ++_imageIndex;
-            _imageIndex %= _images.size();
+            _imageIndex %= _renderTargets.size();
         }
     }
 }

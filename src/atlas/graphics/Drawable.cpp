@@ -40,6 +40,7 @@ namespace atlas
 
         Drawable::~Drawable()
         {
+            _mesh.Destroy(_renderer->device());
             DestroyPipeline();
         }
 
@@ -144,7 +145,7 @@ namespace atlas
                 .setPColorBlendState(&blending)
                 .setLayout(_pipelineLayout)
                 .setPDynamicState(&dynamicState)
-                .setRenderPass(_renderer->framebuffer()->renderPass())
+                .setRenderPass(_renderer->renderPass())
                 .setSubpass(0);
 
             result = _renderer->device().createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &_pipeline);

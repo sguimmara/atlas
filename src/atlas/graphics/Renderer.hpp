@@ -2,7 +2,7 @@
 #define ATLAS_GRAPHICS_RENDERER_HPP
 
 #include "AtlasGraphics.hpp"
-#include "Framebuffer.hpp"
+#include "RenderTarget.hpp"
 
 namespace atlas
 {
@@ -22,62 +22,36 @@ namespace atlas
             inline vk::CommandPool pool() const noexcept { return _commandPool; }
             inline vk::Extent2D extent() const noexcept { return _extent; }
             inline vk::Viewport viewport() const noexcept { return _viewport; }
-            inline Framebuffer* framebuffer() const noexcept { return _framebuffer; }
+            inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
 
             void Run();
 
         private:
-            struct FrameInfo
-            {
-                uint32_t index;
-                vk::Semaphore imageAcquired;
-                vk::Semaphore renderComplete;
-                vk::Semaphore imageOwnership;
-
-                void destroy()
-                {
-                    _device.destroySemaphore(imageAcquired);
-                    _device.destroySemaphore(renderComplete);
-                    _device.destroySemaphore(imageOwnership);
-                }
-
-                FrameInfo(vk::Device device) : _device(device)
-                {
-                    auto const info = vk::SemaphoreCreateInfo();
-
-                    device.createSemaphore(&info, nullptr, &imageAcquired);
-                    device.createSemaphore(&info, nullptr, &renderComplete);
-                    device.createSemaphore(&info, nullptr, &imageOwnership);
-                }
-
-            private:
-                vk::Device _device;
-            };
-
             void CreateInstance();
             void DestroyInstance();
+
             void SetupDebugCallbacks();
             void CreateSurface();
             void SelectGpu();
             bool CheckExtensionSupport(vk::PhysicalDevice gpu);
+
             void CreateDevice();
             void DestroyDevice();
 
-            void CreateFramebuffer();
-            void DestroyFrameBuffer();
+            // swapchain management
+            vk::PresentModeKHR ChooseSwapPresentMode(const std::vector<vk::PresentModeKHR>);
+            vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR&, GLFWwindow*);
+            vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>&);
+            void CreateSwapchain();
+            void DestroySwapchain();
 
             void CreateCommandPool();
             void DestroyCommandPool();
             void CreateCommandBuffers();
             void UpdateCommandBuffers();
 
-            void CreateImages();
-            void DestroyImages();
-
             void RenderFrame();
-            void SubmitFrame(FrameInfo image, vk::CommandBuffer buffer);
-
-            uint32_t _imageLag = 3;
+            void SubmitFrame(RenderTarget image, vk::CommandBuffer buffer);
 
             std::shared_ptr<spdlog::logger> _log;
 
@@ -85,6 +59,9 @@ namespace atlas
             vk::PhysicalDevice _gpu;
             vk::Device _device;
             vk::SwapchainKHR _swapchain;
+            uint32_t _swapWaitTimeout = 1000;
+            vk::SurfaceFormatKHR _swapchainFormat;
+            vk::RenderPass _renderPass;
             vk::SurfaceKHR _surface;
             vk::CommandPool _commandPool;
             vk::Queue _presentQueue;
@@ -93,13 +70,12 @@ namespace atlas
             vk::Viewport _viewport;
             VkDebugReportCallbackEXT _debugCallback;
 
-            Framebuffer * _framebuffer = nullptr;
             uint32_t _presentFamily;
             uint32_t _graphicsFamily;
             uint32_t _imageIndex;
 
             std::vector<const char*> _enabledExtensions;
-            std::vector<FrameInfo> _images;
+            std::vector<RenderTarget> _renderTargets;
             std::vector<vk::CommandBuffer> _commandBuffers;
 
             Drawable* _drawable;
