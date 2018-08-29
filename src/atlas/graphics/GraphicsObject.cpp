@@ -5,7 +5,8 @@ namespace atlas
     namespace graphics
     {
         GraphicsObject::GraphicsObject() :
-            mLocalTransform(1.0f) // identity matrix
+            _localTransform(1.0f),
+            _modelView(1.0)
         {
         }
 
@@ -15,7 +16,7 @@ namespace atlas
 
         void GraphicsObject::setTransform(Transform t)
         {
-            mLocalTransform = t;
+            _localTransform = t;
         }
 
         void GraphicsObject::prepareRenderState()

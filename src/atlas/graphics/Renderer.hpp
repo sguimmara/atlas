@@ -18,6 +18,7 @@ namespace atlas
             ~Renderer();
 
             inline vk::Device device() const noexcept { return _device; }
+            inline vk::PhysicalDevice gpu() const noexcept { return _gpu; }
             inline vk::CommandPool pool() const noexcept { return _commandPool; }
             inline vk::Extent2D extent() const noexcept { return _extent; }
             inline vk::Viewport viewport() const noexcept { return _viewport; }
@@ -26,8 +27,9 @@ namespace atlas
             void Run();
 
         private:
-            struct ImageStruct
+            struct FrameInfo
             {
+                uint32_t index;
                 vk::Semaphore imageAcquired;
                 vk::Semaphore renderComplete;
                 vk::Semaphore imageOwnership;
@@ -39,7 +41,7 @@ namespace atlas
                     _device.destroySemaphore(imageOwnership);
                 }
 
-                ImageStruct(vk::Device device) : _device(device)
+                FrameInfo(vk::Device device) : _device(device)
                 {
                     auto const info = vk::SemaphoreCreateInfo();
 
@@ -73,6 +75,7 @@ namespace atlas
             void DestroyImages();
 
             void RenderFrame();
+            void SubmitFrame(FrameInfo image, vk::CommandBuffer buffer);
 
             uint32_t _imageLag = 3;
 
@@ -96,7 +99,7 @@ namespace atlas
             uint32_t _imageIndex;
 
             std::vector<const char*> _enabledExtensions;
-            std::vector<ImageStruct> _images;
+            std::vector<FrameInfo> _images;
             std::vector<vk::CommandBuffer> _commandBuffers;
 
             Drawable* _drawable;

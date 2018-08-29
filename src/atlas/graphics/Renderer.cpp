@@ -37,6 +37,7 @@ namespace atlas
         {
             int w, h;
             glfwGetWindowSize(window, &w, &h);
+            _extent = vk::Extent2D(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
             _window = window;
             _viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
 
@@ -49,7 +50,6 @@ namespace atlas
             CreateFramebuffer();
             CreateImages();
             CreateCommandBuffers();
-            UpdateCommandBuffers();
 
             _log->debug("setup completed");
             _drawable = new Drawable(this);
@@ -467,15 +467,15 @@ namespace atlas
 
             auto result = _device.allocateCommandBuffers(&allocInfo, _commandBuffers.data());
             VERIFY(result == vk::Result::eSuccess);
-
-            UpdateCommandBuffers();
         }
 
         void Renderer::UpdateCommandBuffers()
         {
             vk::ClearValue const clearValues[2] = {
-                vk::ClearColorValue(std::array<float, 4>({ { 0.2f, 0.2f, 0.2f, 0.2f } })),
+                vk::ClearColorValue(std::array<float, 4>({ { 30.0f / 255, 65.0f / 255, 84.0f / 255 , 1 } })),
                 vk::ClearDepthStencilValue(1.0f, 0u) };
+
+            auto const scissor = vk::Rect2D({ 0, 0 }, _extent);
 
             for (uint32_t i = 0; i < _commandBuffers.size(); i++)
             {
@@ -495,13 +495,10 @@ namespace atlas
                         .setPClearValues(clearValues);
 
                     buffer.setViewport(0, 1, &_viewport);
+                    buffer.setScissor(0, 1, &scissor);
                     buffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
                     {
-
-                        //glm::mat4 mvp(1.0);
-                        //buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &mvp);
-                        //buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
-                        //buffer.draw(1, 1, 0, 0);
+                        _drawable->Draw(buffer);
                     }
                     buffer.endRenderPass();
                 }
@@ -509,33 +506,19 @@ namespace atlas
             }
         }
 
-        void Renderer::RenderFrame()
+        void Renderer::SubmitFrame(FrameInfo frame, vk::CommandBuffer buffer)
         {
-            uint32_t image = _imageIndex;
-            ImageStruct& img = _images[image];
-
-            ++_imageIndex;
-            _imageIndex %= 3;
-
-            vk::Result result;
-            uint32_t target = _framebuffer->AcquireImage(img.imageAcquired);
-
-            auto buffer = _commandBuffers[image];
-
-            // Render code
-
             vk::PipelineStageFlags const pipeStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
             auto const info = vk::SubmitInfo()
                 .setWaitSemaphoreCount(1)
-                .setPWaitSemaphores(&img.imageAcquired)
+                .setPWaitSemaphores(&frame.imageAcquired)
                 .setSignalSemaphoreCount(1)
-                .setPSignalSemaphores(&img.renderComplete)
+                .setPSignalSemaphores(&frame.renderComplete)
                 .setCommandBufferCount(1)
                 .setPCommandBuffers(&buffer)
                 .setPWaitDstStageMask(&pipeStage);
 
-            result = _graphicsQueue.submit(1, &info, vk::Fence());
-            VERIFY(result == vk::Result::eSuccess);
+            CHECK_SUCCESS(_graphicsQueue.submit(1, &info, vk::Fence()));
 
             bool separateQueues = _presentFamily != _graphicsFamily;
             if (separateQueues)
@@ -543,18 +526,35 @@ namespace atlas
                 auto const presentInfo = vk::SubmitInfo()
                     .setPWaitDstStageMask(&pipeStage)
                     .setWaitSemaphoreCount(1)
-                    .setPWaitSemaphores(&img.renderComplete)
+                    .setPWaitSemaphores(&frame.renderComplete)
                     .setCommandBufferCount(0)
                     .setSignalSemaphoreCount(1)
-                    .setPSignalSemaphores(&img.imageOwnership);
+                    .setPSignalSemaphores(&frame.imageOwnership);
 
-                result = _presentQueue.submit(1, &presentInfo, vk::Fence());
-                VERIFY(result == vk::Result::eSuccess);
+                CHECK_SUCCESS(_presentQueue.submit(1, &presentInfo, vk::Fence()));
             }
 
             _device.waitIdle();
+            _framebuffer->PresentImage(frame.index, separateQueues ? frame.imageOwnership : frame.renderComplete);
+        }
 
-            _framebuffer->PresentImage(target, separateQueues ? img.imageOwnership : img.renderComplete);
+        void Renderer::RenderFrame()
+        {
+            assert(_extent.width > 0);
+            assert(_extent.height > 0);
+            assert(_viewport.height > 0);
+            assert(_viewport.width > 0);
+
+            FrameInfo& img = _images[_imageIndex];
+            img.index = _imageIndex;
+
+            uint32_t target = _framebuffer->AcquireImage(img.imageAcquired);
+
+            UpdateCommandBuffers();
+            SubmitFrame(img, _commandBuffers[_imageIndex]);
+
+            ++_imageIndex;
+            _imageIndex %= _images.size();
         }
     }
 }

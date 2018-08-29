@@ -18,13 +18,13 @@ namespace atlas
             ~GraphicsObject();
 
             void setTransform(Transform t);
-            inline Transform localTransform() const noexcept { return mLocalTransform; }
-            inline Transform modelView() const noexcept { return mModelView; }
+            inline Transform localTransform() const noexcept { return _localTransform; }
+            inline Transform modelView() const noexcept { return _modelView; }
             virtual void prepareRenderState();
 
         protected:
-            Transform mLocalTransform;
-            Transform mModelView;
+            Transform _localTransform;
+            Transform _modelView;
         };
     }
 }

@@ -8,11 +8,34 @@ namespace atlas
     {
         Drawable::Drawable(Renderer* renderer) :
             _renderer(renderer),
-            _fragmentShader(Shader("unlit-frag", SHADER_DIR "blank.frag.spv", renderer->device())),
-            _vertexShader(Shader("unlit-vert", SHADER_DIR "blank.vert.spv", renderer->device())),
+            _fragmentShader(Shader("unlit-frag", SHADER_DIR "unlit.frag.spv", renderer->device())),
+            _vertexShader(Shader("unlit-vert", SHADER_DIR "unlit.vert.spv", renderer->device())),
             GraphicsObject()
         {
             CreatePipeline(_vertexShader.shaderModule(), _fragmentShader.shaderModule());
+            
+            vk::PhysicalDevice gpu = _renderer->gpu();
+            vk::Device device = _renderer->device();
+            _mesh.vertexCount = 3;
+            _mesh.SetIndices(gpu, device, { 0, 1, 2 });
+            _mesh.SetPositions(gpu, device,
+                {
+                    { 0.1, 0.1, 0 },
+                    { 0.5, 0.7, 0 },
+                    { 0.9, 0.5, 0 },
+                });
+            _mesh.SetNormals(gpu, device,
+                {
+                    { 1, 0, 0 },
+                    { 0, 1, 0 },
+                    { 0, 0, 1 },
+                });
+            _mesh.SetUV(gpu, device,
+                {
+                    { 0.1, 0.1 },
+                    { 0.5, 0.7 },
+                    { 0.9, 0.1 },
+                });
         }
 
         Drawable::~Drawable()
@@ -23,7 +46,8 @@ namespace atlas
         void Drawable::Draw(vk::CommandBuffer buffer)
         {
             buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
-            buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, _descriptors, {});
+            buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &_modelView);
+            //buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, _descriptors, {});
             buffer.bindVertexBuffers(0, { _mesh.positions, _mesh.normals, _mesh.uv }, { 0, 0, 0 });
             buffer.bindIndexBuffer(_mesh.indices, 0, vk::IndexType::eUint16);
             buffer.draw(_mesh.vertexCount, 1, 0, 0);
@@ -35,24 +59,27 @@ namespace atlas
         {
             auto const viewport = _renderer->viewport();
             auto const vertices = VertexInput(sizeof(glm::vec3), 0);
-            auto const colors = VertexInput(sizeof(glm::vec3), 1);
+            auto const normals = VertexInput(sizeof(glm::vec3), 1);
+            auto const uv = VertexInput(sizeof(glm::vec2), 2, vk::Format::eR32G32Sfloat);
 
             std::vector<vk::VertexInputAttributeDescription> attributes;
             std::vector<vk::VertexInputBindingDescription> bindings;
 
             attributes.push_back(vertices.attribute);
-            attributes.push_back(colors.attribute);
+            attributes.push_back(normals.attribute);
+            attributes.push_back(uv.attribute);
 
             bindings.push_back(vertices.binding);
-            bindings.push_back(colors.binding);
+            bindings.push_back(normals.binding);
+            bindings.push_back(uv.binding);
 
             auto const stages = ShaderStages(vertexShader, fragmentShader);
 
-            auto const vertexInput = vk::PipelineVertexInputStateCreateInfo();
-            //.setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributes.size()))
-            //.setPVertexAttributeDescriptions(attributes.data())
-            //.setVertexBindingDescriptionCount(static_cast<uint32_t>(bindings.size()))
-            //.setPVertexBindingDescriptions(bindings.data());
+            auto const vertexInput = vk::PipelineVertexInputStateCreateInfo()
+                .setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributes.size()))
+                .setPVertexAttributeDescriptions(attributes.data())
+                .setVertexBindingDescriptionCount(static_cast<uint32_t>(bindings.size()))
+                .setPVertexBindingDescriptions(bindings.data());
 
             auto const assembly = vk::PipelineInputAssemblyStateCreateInfo()
                 .setTopology(vk::PrimitiveTopology::eTriangleList)

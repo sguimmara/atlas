@@ -5,6 +5,7 @@
 #include "GraphicsObject.hpp"
 #include "Renderer.hpp"
 #include "Shader.hpp"
+#include "Mesh.hpp"
 
 namespace atlas
 {

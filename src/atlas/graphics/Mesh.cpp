@@ -47,6 +47,8 @@ namespace atlas
                     return i;
                 }
             }
+            
+            throw std::runtime_error("no memory type found");
         }
 
         void Mesh::CreateBuffer(vk::PhysicalDevice gpu, vk::Device device,
