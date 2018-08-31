@@ -16,23 +16,24 @@ namespace atlas
             device.freeMemory(uvMemory);
         }
 
-        void Mesh::SetPositions(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3> data)
+        void Mesh::SetPositions(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3> &data)
         {
             CreateBuffer(gpu, device, data.data(), data.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, positions, positionsMemory);
         }
 
-        void Mesh::SetNormals(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3> data)
+        void Mesh::SetNormals(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3>& data)
         {
             CreateBuffer(gpu, device, data.data(), data.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, normals, normalsMemory);
         }
 
-        void Mesh::SetUV(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec2> data)
+        void Mesh::SetUV(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec2>& data)
         {
             CreateBuffer(gpu, device, data.data(), data.size() * sizeof(glm::vec2), vk::BufferUsageFlagBits::eVertexBuffer, uv, uvMemory);
         }
 
-        void Mesh::SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t> data)
+        void Mesh::SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t>& data)
         {
+            indexCount = static_cast<uint32_t>(data.size());
             CreateBuffer(gpu, device, data.data(), data.size() * sizeof(uint16_t), vk::BufferUsageFlagBits::eIndexBuffer, indices, indicesMemory);
         }
 

@@ -1,4 +1,1 @@
-FILE(GLOB_RECURSE INCLUDE_FILES "*.hpp")
-
-install(FILES ${INCLUDE_FILES}
-        DESTINATION include/atlas/graphics)
+add_sources(primitives)

@@ -18,10 +18,10 @@ namespace atlas
             vk::Buffer uv;
 
             void Destroy(vk::Device device);
-            void SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t> data);
-            void SetPositions(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3> data);
-            void SetNormals(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3> data);
-            void SetUV(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec2> data);
+            void SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t>& data);
+            void SetPositions(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3>& data);
+            void SetNormals(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3>& data);
+            void SetUV(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec2>& data);
 
         private:
             vk::DeviceMemory indicesMemory;

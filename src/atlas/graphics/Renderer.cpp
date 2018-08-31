@@ -381,11 +381,15 @@ namespace atlas
                 queues.push_back(qInfo);
             }
 
+            auto const features = vk::PhysicalDeviceFeatures()
+                .setFillModeNonSolid(VK_TRUE);
+
             auto info = vk::DeviceCreateInfo()
                 .setQueueCreateInfoCount(static_cast<uint32_t>(queues.size()))
                 .setPQueueCreateInfos(queues.data())
                 .setEnabledExtensionCount(static_cast<uint32_t>(deviceExtensions.size()))
-                .setPpEnabledExtensionNames(deviceExtensions.data());
+                .setPpEnabledExtensionNames(deviceExtensions.data())
+                .setPEnabledFeatures(&features);
 
             if (enableValidationLayers)
             {

@@ -6,6 +6,7 @@
 #include "Renderer.hpp"
 #include "Shader.hpp"
 #include "Mesh.hpp"
+#include "primitives/Tile.hpp"
 
 namespace atlas
 {
@@ -75,7 +76,7 @@ namespace atlas
             Shader _fragmentShader;
             Shader _vertexShader;
 
-            Mesh _mesh;
+            primitives::Tile _mesh;
         };
     }
 }

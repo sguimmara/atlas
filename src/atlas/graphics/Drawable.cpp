@@ -1,6 +1,7 @@
 #include "Drawable.hpp"
+#include <cmath>
 
-#define SHADER_DIR "C:/Users/sguimmara/Documents/work/c++/atlas/build/msvc/bin/Debug/shaders/"
+#define SHADER_DIR "C:/Users/sguimmara/Documents/work/c++/atlas/shaders/spirv/"
 
 namespace atlas
 {
@@ -8,37 +9,12 @@ namespace atlas
     {
         Drawable::Drawable(Renderer* renderer) :
             _renderer(renderer),
+            _mesh(renderer->gpu(), renderer->device(), 8, glm::vec2(-PI, -PI / 2), glm::vec2(PI, PI / 2)),
             _fragmentShader(Shader("unlit-frag", SHADER_DIR "unlit.frag.spv", renderer->device())),
             _vertexShader(Shader("unlit-vert", SHADER_DIR "unlit.vert.spv", renderer->device())),
             GraphicsObject()
         {
             CreatePipeline(_vertexShader.shaderModule(), _fragmentShader.shaderModule());
-            
-            vk::PhysicalDevice gpu = _renderer->gpu();
-            vk::Device device = _renderer->device();
-            _mesh.indexCount = 6;
-            _mesh.SetIndices(gpu, device, { 0, 2, 3, 0, 1, 2 });
-            _mesh.SetPositions(gpu, device,
-                {
-                    { 0.1, 0.1, 0 },
-                    { 0.1, 0.4, 0 },
-                    { 0.4, 0.4, 0 },
-                    { 0.4, 0.1, 0 },
-                });
-            _mesh.SetNormals(gpu, device,
-                {
-                    { 1, 0, 0 },
-                    { 0, 1, 0 },
-                    { 0, 0, 1 },
-                    { 1, 1, 1 },
-                });
-            _mesh.SetUV(gpu, device,
-                {
-                    { 0.1, 0.1 },
-                    { 0.5, 0.7 },
-                    { 0.9, 0.1 },
-                    { 0.9, 0.1 },
-                });
         }
 
         Drawable::~Drawable()
@@ -100,7 +76,7 @@ namespace atlas
                 .setPViewports(&viewport);
 
             auto const rasterization = vk::PipelineRasterizationStateCreateInfo()
-                .setPolygonMode(vk::PolygonMode::eFill)
+                .setPolygonMode(vk::PolygonMode::eLine)
                 .setCullMode(vk::CullModeFlagBits::eNone)
                 .setFrontFace(vk::FrontFace::eClockwise);
 
