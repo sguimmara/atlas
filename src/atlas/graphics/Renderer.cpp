@@ -198,6 +198,47 @@ namespace atlas
             return extensions;
         }
 
+        uint32_t Renderer::FindMemoryType(vk::PhysicalDevice gpu, uint32_t typeFilter, vk::MemoryPropertyFlags properties)
+        {
+            vk::PhysicalDeviceMemoryProperties memory = gpu.getMemoryProperties();
+
+            for (uint32_t i = 0; i < memory.memoryTypeCount; i++)
+            {
+                if ((typeFilter & (1 << i)) && (memory.memoryTypes[i].propertyFlags & properties) == properties)
+                {
+                    return i;
+                }
+            }
+
+            throw std::runtime_error("no memory type found");
+        }
+
+        void Renderer::CreateBuffer(uint32_t size, char* data, vk::Buffer * buffer, vk::DeviceMemory * memory, vk::BufferUsageFlags usage)
+        {
+            auto const info = vk::BufferCreateInfo()
+                .setSize(size)
+                .setSharingMode(vk::SharingMode::eExclusive)
+                .setUsage(usage);
+
+            CHECK_SUCCESS(_device.createBuffer(&info, nullptr, buffer));
+
+            auto const reqs = _device.getBufferMemoryRequirements(*buffer);
+
+            auto const alloc = vk::MemoryAllocateInfo()
+                .setAllocationSize(reqs.size)
+                .setMemoryTypeIndex(
+                    FindMemoryType(_gpu, reqs.memoryTypeBits,
+                        vk::MemoryPropertyFlagBits::eHostVisible
+                        | vk::MemoryPropertyFlagBits::eHostCoherent));
+
+            void* tmp;
+            CHECK_SUCCESS(_device.allocateMemory(&alloc, nullptr, memory));
+            _device.bindBufferMemory(*buffer, *memory, 0);
+            CHECK_SUCCESS(_device.mapMemory(*memory, 0, info.size, vk::MemoryMapFlags(), &tmp));
+            memcpy(tmp, data, static_cast<size_t>(info.size));
+            _device.unmapMemory(*memory);
+        }
+
         void Renderer::Run()
         {
             _log->debug("entered main loop");
@@ -632,7 +673,7 @@ namespace atlas
             _device.destroyCommandPool(_commandPool, nullptr);
             _log->debug("destroyed command pool");
         }
-        
+
         void Renderer::CreateCommandBuffers()
         {
             _commandBuffers.resize(_renderTargets.size());

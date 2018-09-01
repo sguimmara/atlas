@@ -23,6 +23,10 @@ namespace atlas
             inline vk::Extent2D extent() const noexcept { return _extent; }
             inline vk::Viewport viewport() const noexcept { return _viewport; }
             inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
+            inline size_t swapchainSize() const noexcept { return _renderTargets.size(); }
+
+            uint32_t FindMemoryType(vk::PhysicalDevice gpu, uint32_t typeFilter, vk::MemoryPropertyFlags properties);
+            void CreateBuffer(uint32_t size, char* data, vk::Buffer * buffer, vk::DeviceMemory * memory, vk::BufferUsageFlags usage);
 
             void Run();
 
