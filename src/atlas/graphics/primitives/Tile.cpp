@@ -5,8 +5,8 @@ namespace agp = atlas::graphics::primitives;
 
 agp::Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm::vec2 min, glm::vec2 max)
 {
-    int w = subdivs * 2;
-    int h = subdivs;
+    int w = subdivs;
+    int h = subdivs * 2;
 
     double deltaX = (max[0] - min[0]) / w;
     double deltaY = (max[1] - min[1]) / h;
@@ -35,7 +35,7 @@ agp::Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm
             uv.push_back({ (float)x, (float)y });
 
             positions.push_back({ (float)x0, (float)y0, (float)z0 });
-            normals.push_back({ 1, 1, 1 });
+            normals.push_back({ (float)x0, (float)y0, (float)z0 });
         }
     }
 
@@ -55,11 +55,11 @@ agp::Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm
 
             indices.push_back(a);
             indices.push_back(b);
-            indices.push_back(d);
-            
-            indices.push_back(d);
-            indices.push_back(b);
             indices.push_back(c);
+            
+            indices.push_back(c);
+            indices.push_back(d);
+            indices.push_back(a);
 
         }
     }

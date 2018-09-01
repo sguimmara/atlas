@@ -66,12 +66,24 @@ namespace atlas
                 }
             };
 
+            struct MVP
+            {
+                glm::mat4 model;
+                glm::mat4 view;
+                glm::mat4 proj;
+            };
+
+            void CreateDescriptorPool(size_t swapchainSize);
+            void CreateDescriptorSets(size_t swapchainSize);
+            void DestroyDescriptorSets();
             void CreatePipeline(vk::ShaderModule, vk::ShaderModule);
             void DestroyPipeline();
 
             vk::Pipeline _pipeline;
             vk::PipelineLayout _pipelineLayout;
-            std::vector<vk::DescriptorSet> _descriptors;
+            vk::DescriptorPool _descriptorPool;
+            vk::DescriptorSetLayout _descriptorSetLayout;
+            std::vector<vk::DescriptorSet> _descriptorSets;
             Renderer* _renderer;
             Shader _fragmentShader;
             Shader _vertexShader;
