@@ -1,7 +1,7 @@
 #include "Drawable.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
-#define SHADER_DIR "C:/Users/sguimmara/Documents/work/c++/atlas/shaders/"
+#define SHADER_DIR "C:/Users/sguimmara/Documents/work/c++/atlas/build/msvc/bin/shaders/"
 
 namespace atlas
 {

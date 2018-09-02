@@ -1,5 +1,4 @@
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
+@SHADER_LIB@
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -18,9 +17,9 @@ layout(location = 2) in vec2 uv;
 
 layout(location = 0) out vec3 fragColor;
 
-void main() {
-	vec4 sun = push.proj * push.view * push.model * vec4(1, 0, 0, 1.0);
-	float light = dot(sun.xyz, normal);
-    gl_Position = push.proj * push.view * push.model * vec4(position, 1.0);
-    fragColor = push.color * light;
+void main()
+{
+    vec4 sun = transform(push.model, push.view, push.proj, vec3(1, 0, 0));
+    gl_Position = transform(push.model, push.view, push.proj, position);
+    fragColor = push.color * light(sun.xyz, normal);
 }
