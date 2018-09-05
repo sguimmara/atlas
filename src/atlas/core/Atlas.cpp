@@ -1,9 +1,10 @@
 #include "Atlas.hpp"
+#include "atlas/graphics/Drawable.hpp"
+#include "atlas/graphics/Camera.hpp"
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-atlas::Atlas::Atlas() :
-    _renderer(graphics::Renderer())
+atlas::Atlas::Atlas()
 {
     _log = spdlog::stdout_color_mt("atlas");
 
@@ -15,8 +16,21 @@ atlas::Atlas::Atlas() :
 
     InitWindow();
 
-    _renderer.Setup(_window);
-    _renderer.Run();
+    _renderer = new graphics::Renderer();
+
+    _renderer->Setup(_window);
+
+    _scene = new graphics::Scene();
+    _scene->root()->add_child(new graphics::Camera(_renderer));
+
+
+    graphics::Drawable* left = new graphics::Drawable(_renderer);
+    _scene->root()->add_child(left);
+    _renderer->SetScene(_scene);
+
+    _log->info("scene created");
+
+    _renderer->Run();
 }
 
 void atlas::Atlas::WindowResizedCallback(GLFWwindow* window, int width, int height)

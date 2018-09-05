@@ -3,6 +3,8 @@
 
 #include "atlas/graphics/AtlasGraphics.hpp"
 #include "atlas/graphics/Renderer.hpp"
+#include "atlas/graphics/Scene.hpp"
+#include "atlas/graphics/Camera.hpp"
 
 namespace atlas
 {
@@ -16,6 +18,8 @@ namespace atlas
     public:
         Atlas();
 
+        inline graphics::Scene* scene() const noexcept { return _scene; };
+
     private:
         static void WindowResizedCallback(GLFWwindow* window, int width, int height);
 
@@ -24,10 +28,11 @@ namespace atlas
 
         std::shared_ptr<spdlog::logger> _log;
 
-        graphics::Renderer _renderer;
+        graphics::Renderer* _renderer;
 
         GLFWwindow * _window;
 
+        graphics::Scene* _scene;
     };
 }
 #endif //!ATLAS_HPP

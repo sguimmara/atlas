@@ -2,20 +2,28 @@
 #define ATLAS_DRAWABLE_HPP
 
 #include "AtlasGraphics.hpp"
-#include "GraphicsObject.hpp"
+#include "Node.hpp"
 #include "Renderer.hpp"
 #include "Shader.hpp"
 #include "Mesh.hpp"
+#include "Image.hpp"
 #include "primitives/Tile.hpp"
 
 namespace atlas
 {
     namespace graphics
     {
+        struct DrawContext
+        {
+            vk::CommandBuffer cmdBuffer;
+            Transform viewMatrix;
+            Transform projectionMatrix;
+        };
+
         /**
         * @brief A GraphicsObject that can issue render commands
         */
-        class Drawable : public GraphicsObject
+        class Drawable : public Node
         {
         public:
             Drawable(Renderer* renderer);
@@ -24,7 +32,7 @@ namespace atlas
             /**
             * @brief Fills the command buffer with draw commands
             */
-            void Draw(vk::CommandBuffer buffer);
+            void Draw(DrawContext context);
 
         protected:
             struct VertexInput
@@ -73,6 +81,7 @@ namespace atlas
                 glm::mat4 proj;
             };
 
+            void CreateTexture();
             void CreateDescriptorPool(size_t swapchainSize);
             void CreateDescriptorSets(size_t swapchainSize);
             void DestroyDescriptorSets();
@@ -89,6 +98,7 @@ namespace atlas
             Shader _vertexShader;
 
             primitives::Tile _mesh;
+            Image _texture;
         };
     }
 }

@@ -1,5 +1,9 @@
 #include "Drawable.hpp"
 #include "Renderer.hpp"
+#include "Camera.hpp"
+#include <sstream>
+
+#include <glm/gtc/matrix_transform.hpp>
 
 #ifdef DEBUG
 const bool enableValidationLayers = true;
@@ -38,8 +42,8 @@ namespace atlas
             int w, h;
             glfwGetWindowSize(window, &w, &h);
             _extent = vk::Extent2D(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
-            _window = window;
             _viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
+            _window = window;
 
             CreateInstance();
             SetupDebugCallbacks();
@@ -49,9 +53,17 @@ namespace atlas
             CreateCommandPool();
             CreateSwapchain();
             CreateCommandBuffers();
-
             _log->debug("setup completed");
-            _drawable = new Drawable(this);
+        }
+
+        void Renderer::SetScene(Scene * scene)
+        {
+            _scene = scene;
+        }
+
+        void Renderer::DestroyScene()
+        {
+            _scene = nullptr;
         }
 
         Renderer::~Renderer()
@@ -63,7 +75,7 @@ namespace atlas
                 vkDestroyDebugReportCallbackEXT(_instance, _debugCallback, nullptr);
             }
 
-            delete _drawable;
+            DestroyScene();
 
             DestroySwapchain();
             DestroyCommandPool();
@@ -213,7 +225,118 @@ namespace atlas
             throw std::runtime_error("no memory type found");
         }
 
-        void Renderer::CreateBuffer(uint32_t size, char* data, vk::Buffer * buffer, vk::DeviceMemory * memory, vk::BufferUsageFlags usage)
+        vk::CommandBuffer Renderer::BeginSingleTimeCommand()
+        {
+            auto const allocInfo = vk::CommandBufferAllocateInfo()
+                .setLevel(vk::CommandBufferLevel::ePrimary)
+                .setCommandPool(_commandPool)
+                .setCommandBufferCount(1);
+
+            vk::CommandBuffer cmdBuffer;
+            CHECK_SUCCESS(_device.allocateCommandBuffers(&allocInfo, &cmdBuffer));
+
+            auto const beginInfo = vk::CommandBufferBeginInfo()
+                .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+
+            CHECK_SUCCESS(cmdBuffer.begin(&beginInfo));
+
+            return cmdBuffer;
+        }
+
+        void Renderer::EndSingleTimeCommand(vk::CommandBuffer cmdBuffer)
+        {
+            cmdBuffer.end();
+
+            auto const submit = vk::SubmitInfo()
+                .setCommandBufferCount(1)
+                .setPCommandBuffers(&cmdBuffer);
+
+            _graphicsQueue.submit(1, &submit, vk::Fence());
+            _graphicsQueue.waitIdle();
+
+            _device.freeCommandBuffers(_commandPool, 1, &cmdBuffer);
+        }
+
+        void Renderer::CopyBufferToImage(uint32_t width, uint32_t height, vk::Buffer stage, vk::Image image)
+        {
+            vk::CommandBuffer transferBuf = BeginSingleTimeCommand();
+
+            auto const region = vk::BufferImageCopy()
+                .setBufferOffset(0)
+                .setBufferRowLength(0)
+                .setBufferImageHeight(0)
+                .setImageSubresource(
+                    vk::ImageSubresourceLayers()
+                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                    .setLayerCount(1)
+                    .setBaseArrayLayer(0)
+                    .setMipLevel(0))
+                .setImageOffset({ 0, 0, 0 })
+                .setImageExtent({ width, height, 1 });
+
+
+            transferBuf.copyBufferToImage(stage, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+            EndSingleTimeCommand(transferBuf);
+        }
+
+        void Renderer::TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
+        {
+            auto cmdBuffer = BeginSingleTimeCommand();
+
+            auto barrier = vk::ImageMemoryBarrier()
+                .setOldLayout(oldLayout)
+                .setNewLayout(newLayout)
+                .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                .setImage(image)
+                .setSubresourceRange(vk::ImageSubresourceRange()
+                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                    .setBaseMipLevel(0)
+                    .setLevelCount(1)
+                    .setBaseArrayLayer(0)
+                    .setLayerCount(1));
+
+            vk::PipelineStageFlags srcStage;
+            vk::PipelineStageFlags dstStage;
+
+            if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal)
+            {
+                barrier.setSrcAccessMask((vk::AccessFlags)0);
+                barrier.setDstAccessMask(vk::AccessFlagBits::eTransferWrite);
+
+                srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
+                dstStage = vk::PipelineStageFlagBits::eTransfer;
+            }
+            else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)
+            {
+                barrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite);
+                barrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
+
+                srcStage = vk::PipelineStageFlagBits::eTransfer;
+                dstStage = vk::PipelineStageFlagBits::eFragmentShader;
+            }
+            else
+            {
+                throw std::invalid_argument("unsupported layout transition!");
+            }
+
+            cmdBuffer.pipelineBarrier(
+                srcStage, dstStage,
+                (vk::DependencyFlags)0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier
+            );
+
+            EndSingleTimeCommand(cmdBuffer);
+        }
+
+        uint32_t Renderer::GetMemoryIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags flags)
+        {
+            return FindMemoryType(_gpu, requirements.memoryTypeBits, flags);
+        }
+
+        void Renderer::CreateBuffer(vk::DeviceSize size, void* data, vk::Buffer * buffer, vk::DeviceMemory * memory, vk::BufferUsageFlags usage)
         {
             auto const info = vk::BufferCreateInfo()
                 .setSize(size)
@@ -246,16 +369,28 @@ namespace atlas
             while (!glfwWindowShouldClose(_window))
             {
                 glfwPollEvents();
+
+                auto start = std::chrono::steady_clock::now();
+
                 RenderFrame();
 
-                //TODO: framerate management
-                std::this_thread::sleep_for(std::chrono::milliseconds(16));
+                auto end = std::chrono::steady_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
 
-                _graphicsQueue.waitIdle();
-                _device.waitIdle();
+                PostFrame(elapsed);
             }
 
             _log->debug("exited main loop");
+        }
+
+        void Renderer::PostFrame(double elapsedSeconds)
+        {
+            std::stringstream title;
+            title << APP_NAME " - ";
+            title << std::round(1 / elapsedSeconds);
+            title << " FPS";
+
+            glfwSetWindowTitle(_window, title.str().c_str());
         }
 
         void Renderer::CreateInstance()
@@ -407,6 +542,22 @@ namespace atlas
                 VK_VERSION_PATCH(apiVer));
         }
 
+#define CHECK_FEATURE(feat) \
+if (!features.feat) \
+{             \
+        _log->critical("missing GPU feature : " #feat); \
+        throw std::runtime_error("missing GPU feature"); \
+}
+
+        void Renderer::CheckFeatures()
+        {
+            const vk::PhysicalDeviceFeatures features = _gpu.getFeatures();
+
+            CHECK_FEATURE(fillModeNonSolid);
+            CHECK_FEATURE(samplerAnisotropy);
+            CHECK_FEATURE(multiViewport);
+        }
+
         void Renderer::CreateDevice()
         {
             std::set<uint32_t> uniqueQueueFamilies = { _presentFamily, _graphicsFamily };
@@ -422,8 +573,12 @@ namespace atlas
                 queues.push_back(qInfo);
             }
 
+            CheckFeatures();
+
             auto const features = vk::PhysicalDeviceFeatures()
-                .setFillModeNonSolid(VK_TRUE);
+                .setFillModeNonSolid(VK_TRUE)
+                .setSamplerAnisotropy(VK_TRUE)
+                .setMultiViewport(VK_TRUE);
 
             auto info = vk::DeviceCreateInfo()
                 .setQueueCreateInfoCount(static_cast<uint32_t>(queues.size()))
@@ -689,6 +844,8 @@ namespace atlas
 
         void Renderer::UpdateCommandBuffers()
         {
+            ApplyTransformations(*_scene);
+
             vk::ClearValue const clearValues[2] = {
                 vk::ClearColorValue(std::array<float, 4>({ { 30.0f / 255, 65.0f / 255, 84.0f / 255 , 1 } })),
                 vk::ClearDepthStencilValue(1.0f, 0u) };
@@ -712,15 +869,42 @@ namespace atlas
                         .setClearValueCount(2)
                         .setPClearValues(clearValues);
 
-                    buffer.setViewport(0, 1, &_viewport);
-                    buffer.setScissor(0, 1, &scissor);
-                    buffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
+                    for (auto camera : _scene->cameras())
                     {
-                        _drawable->Draw(buffer);
+                        buffer.setViewport(0, 1, &camera->viewport());
+                        buffer.setScissor(0, 1, &scissor);
+                        buffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
+                        {
+                            RenderScene(*_scene, *camera, buffer);
+                        }
+                        buffer.endRenderPass();
                     }
-                    buffer.endRenderPass();
                 }
                 buffer.end();
+            }
+        }
+
+        void Renderer::ApplyTransformations(Scene& scene)
+        {
+            for (auto const node : scene)
+            {
+                if (node->parent() != nullptr)
+                {
+                    node->setTransform(node->parent()->transform() * node->localTransform());
+                }
+            }
+        }
+
+        void Renderer::RenderScene(Scene& scene, Camera& camera, vk::CommandBuffer& cmdBuffer)
+        {
+            auto ctx = DrawContext{ cmdBuffer, camera.transform(), camera.projection() };
+            for (auto const node : scene)
+            {
+                auto drawable = dynamic_cast<Drawable*>(node);
+                if (drawable != nullptr)
+                {
+                    drawable->Draw(ctx);
+                }
             }
         }
 
@@ -770,8 +954,6 @@ namespace atlas
         {
             assert(_extent.width > 0);
             assert(_extent.height > 0);
-            assert(_viewport.height > 0);
-            assert(_viewport.width > 0);
 
             RenderTarget& img = _renderTargets[_imageIndex];
             CHECK_SUCCESS(_device.acquireNextImageKHR(_swapchain, _swapWaitTimeout, img.imageAcquired, vk::Fence(), &_imageIndex));
@@ -781,6 +963,10 @@ namespace atlas
 
             ++_imageIndex;
             _imageIndex %= _renderTargets.size();
+
+            _graphicsQueue.waitIdle();
+            _device.waitIdle();
         }
+
     }
 }

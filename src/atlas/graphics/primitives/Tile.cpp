@@ -21,6 +21,10 @@ agp::Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm
     double startX = min[0];
     double startY = min[1];
     z = 0;
+    float uOffset = static_cast<float>(deltaX / (max[0] - min[0]));
+    float vOffset = static_cast<float>(deltaY / (max[1] - min[1]));
+    float u = 0;
+    float v = 0;
 
     for (size_t j = 0; j < h + 1; ++j)
     {
@@ -29,10 +33,12 @@ agp::Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm
         for (size_t i = 0; i < w + 1; ++i)
         {
             x = startX + i * deltaX;
-            double x0 = std::sin(x) * std::cos(y);
             double z0 = std::sin(x) * std::sin(y);
+            double x0 = std::sin(x) * std::cos(y);
             double y0 = std::cos(x);
-            uv.push_back({ (float)x, (float)y });
+            u = j / (float)h;
+            v = 1 - (i / (float)w);
+            uv.push_back({ u, v });
 
             positions.push_back({ (float)x0, (float)y0, (float)z0 });
             normals.push_back({ (float)x0, (float)y0, (float)z0 });

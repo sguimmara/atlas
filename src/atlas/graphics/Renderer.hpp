@@ -3,6 +3,7 @@
 
 #include "AtlasGraphics.hpp"
 #include "RenderTarget.hpp"
+#include "Scene.hpp"
 
 namespace atlas
 {
@@ -15,6 +16,8 @@ namespace atlas
         public:
             Renderer();
             void Setup(GLFWwindow* window);
+            void SetScene(Scene* scene);
+            void DestroyScene();
             ~Renderer();
 
             inline vk::Device device() const noexcept { return _device; }
@@ -25,8 +28,13 @@ namespace atlas
             inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
             inline size_t swapchainSize() const noexcept { return _renderTargets.size(); }
 
+            void CopyBufferToImage(uint32_t width, uint32_t height, vk::Buffer stage, vk::Image image);
+            void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+            vk::CommandBuffer BeginSingleTimeCommand();
+            void EndSingleTimeCommand(vk::CommandBuffer);
+            uint32_t GetMemoryIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags flags);
             uint32_t FindMemoryType(vk::PhysicalDevice gpu, uint32_t typeFilter, vk::MemoryPropertyFlags properties);
-            void CreateBuffer(uint32_t size, char* data, vk::Buffer * buffer, vk::DeviceMemory * memory, vk::BufferUsageFlags usage);
+            void CreateBuffer(vk::DeviceSize size, void* data, vk::Buffer * buffer, vk::DeviceMemory * memory, vk::BufferUsageFlags usage);
 
             void Run();
 
@@ -40,6 +48,7 @@ namespace atlas
             bool CheckExtensionSupport(vk::PhysicalDevice gpu);
 
             void CreateDevice();
+            void CheckFeatures();
             void DestroyDevice();
 
             // swapchain management
@@ -55,6 +64,9 @@ namespace atlas
             void UpdateCommandBuffers();
 
             void RenderFrame();
+            void PostFrame(double);
+            void ApplyTransformations(Scene& scene);
+            void RenderScene(Scene& scene, Camera& camera, vk::CommandBuffer& cmdBuffer);
             void SubmitFrame(RenderTarget image, vk::CommandBuffer buffer);
 
             std::shared_ptr<spdlog::logger> _log;
@@ -82,9 +94,9 @@ namespace atlas
             std::vector<RenderTarget> _renderTargets;
             std::vector<vk::CommandBuffer> _commandBuffers;
 
-            Drawable* _drawable;
-
             GLFWwindow * _window;
+
+            Scene* _scene;
         };
     }
 }
