@@ -13,26 +13,19 @@ namespace atlas
 {
     namespace graphics
     {
-        struct DrawContext
-        {
-            vk::CommandBuffer cmdBuffer;
-            Transform viewMatrix;
-            Transform projectionMatrix;
-        };
-
         /**
         * @brief A GraphicsObject that can issue render commands
         */
         class Drawable : public Node
         {
         public:
-            Drawable(Renderer* renderer);
+            Drawable(Renderer* renderer, Mesh mesh);
             ~Drawable();
 
             /**
             * @brief Fills the command buffer with draw commands
             */
-            void Draw(DrawContext context);
+            virtual void Draw(DrawContext context);
 
         protected:
             struct VertexInput
@@ -92,13 +85,15 @@ namespace atlas
             vk::PipelineLayout _pipelineLayout;
             vk::DescriptorPool _descriptorPool;
             vk::DescriptorSetLayout _descriptorSetLayout;
+            vk::PolygonMode _currentPolygonMode;
             std::vector<vk::DescriptorSet> _descriptorSets;
             Renderer* _renderer;
             Shader _fragmentShader;
             Shader _vertexShader;
 
-            primitives::Tile _mesh;
+            Mesh _mesh;
             Image _texture;
+            glm::vec3 _color;
         };
     }
 }

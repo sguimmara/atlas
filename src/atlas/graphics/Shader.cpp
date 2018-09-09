@@ -17,19 +17,33 @@ namespace atlas
             return module;
         }
 
-        Shader::Shader(const std::string name, const std::string path, const vk::Device device) :
-            _name(name),
-            _device(device)
-        {
-            auto spirv = core::IO::readAllBytes(path);
-            _shaderModule = CreateShaderModule(spirv, _device);
-            spdlog::get("renderer")->debug("loaded shader module '{0}'", path);
+        std::string Shader::_directory = std::string("");
+        std::unordered_map<std::string, Shader> Shader::_store = std::unordered_map<std::string, Shader>();
 
+        void Shader::SetDirectory(std::string directory)
+        {
+            _directory = directory;
         }
 
-        Shader::~Shader()
+        Shader Shader::Get(std::string name, vk::Device device)
         {
-            _device.destroyShaderModule(_shaderModule);
+            auto search = _store.find(name);
+            if (search != _store.end())
+            {
+                return (*search).second;
+            }
+            else
+            {
+                std::string fullpath = _directory + name + ".spv";
+
+                auto spirv = core::IO::readAllBytes(fullpath);
+                auto module = CreateShaderModule(spirv, device);
+                spdlog::get("renderer")->debug("loaded shader module '{0}'", name);
+
+                Shader shader = { name, module };
+                _store.insert({ name, shader });
+                return shader;
+            }
         }
     }
 }

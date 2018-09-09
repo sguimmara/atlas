@@ -5,6 +5,7 @@
 #include "atlas/graphics/Renderer.hpp"
 #include "atlas/graphics/Scene.hpp"
 #include "atlas/graphics/Camera.hpp"
+#include "atlas/graphics/Earth.hpp"
 
 namespace atlas
 {

@@ -21,11 +21,8 @@ atlas::Atlas::Atlas()
     _renderer->Setup(_window);
 
     _scene = new graphics::Scene();
+    _scene->root()->add_child(new graphics::Earth(_renderer));
     _scene->root()->add_child(new graphics::Camera(_renderer));
-
-
-    graphics::Drawable* left = new graphics::Drawable(_renderer);
-    _scene->root()->add_child(left);
     _renderer->SetScene(_scene);
 
     _log->info("scene created");

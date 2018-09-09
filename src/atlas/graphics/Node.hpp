@@ -7,7 +7,27 @@ namespace atlas
 {
     namespace graphics
     {
+        class Camera;
         class Node;
+
+        struct DrawContext
+        {
+            vk::CommandBuffer cmdBuffer;
+            Transform viewMatrix;
+            Transform projectionMatrix;
+        };
+
+        struct UpdateContext
+        {
+            Node* camera;
+        };
+
+        enum class NodeFlags
+        {
+            None = 0,
+            Traversable = 1,
+            Drawable = 2,
+        };
 
         /**
         * @brief      Provides preorder traversal functionality for nodes.
@@ -132,7 +152,7 @@ namespace atlas
              * @throw std::invalid_argument if pos is out of bounds.
              * @return     The child.
              */
-            Node& get_child(size_t pos) const;
+            Node* get_child(size_t pos) const;
 
             /**
              * @brief      Removes the child at index pos.
@@ -142,6 +162,8 @@ namespace atlas
              * @throw std::invalid_argument if pos is out of bounds.
              */
             void remove_child(size_t pos);
+
+            virtual void Update(UpdateContext ctx) {}
 
             /**************************************************************/
             /*                          operators                         */
@@ -186,6 +208,7 @@ namespace atlas
              */
             NodeIterator end() noexcept;
 
+            inline const int flags() const noexcept { return _flags; }
 
             /**************************************************************/
             /*                          transform                         */
@@ -202,6 +225,7 @@ namespace atlas
             Node* _parent;
             Node* _rightSibling;
             std::vector<Node*> _children;
+            int _flags;
 
             void throw_if_out_of_range(size_t child_pos) const;
         };

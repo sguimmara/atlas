@@ -48,13 +48,4 @@ const float  PI_F = 3.14159265358979f;
         std::terminate();            \
     } while (0)
 
-namespace atlas
-{
-namespace graphics
-{
-    class Framebuffer2;
-    class Renderer2;
-}
-}
-
 #endif

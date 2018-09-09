@@ -4,11 +4,13 @@
 #include "AtlasGraphics.hpp"
 #include "RenderTarget.hpp"
 #include "Scene.hpp"
+#include "Node.hpp"
 
 namespace atlas
 {
     namespace graphics
     {
+        class Camera;
         class Drawable;
 
         class Renderer
@@ -64,6 +66,7 @@ namespace atlas
             void UpdateCommandBuffers();
 
             void RenderFrame();
+            static void ProcessKeyEvents(GLFWwindow* window, int key, int scancode, int action, int mods);
             void PostFrame(double);
             void ApplyTransformations(Scene& scene);
             void RenderScene(Scene& scene, Camera& camera, vk::CommandBuffer& cmdBuffer);
@@ -93,6 +96,9 @@ namespace atlas
             std::vector<const char*> _enabledExtensions;
             std::vector<RenderTarget> _renderTargets;
             std::vector<vk::CommandBuffer> _commandBuffers;
+
+            std::vector<double> _slidingElapsedTime;
+            int _slidingElapsedTimeIndex = 0;
 
             GLFWwindow * _window;
 

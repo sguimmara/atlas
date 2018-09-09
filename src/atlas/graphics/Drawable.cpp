@@ -1,23 +1,24 @@
+#include "RenderingOptions.hpp"
 #include "Drawable.hpp"
+#include "Time.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-
-#define SHADER_DIR "C:/Users/sguimmara/Documents/work/c++/atlas/build/msvc/bin/shaders/"
 
 namespace atlas
 {
     namespace graphics
     {
-        Drawable::Drawable(Renderer* renderer) :
+        Drawable::Drawable(Renderer* renderer, Mesh mesh) :
             _renderer(renderer),
-            _mesh(renderer->gpu(), renderer->device(), 32, glm::vec2(0, 0), glm::vec2(PI, 2*PI)),
-            _fragmentShader(Shader("unlit-frag", SHADER_DIR "unlit.frag.spv", renderer->device())),
-            _vertexShader(Shader("unlit-vert", SHADER_DIR "unlit.vert.spv", renderer->device())),
+            _mesh(mesh),
+            _fragmentShader(Shader::Get("unlit.frag", renderer->device())),
+            _vertexShader(Shader::Get("unlit.vert", renderer->device())),
             Node()
         {
+            _flags |= (int)NodeFlags::Drawable;
             CreateTexture();
             CreateDescriptorPool(renderer->swapchainSize());
             CreateDescriptorSets(renderer->swapchainSize());
-            CreatePipeline(_vertexShader.shaderModule(), _fragmentShader.shaderModule());
+            CreatePipeline(_vertexShader.module, _fragmentShader.module);
         }
 
         Drawable::~Drawable()
@@ -28,16 +29,20 @@ namespace atlas
             DestroyDescriptorSets();
         }
 
-        static int occur = 0;
-
         void Drawable::Draw(DrawContext context)
         {
-            occur++;
+            _localTransform = glm::rotate(_localTransform, static_cast<float>(Time::dt * 0.4), glm::vec3(0, 1, 0));
+
+            if (_currentPolygonMode != RenderingOptions::PolygonMode)
+            {
+                DestroyPipeline();
+                CreatePipeline(_vertexShader.module, _fragmentShader.module);
+            }
+            
             struct MVP mvp;
-            mvp.model = glm::rotate(_transform, occur * 0.005f, glm::vec3(0, 1, 0));
+            mvp.model = _transform;
             mvp.view = context.viewMatrix;
             mvp.proj = context.projectionMatrix;
-            glm::vec3 color = { 1, 1, 1 };
 
             vk::CommandBuffer buffer = context.cmdBuffer;
             buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
@@ -45,7 +50,7 @@ namespace atlas
             buffer.bindVertexBuffers(0, { _mesh.positions, _mesh.normals, _mesh.uv }, { 0, 0, 0 });
             buffer.bindIndexBuffer(_mesh.indices, 0, vk::IndexType::eUint16);
             buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MVP), &mvp);
-            buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(MVP), sizeof(glm::vec3), &color);
+            buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(MVP), sizeof(glm::vec3), &_color);
             buffer.drawIndexed(_mesh.indexCount, 1, 0, 0, 0);
         }
 
@@ -125,7 +130,7 @@ namespace atlas
 
         void Drawable::CreateTexture()
         {
-            _texture = Image::FromFile(_renderer, "C:/Users/sguimmara/Documents/work/c++/atlas/images/equirectangular.jpg");
+            _texture = Image::FromFile(_renderer, "C:/Users/sguimmara/Documents/work/c++/atlas/images/uv_grid.jpg");
         }
 
         void Drawable::CreatePipeline(
@@ -171,9 +176,11 @@ namespace atlas
                 .setPViewports(&viewport);
 
             auto const rasterization = vk::PipelineRasterizationStateCreateInfo()
-                .setPolygonMode(vk::PolygonMode::eFill)
+                .setPolygonMode(RenderingOptions::PolygonMode)
                 .setCullMode(vk::CullModeFlagBits::eBack)
                 .setFrontFace(vk::FrontFace::eClockwise);
+
+            _currentPolygonMode = RenderingOptions::PolygonMode;
 
             auto const multisampling = vk::PipelineMultisampleStateCreateInfo()
                 .setRasterizationSamples(vk::SampleCountFlagBits::e1);

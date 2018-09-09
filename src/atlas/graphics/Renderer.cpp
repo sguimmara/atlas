@@ -1,9 +1,14 @@
 #include "Drawable.hpp"
 #include "Renderer.hpp"
+#include "Time.hpp"
+#include "RenderingOptions.hpp"
 #include "Camera.hpp"
+#include <numeric>
 #include <sstream>
 
 #include <glm/gtc/matrix_transform.hpp>
+
+#define SHADER_DIR "C:/Users/sguimmara/Documents/work/c++/atlas/build/msvc/bin/shaders/"
 
 #ifdef DEBUG
 const bool enableValidationLayers = true;
@@ -53,6 +58,7 @@ namespace atlas
             CreateCommandPool();
             CreateSwapchain();
             CreateCommandBuffers();
+            Shader::SetDirectory(SHADER_DIR);
             _log->debug("setup completed");
         }
 
@@ -362,9 +368,19 @@ namespace atlas
             _device.unmapMemory(*memory);
         }
 
+        void Renderer::ProcessKeyEvents(GLFWwindow* window, int key, int scancode, int action, int mods)
+        {
+            if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+            {
+                RenderingOptions::PolygonMode = RenderingOptions::PolygonMode == vk::PolygonMode::eFill ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
+            }
+        }
+
         void Renderer::Run()
         {
             _log->debug("entered main loop");
+
+            glfwSetKeyCallback(_window, ProcessKeyEvents);
 
             while (!glfwWindowShouldClose(_window))
             {
@@ -385,10 +401,27 @@ namespace atlas
 
         void Renderer::PostFrame(double elapsedSeconds)
         {
+            Time::dt = elapsedSeconds;
+            Time::elapsed += elapsedSeconds;
+
+            if (_slidingElapsedTime.size() == 0)
+            {
+                _slidingElapsedTime.resize(50);
+            }
+
+            _slidingElapsedTime[_slidingElapsedTimeIndex] = elapsedSeconds;
+            (++_slidingElapsedTimeIndex) %= _slidingElapsedTime.size();
+
+            double avg = std::accumulate(_slidingElapsedTime.begin(), _slidingElapsedTime.end(), 0.0, std::plus<double>()) 
+                        / static_cast<double>(_slidingElapsedTime.size());
+
             std::stringstream title;
             title << APP_NAME " - ";
-            title << std::round(1 / elapsedSeconds);
+            title << std::round(1 / avg);
             title << " FPS";
+            title << " - ";
+            title << _scene->root()->size();
+            title << " objects";
 
             glfwSetWindowTitle(_window, title.str().c_str());
         }
@@ -897,13 +930,14 @@ if (!features.feat) \
 
         void Renderer::RenderScene(Scene& scene, Camera& camera, vk::CommandBuffer& cmdBuffer)
         {
+            auto uctx = UpdateContext{ &camera };
             auto ctx = DrawContext{ cmdBuffer, camera.transform(), camera.projection() };
             for (auto const node : scene)
             {
-                auto drawable = dynamic_cast<Drawable*>(node);
-                if (drawable != nullptr)
+                node->Update(uctx);
+                if (node->flags() & (int)NodeFlags::Drawable)
                 {
-                    drawable->Draw(ctx);
+                    static_cast<Drawable*>(node)->Draw(ctx);
                 }
             }
         }
@@ -955,17 +989,25 @@ if (!features.feat) \
             assert(_extent.width > 0);
             assert(_extent.height > 0);
 
-            RenderTarget& img = _renderTargets[_imageIndex];
-            CHECK_SUCCESS(_device.acquireNextImageKHR(_swapchain, _swapWaitTimeout, img.imageAcquired, vk::Fence(), &_imageIndex));
+            auto cameras = _scene->cameras();
+            if (cameras.empty())
+            {
+                _log->error("no camera to render");
+            }
+            else
+            {
+                RenderTarget& img = _renderTargets[_imageIndex];
+                CHECK_SUCCESS(_device.acquireNextImageKHR(_swapchain, _swapWaitTimeout, img.imageAcquired, vk::Fence(), &_imageIndex));
 
-            UpdateCommandBuffers();
-            SubmitFrame(img, _commandBuffers[_imageIndex]);
+                UpdateCommandBuffers();
+                SubmitFrame(img, _commandBuffers[_imageIndex]);
 
-            ++_imageIndex;
-            _imageIndex %= _renderTargets.size();
+                ++_imageIndex;
+                _imageIndex %= _renderTargets.size();
 
-            _graphicsQueue.waitIdle();
-            _device.waitIdle();
+                _graphicsQueue.waitIdle();
+                _device.waitIdle();
+            }
         }
 
     }

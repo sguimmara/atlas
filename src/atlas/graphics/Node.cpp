@@ -7,6 +7,7 @@ namespace atlas
         Node::Node() :
             _parent(nullptr),
             _rightSibling(nullptr),
+            _flags((int)NodeFlags::Traversable),
             _transform(glm::mat4(1.0)),
             _localTransform(glm::mat4(1.0))
         {
@@ -37,11 +38,11 @@ namespace atlas
             _children.push_back(child);
         }
 
-        Node& Node::get_child(size_t pos) const
+        Node* Node::get_child(size_t pos) const
         {
             throw_if_out_of_range(pos);
 
-            return *_children[pos];
+            return _children[pos];
         }
 
         void Node::remove_child(size_t pos)
@@ -79,7 +80,7 @@ namespace atlas
             // case 1 : move to the leftmost child.
             if (_current->child_count() > 0)
             {
-                _current = &(_current->get_child(0));
+                _current = (_current->get_child(0));
             }
             // case 2 : move to the right sibling
             else if (_current->right() != nullptr)

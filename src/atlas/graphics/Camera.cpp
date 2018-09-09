@@ -1,4 +1,5 @@
 #include "Camera.hpp"
+#include "Time.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace atlas
@@ -13,6 +14,11 @@ namespace atlas
             Node()
         {
             _localTransform = glm::lookAt(glm::vec3(0, 0, -10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        }
+
+        void Camera::Update(UpdateContext ctx)
+        {
+            _localTransform = glm::lookAt(glm::vec3(0, 0, -10 + Time::elapsed), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
         }
     }
 }

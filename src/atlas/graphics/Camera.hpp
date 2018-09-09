@@ -21,6 +21,9 @@ namespace atlas
             inline float fov() const noexcept { return _fovRadians; }
             inline vk::Viewport viewport() const noexcept { return _viewport; }
             inline void setViewport(vk::Viewport viewport) noexcept { _viewport = viewport; }
+
+            void Update(UpdateContext ctx);
+
         private:
             float _aspect;
             float _fovRadians;

@@ -20,9 +20,9 @@ layout(location = 1) out vec2 fragUv;
 
 void main()
 {
-    vec4 sun = transform(push.model, push.view, push.proj, vec3(1, 0, 0));
-    float l = max(0.35, light(normalize(sun.xyz), normalize(normal)));
+    //vec4 sun = push.model * vec3(0.7, 0.7, 0));
+    //float l = max(0.35, light(normalize(sun.xyz), normalize(normal)));
     gl_Position = transform(push.model, push.view, push.proj, position);
-    fragColor = push.color * l;
+    fragColor = push.color;// * l;
     fragUv = uv;
 }
