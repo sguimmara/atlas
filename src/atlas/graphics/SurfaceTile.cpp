@@ -9,7 +9,7 @@ namespace atlas
             _level(level),
             _row(row),
             _col(col),
-            Drawable(renderer, primitives::Tile::Create(renderer, 32, level, row, col))
+            Drawable(renderer, primitives::Tile::Create(renderer, 16, level, row, col))
         {
             int maxLevel = 10;
             float l = 1.0f / maxLevel * level;
@@ -27,10 +27,24 @@ namespace atlas
             glm::vec3 pos = _transform[3];
 
             auto const dist = glm::distance(camPos, pos);
+        }
 
-            if (dist < 10 / (_level + 1) && _children.size() == 0)
+        void SurfaceTile::Reduce()
+        {
+            if (_children.size() == 0)
             {
-                Split();
+                return;
+            }
+
+            for (auto child : _children)
+            {
+                static_cast<SurfaceTile*>(child)->Reduce();
+            }
+
+            if (_children[0]->child_count() == 0)
+            {
+                _children.clear();
+                _flags |= (int)NodeFlags::Drawable;
             }
         }
 

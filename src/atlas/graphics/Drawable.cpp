@@ -10,8 +10,8 @@ namespace atlas
         Drawable::Drawable(Renderer* renderer, Mesh mesh) :
             _renderer(renderer),
             _mesh(mesh),
-            _fragmentShader(Shader::Get("unlit.frag", renderer->device())),
-            _vertexShader(Shader::Get("unlit.vert", renderer->device())),
+            _fragmentShader(Shader::Get("tile.frag", renderer->device())),
+            _vertexShader(Shader::Get("tile.vert", renderer->device())),
             Node()
         {
             _flags |= (int)NodeFlags::Drawable;
@@ -159,7 +159,7 @@ namespace atlas
             auto const uvAttrib = vk::VertexInputAttributeDescription()
                 .setBinding(0)
                 .setLocation(2)
-                .setFormat(vk::Format::eR32G32Sfloat)
+                .setFormat(vk::Format::eR16G16Sfloat)
                 .setOffset(offsetof(Vertex, uv));
 
             std::vector<vk::VertexInputAttributeDescription> attributes;

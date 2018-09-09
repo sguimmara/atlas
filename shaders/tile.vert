@@ -17,12 +17,14 @@ layout(location = 2) in vec2 uv;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragUv;
+layout(location = 2) out vec3 fragNormal;
+layout(location = 3) out vec3 lightDir;
 
 void main()
 {
-    //vec4 sun = push.model * vec3(0.7, 0.7, 0));
-    //float l = max(0.35, light(normalize(sun.xyz), normalize(normal)));
-    gl_Position = transform(push.model, push.view, push.proj, position);
-    fragColor = push.color;// * l;
-    fragUv = uv;
+    gl_Position = push.proj * push.view * push.model * vec4(position, 1.0);
+    fragNormal = (push.view * push.model * vec4(normal, 0)).xyz;
+    fragUv = vec2(uv);
+    fragColor = push.color;
+    lightDir = (push.view * push.model * vec4(-1, 0, 0.707, 0.0)).xyz;
 }

@@ -21,6 +21,7 @@ namespace atlas
             void Update(UpdateContext ctx);
 
             void Split();
+            void Reduce();
 
         private:
             int _level;

@@ -52,7 +52,7 @@ namespace atlas
 
             for (size_t i = 0; i < _vertices.size(); ++i)
             {
-                _vertices[i].uv = data[i];
+                _vertices[i].uv = glm::packHalf2x16(data[i]);
             }
         }
 

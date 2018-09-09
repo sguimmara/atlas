@@ -1,5 +1,6 @@
 #include "Tile.hpp"
 #include <cmath>
+#include <random>
 
 namespace agp = atlas::graphics::primitives;
 
@@ -10,7 +11,7 @@ namespace atlas
         namespace primitives
         {
             Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm::vec2 min, glm::vec2 max) :
-                Mesh((subdivs * 2 + 1) * (subdivs + 1))
+                Mesh((subdivs + 1) * (subdivs + 1))
             {
                 const double a = 6378137;     // semimajor axis
                 const double b = 6356752.314; // semiminor axis
@@ -21,7 +22,7 @@ namespace atlas
                 double u, v;
                 double x, y, z;
 
-                const uint16_t subdivX = subdivs * 2;
+                const uint16_t subdivX = subdivs;
                 const uint16_t subdivY = subdivs;
 
                 const double xStep = (max.x - min.x) / subdivX;
@@ -44,6 +45,23 @@ namespace atlas
 
                 int i = 0;
 
+                // TEMPORARY
+                std::vector<double> elevs;
+                elevs.resize(size);
+                for (uint16_t row = 0; row < vertexPerRow; ++row)
+                {
+                    double yy = 2 * (row / static_cast<double>(vertexPerRow - 1) - 0.5);
+
+                    for (uint16_t col = 0; col < vertexPerCol; ++col)
+                    {
+                        double xx = 2 * (col / static_cast<double>(vertexPerCol - 1) - 0.5);
+                        double zz = 1 - std::abs(xx + yy) - std::abs(yy - xx);
+                        double hh = zz / 2.0 + 0.5;
+
+                        elevs[col + row * vertexPerRow] = hh * 1000000;
+                    }
+                }
+
                 for (uint16_t row = 0; row < vertexPerRow; ++row)
                 {
                     uint16_t jww = row * vertexPerCol;
@@ -54,17 +72,50 @@ namespace atlas
                         double lat = min.y + row * yStep;
                         double lon = min.x + col * xStep;
 
-                        double nLat = a / std::sqrt(1 - e2 * std::sin(lat));
+                        double sinlat = std::sin(lat);
+                        double sinlon = std::sin(lon);
+                        double coslon = std::cos(lon);
+                        double coslat = std::cos(lat);
 
-                        x = (nLat + h) * std::cos(lat) * std::cos(lon);
-                        y = (nLat + h) * std::cos(lat) * std::sin(lon);
-                        z = (((b*b) / (a*a)*nLat) + h) * std::sin(lat);
+                        double nLat = a / std::sqrt(1 - e2 * sinlat);
 
+                        h = elevs[col + row * vertexPerRow];
+
+                        x = (nLat + h) * coslat * coslon;
+                        y = (nLat + h) * coslat * sinlon;
+                        z = (((b*b) / (a*a)*nLat) + h) * sinlat;
+
+                        positions[i] = glm::vec3{ x, z, y } *scale;
+
+                        float hL = static_cast<float>(elevs[std::max(col - 1, vertexPerCol - 1) + row * vertexPerRow]);
+                        float hR = static_cast<float>(elevs[std::min(col + 1, vertexPerCol - 1) + row * vertexPerRow]);
+                        float hU = static_cast<float>(elevs[col + std::max(row - 1, vertexPerRow - 1) * vertexPerRow]);
+                        float hD = static_cast<float>(elevs[col + std::min(row + 1, vertexPerRow - 1) * vertexPerRow]);
+
+                        glm::vec3 normal = glm::normalize(glm::vec3{ hL - hR, hD - hU, 2.0 });
+
+                        double up[9] =
+                        {
+                            -sinlat * coslon, -sinlat * sinlon, coslon,
+                            -sinlon, coslon, 0,
+                            -coslat * coslon, -coslat * sinlon, -sinlat,
+                        };
+
+                        float upF[9]
+                        {
+                            (float)up[0], (float)up[3], (float)up[6],
+                            (float)up[1], (float)up[4], (float)up[7],
+                            (float)up[2], (float)up[5], (float)up[8],
+                        };
+
+                        glm::mat3 localUp = glm::make_mat3(upF);
+
+                        normals[i] = localUp * normal;
+                        normals[i] = normal;
+
+                        /* texture coordinates */
                         u = col / static_cast<double>(subdivX);
                         v = row / static_cast<double>(subdivY);
-
-                        positions[i] = glm::vec3{ x, z, y } * scale;
-                        normals[i] = glm::normalize(glm::vec3{ x, z, y });
                         uv[i] = { u, v };
                         ++i;
 
