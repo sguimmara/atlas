@@ -17,12 +17,14 @@ namespace atlas
             Camera(Renderer* renderer);
 
             Transform projection() const noexcept { return _projectionMatrix; }
-            inline void setFov(float radians) { _fovRadians = radians; }
+            void SetFov(float radians);
             inline float fov() const noexcept { return _fovRadians; }
             inline vk::Viewport viewport() const noexcept { return _viewport; }
             inline void setViewport(vk::Viewport viewport) noexcept { _viewport = viewport; }
 
             void Update(UpdateContext ctx);
+
+            static Camera* main;
 
         private:
             float _aspect;

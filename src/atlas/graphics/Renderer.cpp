@@ -2,6 +2,7 @@
 #include "Renderer.hpp"
 #include "Time.hpp"
 #include "RenderingOptions.hpp"
+#include "SurfaceTile.hpp"
 #include "Camera.hpp"
 #include <numeric>
 #include <sstream>
@@ -368,19 +369,46 @@ namespace atlas
             _device.unmapMemory(*memory);
         }
 
-        void Renderer::ProcessKeyEvents(GLFWwindow* window, int key, int scancode, int action, int mods)
+        void ScrollCallback(GLFWwindow* window, double x, double y)
+        {
+            auto renderer = (Renderer*)glfwGetWindowUserPointer(window);
+            renderer->ProcessScrollEvents(x, y);
+        }
+
+        void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+        {
+            auto renderer = (Renderer*)glfwGetWindowUserPointer(window);
+            renderer->ProcessKeyEvents(key, scancode, action, mods);
+        }
+
+        void Renderer::ProcessKeyEvents(int key, int scancode, int action, int mods)
         {
             if (key == GLFW_KEY_Z && action == GLFW_PRESS)
             {
                 RenderingOptions::PolygonMode = RenderingOptions::PolygonMode == vk::PolygonMode::eFill ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
             }
+
+            if (key == GLFW_KEY_S && action == GLFW_PRESS)
+            {
+                static_cast<SurfaceTile*>(_scene->root()->get_child(0)->get_child(0))->Split();
+            }
+            if (key == GLFW_KEY_R && action == GLFW_PRESS)
+            {
+                static_cast<SurfaceTile*>(_scene->root()->get_child(0)->get_child(0))->Reduce();
+            }
+        }
+
+        void Renderer::ProcessScrollEvents(double x, double y)
+        {
+            Camera::main->SetFov(Camera::main->fov() + static_cast<float>(y * 0.1));
         }
 
         void Renderer::Run()
         {
             _log->debug("entered main loop");
 
-            glfwSetKeyCallback(_window, ProcessKeyEvents);
+            glfwSetKeyCallback(_window, KeyCallback);
+            glfwSetScrollCallback(_window, ScrollCallback);
 
             while (!glfwWindowShouldClose(_window))
             {

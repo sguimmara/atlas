@@ -30,6 +30,8 @@ namespace atlas
             inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
             inline size_t swapchainSize() const noexcept { return _renderTargets.size(); }
 
+            void ProcessKeyEvents(int key, int scancode, int action, int mods);
+            void ProcessScrollEvents(double x, double y);
             void CopyBufferToImage(uint32_t width, uint32_t height, vk::Buffer stage, vk::Image image);
             void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
             vk::CommandBuffer BeginSingleTimeCommand();
@@ -60,13 +62,14 @@ namespace atlas
             void CreateSwapchain();
             void DestroySwapchain();
 
+            void CreateDepthResources();
+
             void CreateCommandPool();
             void DestroyCommandPool();
             void CreateCommandBuffers();
             void UpdateCommandBuffers();
 
             void RenderFrame();
-            static void ProcessKeyEvents(GLFWwindow* window, int key, int scancode, int action, int mods);
             void PostFrame(double);
             void ApplyTransformations(Scene& scene);
             void RenderScene(Scene& scene, Camera& camera, vk::CommandBuffer& cmdBuffer);

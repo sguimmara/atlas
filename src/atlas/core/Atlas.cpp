@@ -25,6 +25,8 @@ atlas::Atlas::Atlas()
     _scene->root()->add_child(new graphics::Camera(_renderer));
     _renderer->SetScene(_scene);
 
+    glfwSetWindowUserPointer(_window, _renderer);
+
     _log->info("scene created");
 
     _renderer->Run();
@@ -32,9 +34,9 @@ atlas::Atlas::Atlas()
 
 void atlas::Atlas::WindowResizedCallback(GLFWwindow* window, int width, int height)
 {
-    auto app = reinterpret_cast<atlas::Atlas*>(glfwGetWindowUserPointer(window));
+    //auto app = reinterpret_cast<atlas::Atlas*>(glfwGetWindowUserPointer(window));
 
-    app->WindowResized(width, height);
+    //app->WindowResized(width, height);
 }
 
 void atlas::Atlas::WindowResized(int width, int height)
@@ -59,7 +61,6 @@ void atlas::Atlas::InitWindow()
         throw std::runtime_error("GLFW failed to create window");
     }
 
-    glfwSetWindowUserPointer(_window, this);
     glfwSetFramebufferSizeCallback(_window, WindowResizedCallback);
     
     _log->debug("initialized window");
