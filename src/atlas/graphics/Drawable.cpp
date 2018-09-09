@@ -232,6 +232,12 @@ namespace atlas
 
             CHECK_SUCCESS(_renderer->device().createPipelineLayout(&pipelineLayoutInfo, nullptr, &_pipelineLayout));
 
+            auto const depthStencil = vk::PipelineDepthStencilStateCreateInfo()
+                .setDepthTestEnable(VK_TRUE)
+                .setDepthWriteEnable(VK_TRUE)
+                .setDepthCompareOp(vk::CompareOp::eLess)
+                .setStencilTestEnable(VK_FALSE);
+
             auto const pipelineInfo = vk::GraphicsPipelineCreateInfo()
                 .setStageCount(2)
                 .setPStages(&stages.vertexStage)
@@ -244,6 +250,7 @@ namespace atlas
                 .setLayout(_pipelineLayout)
                 .setPDynamicState(&dynamicState)
                 .setRenderPass(_renderer->renderPass())
+                .setPDepthStencilState(&depthStencil)
                 .setSubpass(0);
 
             CHECK_SUCCESS(_renderer->device().createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &_pipeline));

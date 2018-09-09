@@ -90,6 +90,9 @@ namespace atlas
             vk::Queue _graphicsQueue;
             vk::Extent2D _extent;
             vk::Viewport _viewport;
+            vk::Image _depthImage;
+            vk::ImageView _depthImageView;
+            vk::DeviceMemory _depthImageMemory;
             VkDebugReportCallbackEXT _debugCallback;
 
             uint32_t _presentFamily;

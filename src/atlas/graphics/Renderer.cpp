@@ -49,6 +49,8 @@ namespace atlas
             glfwGetWindowSize(window, &w, &h);
             _extent = vk::Extent2D(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
             _viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
+            _viewport.setMinDepth(0);
+            _viewport.setMaxDepth(1);
             _window = window;
 
             CreateInstance();
@@ -57,6 +59,7 @@ namespace atlas
             SelectGpu();
             CreateDevice();
             CreateCommandPool();
+            CreateDepthResources();
             CreateSwapchain();
             CreateCommandBuffers();
             Shader::SetDirectory(SHADER_DIR);
@@ -281,7 +284,6 @@ namespace atlas
                 .setImageOffset({ 0, 0, 0 })
                 .setImageExtent({ width, height, 1 });
 
-
             transferBuf.copyBufferToImage(stage, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
             EndSingleTimeCommand(transferBuf);
         }
@@ -290,6 +292,12 @@ namespace atlas
         {
             auto cmdBuffer = BeginSingleTimeCommand();
 
+            vk::ImageAspectFlags aspectMask = vk::ImageAspectFlagBits::eColor;
+            if (newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
+            {
+                aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+            }
+
             auto barrier = vk::ImageMemoryBarrier()
                 .setOldLayout(oldLayout)
                 .setNewLayout(newLayout)
@@ -297,7 +305,7 @@ namespace atlas
                 .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
                 .setImage(image)
                 .setSubresourceRange(vk::ImageSubresourceRange()
-                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                    .setAspectMask(aspectMask)
                     .setBaseMipLevel(0)
                     .setLevelCount(1)
                     .setBaseArrayLayer(0)
@@ -321,6 +329,13 @@ namespace atlas
 
                 srcStage = vk::PipelineStageFlagBits::eTransfer;
                 dstStage = vk::PipelineStageFlagBits::eFragmentShader;
+            }
+            else if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
+            {
+                barrier.setSrcAccessMask((vk::AccessFlags)0);
+                barrier.setDstAccessMask(vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite);
+                srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
+                dstStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
             }
             else
             {
@@ -732,7 +747,7 @@ if (!features.feat) \
             SwapChainSupportDetails swapChainSupport = SwapChainSupportDetails::QuerySwapChainSupport(_gpu, _surface);
             _swapchainFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
 
-            auto const attachment = vk::AttachmentDescription()
+            auto const colorAttachment = vk::AttachmentDescription()
                 .setFormat(_swapchainFormat.format)
                 .setSamples(vk::SampleCountFlagBits::e1)
                 .setLoadOp(vk::AttachmentLoadOp::eClear)
@@ -742,14 +757,29 @@ if (!features.feat) \
                 .setInitialLayout(vk::ImageLayout::eUndefined)
                 .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
-            auto const attachmentRef = vk::AttachmentReference()
+            auto const depthAttachment = vk::AttachmentDescription()
+                .setFormat(vk::Format::eD24UnormS8Uint)
+                .setSamples(vk::SampleCountFlagBits::e1)
+                .setLoadOp(vk::AttachmentLoadOp::eClear)
+                .setStoreOp(vk::AttachmentStoreOp::eStore)
+                .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+                .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+                .setInitialLayout(vk::ImageLayout::eUndefined)
+                .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+            auto const colorAttachmentRef = vk::AttachmentReference()
                 .setAttachment(0)
                 .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+            auto const depthAttachmentRef = vk::AttachmentReference()
+                .setAttachment(1)
+                .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
             auto const subpass = vk::SubpassDescription()
                 .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
                 .setColorAttachmentCount(1)
-                .setPColorAttachments(&attachmentRef);
+                .setPColorAttachments(&colorAttachmentRef)
+                .setPDepthStencilAttachment(&depthAttachmentRef);
 
             auto const dependency = vk::SubpassDependency()
                 .setSrcSubpass(VK_SUBPASS_EXTERNAL)
@@ -759,9 +789,11 @@ if (!features.feat) \
                 .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
                 .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
 
+            std::vector<vk::AttachmentDescription> attachments = { colorAttachment, depthAttachment };
+
             auto const info = vk::RenderPassCreateInfo()
-                .setAttachmentCount(1)
-                .setPAttachments(&attachment)
+                .setAttachmentCount(static_cast<uint32_t>(attachments.size()))
+                .setPAttachments(attachments.data())
                 .setSubpassCount(1)
                 .setPSubpasses(&subpass)
                 .setDependencyCount(1)
@@ -837,11 +869,11 @@ if (!features.feat) \
 
                 CHECK_SUCCESS(_device.createImageView(&imgViewInfo, nullptr, &target.view));
 
-                vk::ImageView attachments[] = { target.view };
+                std::array<vk::ImageView, 2> attachments = { target.view, _depthImageView };
                 auto const fbinfo = vk::FramebufferCreateInfo()
                     .setRenderPass(_renderPass)
-                    .setAttachmentCount(1)
-                    .setPAttachments(attachments)
+                    .setAttachmentCount(static_cast<uint32_t>(attachments.size()))
+                    .setPAttachments(attachments.data())
                     .setWidth(_extent.width)
                     .setHeight(_extent.height)
                     .setLayers(1);
@@ -873,6 +905,50 @@ if (!features.feat) \
 
             _device.destroyRenderPass(_renderPass, nullptr);
             _log->debug("destroyed render pass");
+        }
+
+        void Renderer::CreateDepthResources()
+        {
+            auto const format = vk::Format::eD24UnormS8Uint;
+
+            auto const imageInfo = vk::ImageCreateInfo()
+                .setFormat(format)
+                .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment)
+                .setTiling(vk::ImageTiling::eOptimal)
+                .setMipLevels(1)
+                .setImageType(vk::ImageType::e2D)
+                .setArrayLayers(1)
+                .setSharingMode(vk::SharingMode::eExclusive)
+                .setSamples(vk::SampleCountFlagBits::e1)
+                .setExtent(vk::Extent3D(_extent, 1));
+
+            CHECK_SUCCESS(_device.createImage(&imageInfo, nullptr, &_depthImage));
+
+            vk::MemoryRequirements memReq = _device.getImageMemoryRequirements(_depthImage);
+
+            auto const allocInfo = vk::MemoryAllocateInfo()
+                .setAllocationSize(memReq.size)
+                .setMemoryTypeIndex(GetMemoryIndex(memReq, vk::MemoryPropertyFlagBits::eDeviceLocal));
+
+            CHECK_SUCCESS(_device.allocateMemory(&allocInfo, nullptr, &_depthImageMemory));
+
+            _device.bindImageMemory(_depthImage, _depthImageMemory, 0);
+
+            auto const imageViewInfo = vk::ImageViewCreateInfo()
+                .setImage(_depthImage)
+                .setFormat(format)
+                .setViewType(vk::ImageViewType::e2D)
+                .setSubresourceRange(
+                    vk::ImageSubresourceRange()
+                    .setAspectMask(vk::ImageAspectFlagBits::eDepth)
+                    .setBaseMipLevel(0)
+                    .setLevelCount(1)
+                    .setBaseArrayLayer(0)
+                    .setLayerCount(1));
+
+            TransitionImageLayout(_depthImage, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+            CHECK_SUCCESS(_device.createImageView(&imageViewInfo, nullptr, &_depthImageView));
         }
 
         void Renderer::CreateCommandPool()
