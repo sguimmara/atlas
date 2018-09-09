@@ -7,27 +7,34 @@ namespace atlas
 {
     namespace graphics
     {
+        struct Vertex
+        {
+            glm::vec3 position;
+            glm::vec3 normal;
+            glm::vec2 uv;
+        };
+
         struct Mesh
         {
             uint32_t indexCount;
             vk::Buffer indices;
             vk::IndexType indexType;
 
-            vk::Buffer positions;
-            vk::Buffer normals;
-            vk::Buffer uv;
+            vk::Buffer buffer;
+
+            Mesh(uint32_t vertexCount);
 
             void Destroy(vk::Device device);
             void SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t>& data);
-            void SetPositions(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3>& data);
-            void SetNormals(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3>& data);
-            void SetUV(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec2>& data);
+            void SetPositions(std::vector<glm::vec3>& data);
+            void SetNormals(std::vector<glm::vec3>& data);
+            void SetUV(std::vector<glm::vec2>& data);
+            void Apply(vk::PhysicalDevice gpu, vk::Device device);
 
         private:
             vk::DeviceMemory indicesMemory;
-            vk::DeviceMemory positionsMemory;
-            vk::DeviceMemory normalsMemory;
-            vk::DeviceMemory uvMemory;
+            vk::DeviceMemory bufferMemory;
+            std::vector<Vertex> _vertices;
 
             static void CreateBuffer(vk::PhysicalDevice gpu, vk::Device device,
                 void* data, size_t size, vk::BufferUsageFlags usage,

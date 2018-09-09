@@ -9,7 +9,8 @@ namespace atlas
     {
         namespace primitives
         {
-            Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm::vec2 min, glm::vec2 max)
+            Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm::vec2 min, glm::vec2 max) :
+                Mesh((subdivs * 2 + 1) * (subdivs + 1))
             {
                 const double a = 6378137;     // semimajor axis
                 const double b = 6356752.314; // semiminor axis
@@ -86,10 +87,11 @@ namespace atlas
                     }
                 }
 
-                SetPositions(gpu, device, positions);
-                SetNormals(gpu, device, normals);
-                SetUV(gpu, device, uv);
+                SetPositions(positions);
+                SetNormals(normals);
+                SetUV(uv);
                 SetIndices(gpu, device, indices);
+                Apply(gpu, device);
             }
 
             Tile Tile::Create(atlas::graphics::Renderer * renderer, uint16_t subdivs, int level, int row, int col)

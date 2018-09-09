@@ -7,28 +7,58 @@ namespace atlas
         void Mesh::Destroy(vk::Device device)
         {
             device.destroyBuffer(indices);
-            device.destroyBuffer(positions);
-            device.destroyBuffer(normals);
-            device.destroyBuffer(uv);
+            device.destroyBuffer(buffer);
             device.freeMemory(indicesMemory);
-            device.freeMemory(positionsMemory);
-            device.freeMemory(normalsMemory);
-            device.freeMemory(uvMemory);
+            device.freeMemory(bufferMemory);
         }
 
-        void Mesh::SetPositions(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3> &data)
+        Mesh::Mesh(uint32_t vertexCount)
         {
-            CreateBuffer(gpu, device, data.data(), data.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, positions, positionsMemory);
+            _vertices.resize(vertexCount);
         }
 
-        void Mesh::SetNormals(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec3>& data)
+        void Mesh::SetPositions(std::vector<glm::vec3> &data)
         {
-            CreateBuffer(gpu, device, data.data(), data.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, normals, normalsMemory);
+            if (data.size() != _vertices.size())
+            {
+                throw std::runtime_error("invalid size of buffer");
+            }
+
+            for (size_t i = 0; i < _vertices.size(); ++i)
+            {
+                _vertices[i].position = data[i];
+            }
         }
 
-        void Mesh::SetUV(vk::PhysicalDevice gpu, vk::Device device, std::vector<glm::vec2>& data)
+        void Mesh::SetNormals(std::vector<glm::vec3>& data)
         {
-            CreateBuffer(gpu, device, data.data(), data.size() * sizeof(glm::vec2), vk::BufferUsageFlagBits::eVertexBuffer, uv, uvMemory);
+            if (data.size() != _vertices.size())
+            {
+                throw std::runtime_error("invalid size of buffer");
+            }
+
+            for (size_t i = 0; i < _vertices.size(); ++i)
+            {
+                _vertices[i].normal = data[i];
+            }
+        }
+
+        void Mesh::SetUV(std::vector<glm::vec2>& data)
+        {
+            if (data.size() != _vertices.size())
+            {
+                throw std::runtime_error("invalid size of buffer");
+            }
+
+            for (size_t i = 0; i < _vertices.size(); ++i)
+            {
+                _vertices[i].uv = data[i];
+            }
+        }
+
+        void Mesh::Apply(vk::PhysicalDevice gpu, vk::Device device)
+        {
+            CreateBuffer(gpu, device, _vertices.data(), _vertices.size() * sizeof(Vertex), vk::BufferUsageFlagBits::eVertexBuffer, buffer, bufferMemory);
         }
 
         void Mesh::SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t>& data)

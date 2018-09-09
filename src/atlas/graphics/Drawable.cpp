@@ -47,7 +47,7 @@ namespace atlas
             vk::CommandBuffer buffer = context.cmdBuffer;
             buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
             buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, 1, _descriptorSets.data(), 0, nullptr);
-            buffer.bindVertexBuffers(0, { _mesh.positions, _mesh.normals, _mesh.uv }, { 0, 0, 0 });
+            buffer.bindVertexBuffers(0, { _mesh.buffer }, { 0 });
             buffer.bindIndexBuffer(_mesh.indices, 0, vk::IndexType::eUint16);
             buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MVP), &mvp);
             buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(MVP), sizeof(glm::vec3), &_color);
@@ -138,20 +138,38 @@ namespace atlas
             vk::ShaderModule fragmentShader)
         {
             auto const viewport = _renderer->viewport();
-            auto const vertices = VertexInput(sizeof(glm::vec3), 0);
-            auto const normals = VertexInput(sizeof(glm::vec3), 1);
-            auto const uv = VertexInput(sizeof(glm::vec2), 2, vk::Format::eR32G32Sfloat);
+
+            auto const binding = vk::VertexInputBindingDescription()
+                .setBinding(0)
+                .setStride(sizeof(Vertex))
+                .setInputRate(vk::VertexInputRate::eVertex);
+
+            auto const posAttrib = vk::VertexInputAttributeDescription()
+                .setBinding(0)
+                .setLocation(0)
+                .setFormat(vk::Format::eR32G32B32Sfloat)
+                .setOffset(offsetof(Vertex, position));
+
+            auto const normAttrib = vk::VertexInputAttributeDescription()
+                .setBinding(0)
+                .setLocation(1)
+                .setFormat(vk::Format::eR32G32B32Sfloat)
+                .setOffset(offsetof(Vertex, normal));
+
+            auto const uvAttrib = vk::VertexInputAttributeDescription()
+                .setBinding(0)
+                .setLocation(2)
+                .setFormat(vk::Format::eR32G32Sfloat)
+                .setOffset(offsetof(Vertex, uv));
 
             std::vector<vk::VertexInputAttributeDescription> attributes;
             std::vector<vk::VertexInputBindingDescription> bindings;
 
-            attributes.push_back(vertices.attribute);
-            attributes.push_back(normals.attribute);
-            attributes.push_back(uv.attribute);
+            attributes.push_back(posAttrib);
+            attributes.push_back(normAttrib);
+            attributes.push_back(uvAttrib);
 
-            bindings.push_back(vertices.binding);
-            bindings.push_back(normals.binding);
-            bindings.push_back(uv.binding);
+            bindings.push_back(binding);
 
             auto const stages = ShaderStages(vertexShader, fragmentShader);
 

@@ -28,26 +28,6 @@ namespace atlas
             virtual void Draw(DrawContext context);
 
         protected:
-            struct VertexInput
-            {
-                vk::VertexInputBindingDescription binding;
-                vk::VertexInputAttributeDescription attribute;
-
-                VertexInput(uint32_t stride, uint32_t location, vk::Format format = vk::Format::eR32G32B32Sfloat)
-                {
-                    binding = vk::VertexInputBindingDescription()
-                        .setBinding(location)
-                        .setStride(stride)
-                        .setInputRate(vk::VertexInputRate::eVertex);
-
-                    attribute = vk::VertexInputAttributeDescription()
-                        .setBinding(location)
-                        .setLocation(location)
-                        .setFormat(format)
-                        .setOffset(0);
-                }
-            };
-
             struct ShaderStages
             {
                 vk::PipelineShaderStageCreateInfo vertexStage;
