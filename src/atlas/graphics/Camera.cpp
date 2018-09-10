@@ -10,7 +10,7 @@ namespace atlas
 
         Camera::Camera(Renderer* renderer) :
             _fovRadians(1),
-            _aspect(1.333f),
+            _aspect(renderer->extent().width / static_cast<float>(renderer->extent().height)),
             _viewport(renderer->viewport()),
             _projectionMatrix(glm::perspective<float>(_fovRadians, _aspect, 0.05f, 15.0f)),
             Node()
