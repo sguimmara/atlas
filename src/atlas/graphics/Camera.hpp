@@ -14,7 +14,7 @@ namespace atlas
         class Camera : public Node
         {
         public:
-            Camera(Renderer* renderer);
+            Camera();
 
             Transform projection() const noexcept { return _projectionMatrix; }
             void SetFov(float radians);
@@ -32,7 +32,6 @@ namespace atlas
             float _fovRadians;
             Transform _projectionMatrix;
             vk::Viewport _viewport;
-            Renderer* _renderer;
         };
     }
 }

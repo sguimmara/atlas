@@ -4,9 +4,9 @@ namespace atlas
 {
     namespace graphics
     {
-        Earth::Earth(Renderer* renderer)
+        Earth::Earth()
         {
-            SurfaceTile* root = new SurfaceTile(renderer, 0, 0, 0);
+            SurfaceTile* root = new SurfaceTile(0, 0, 0);
 
             add_child(root);
         }

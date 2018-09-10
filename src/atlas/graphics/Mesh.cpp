@@ -7,24 +7,23 @@ namespace atlas
 {
     namespace graphics
     {
-        Mesh::Mesh(Renderer* renderer, MeshObject mesh) :
-            _renderer(renderer),
+        Mesh::Mesh(MeshObject mesh) :
             _mesh(mesh),
-            _fragmentShader(Shader::Get("tile.frag", renderer->device())),
-            _vertexShader(Shader::Get("tile.vert", renderer->device())),
+            _fragmentShader(Shader::Get("tile.frag")),
+            _vertexShader(Shader::Get("tile.vert")),
             Drawable()
         {
             _flags |= (int)NodeFlags::Drawable;
             CreateTexture();
-            CreateDescriptorPool(renderer->swapchainSize());
-            CreateDescriptorSets(renderer->swapchainSize());
+            CreateDescriptorPool(Renderer::current->swapchainSize());
+            CreateDescriptorSets(Renderer::current->swapchainSize());
             CreatePipeline(_vertexShader.module, _fragmentShader.module);
         }
 
         Mesh::~Mesh()
         {
-            _mesh.Destroy(_renderer->device());
-            _texture.Destroy(_renderer->device());
+            _mesh.Destroy();
+            _texture.Destroy();
             DestroyPipeline();
             DestroyDescriptorSets();
         }
@@ -46,12 +45,20 @@ namespace atlas
 
             vk::CommandBuffer buffer = context.cmdBuffer;
             buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
-            buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, 1, _descriptorSets.data(), 0, nullptr);
-            buffer.bindVertexBuffers(0, { _mesh.buffer }, { 0 });
-            buffer.bindIndexBuffer(_mesh.indices, 0, vk::IndexType::eUint16);
             buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MVP), &mvp);
             buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(MVP), sizeof(glm::vec3), &_color);
-            buffer.drawIndexed(_mesh.indexCount, 1, 0, 0, 0);
+            buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, 1, _descriptorSets.data(), 0, nullptr);
+            buffer.bindVertexBuffers(0, { _mesh.buffer }, { 0 });
+
+            if (_mesh.topology == vk::PrimitiveTopology::eTriangleList)
+            {
+                buffer.bindIndexBuffer(_mesh.indices, 0, vk::IndexType::eUint16);
+                buffer.drawIndexed(_mesh.indexCount, 1, 0, 0, 0);
+            }
+            else
+            {
+                buffer.draw(_mesh.vertexCount, 1, 0, 0);
+            }
         }
 
         void Mesh::SendSignal(Signal signal)
@@ -73,7 +80,7 @@ namespace atlas
                 .setPPoolSizes(&sizes)
                 .setMaxSets(static_cast<uint32_t>(swapchainSize));
 
-            CHECK_SUCCESS(_renderer->device().createDescriptorPool(&info, nullptr, &_descriptorPool));
+            CHECK_SUCCESS(Renderer::device.createDescriptorPool(&info, nullptr, &_descriptorPool));
         }
 
         void Mesh::CreateDescriptorSets(size_t swapchainSize)
@@ -92,7 +99,7 @@ namespace atlas
                 .setPBindings(bindings.data());
 
             _descriptorSetLayout;
-            CHECK_SUCCESS(_renderer->device().createDescriptorSetLayout(&layoutInfo, nullptr, &_descriptorSetLayout));
+            CHECK_SUCCESS(Renderer::device.createDescriptorSetLayout(&layoutInfo, nullptr, &_descriptorSetLayout));
 
             std::vector<vk::DescriptorSetLayout> layouts;
             for (size_t i = 0; i < swapchainSize; i++)
@@ -106,7 +113,7 @@ namespace atlas
                 .setDescriptorSetCount(static_cast<uint32_t>(swapchainSize))
                 .setPSetLayouts(layouts.data());
 
-            _renderer->device().allocateDescriptorSets(&allocInfo, _descriptorSets.data());
+            Renderer::device.allocateDescriptorSets(&allocInfo, _descriptorSets.data());
             
             auto const imageInfo = vk::DescriptorImageInfo()
                 .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
@@ -128,25 +135,25 @@ namespace atlas
                 writes[i] = write;
             }
             
-            _renderer->device().updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+            Renderer::device.updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
         }
 
         void Mesh::DestroyDescriptorSets()
         {
-            _renderer->device().destroyDescriptorSetLayout(_descriptorSetLayout);
-            _renderer->device().destroyDescriptorPool(_descriptorPool);
+            Renderer::device.destroyDescriptorSetLayout(_descriptorSetLayout);
+            Renderer::device.destroyDescriptorPool(_descriptorPool);
         }
 
         void Mesh::CreateTexture()
         {
-            _texture = Image::FromFile(_renderer, "C:/Users/sguimmara/Documents/work/c++/atlas/images/uv_grid.jpg");
+            _texture = Image::FromFile("C:/Users/sguimmara/Documents/work/c++/atlas/images/equirectangular.jpg");
         }
 
         void Mesh::CreatePipeline(
             vk::ShaderModule vertexShader,
             vk::ShaderModule fragmentShader)
         {
-            auto const viewport = _renderer->viewport();
+            auto const viewport = Renderer::viewport;
 
             auto const binding = vk::VertexInputBindingDescription()
                 .setBinding(0)
@@ -189,7 +196,7 @@ namespace atlas
                 .setPVertexBindingDescriptions(bindings.data());
 
             auto const assembly = vk::PipelineInputAssemblyStateCreateInfo()
-                .setTopology(vk::PrimitiveTopology::eTriangleList)
+                .setTopology(_mesh.topology)
                 .setPrimitiveRestartEnable(VK_FALSE);
 
             auto const scissor = vk::Rect2D(
@@ -239,7 +246,7 @@ namespace atlas
                 .setPushConstantRangeCount(1)
                 .setPPushConstantRanges(&constantRange);
 
-            CHECK_SUCCESS(_renderer->device().createPipelineLayout(&pipelineLayoutInfo, nullptr, &_pipelineLayout));
+            CHECK_SUCCESS(Renderer::device.createPipelineLayout(&pipelineLayoutInfo, nullptr, &_pipelineLayout));
 
             auto const depthStencil = vk::PipelineDepthStencilStateCreateInfo()
                 .setDepthTestEnable(VK_TRUE)
@@ -258,17 +265,17 @@ namespace atlas
                 .setPColorBlendState(&blending)
                 .setLayout(_pipelineLayout)
                 .setPDynamicState(&dynamicState)
-                .setRenderPass(_renderer->renderPass())
+                .setRenderPass(Renderer::current->renderPass())
                 .setPDepthStencilState(&depthStencil)
                 .setSubpass(0);
 
-            CHECK_SUCCESS(_renderer->device().createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &_pipeline));
+            CHECK_SUCCESS(Renderer::device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &_pipeline));
         }
 
         void Mesh::DestroyPipeline()
         {
-            _renderer->device().destroyPipeline(_pipeline);
-            _renderer->device().destroyPipelineLayout(_pipelineLayout);
+            Renderer::device.destroyPipeline(_pipeline);
+            Renderer::device.destroyPipelineLayout(_pipelineLayout);
         }
     }
 }

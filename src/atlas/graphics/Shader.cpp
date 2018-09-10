@@ -1,4 +1,5 @@
 #include "Shader.hpp"
+#include "Renderer.hpp"
 #include "atlas/core/IO.hpp"
 
 namespace atlas
@@ -25,7 +26,7 @@ namespace atlas
             _directory = directory;
         }
 
-        Shader Shader::Get(std::string name, vk::Device device)
+        Shader Shader::Get(std::string name)
         {
             auto search = _store.find(name);
             if (search != _store.end())
@@ -37,7 +38,7 @@ namespace atlas
                 std::string fullpath = _directory + name + ".spv";
 
                 auto spirv = core::IO::readAllBytes(fullpath);
-                auto module = CreateShaderModule(spirv, device);
+                auto module = CreateShaderModule(spirv, Renderer::device);
                 spdlog::get("renderer")->debug("loaded shader module '{0}'", name);
 
                 Shader shader = { name, module };

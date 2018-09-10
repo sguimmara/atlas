@@ -1,18 +1,19 @@
 #include "MeshObject.hpp"
+#include "Renderer.hpp"
 
 namespace atlas
 {
     namespace graphics
     {
-        void MeshObject::Destroy(vk::Device device)
+        void MeshObject::Destroy()
         {
-            device.destroyBuffer(indices);
-            device.destroyBuffer(buffer);
-            device.freeMemory(indicesMemory);
-            device.freeMemory(bufferMemory);
+            Renderer::device.destroyBuffer(indices);
+            Renderer::device.destroyBuffer(buffer);
+            Renderer::device.freeMemory(indicesMemory);
+            Renderer::device.freeMemory(bufferMemory);
         }
 
-        MeshObject::MeshObject(uint32_t vertexCount)
+        MeshObject::MeshObject(uint32_t vertexCount) : vertexCount(vertexCount)
         {
             _vertices.resize(vertexCount);
         }
@@ -56,20 +57,20 @@ namespace atlas
             }
         }
 
-        void MeshObject::Apply(vk::PhysicalDevice gpu, vk::Device device)
+        void MeshObject::Apply()
         {
-            CreateBuffer(gpu, device, _vertices.data(), _vertices.size() * sizeof(Vertex), vk::BufferUsageFlagBits::eVertexBuffer, buffer, bufferMemory);
+            CreateBuffer(_vertices.data(), _vertices.size() * sizeof(Vertex), vk::BufferUsageFlagBits::eVertexBuffer, buffer, bufferMemory);
         }
 
-        void MeshObject::SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t>& data)
+        void MeshObject::SetIndices(std::vector<uint16_t>& data)
         {
             indexCount = static_cast<uint32_t>(data.size());
-            CreateBuffer(gpu, device, data.data(), data.size() * sizeof(uint16_t), vk::BufferUsageFlagBits::eIndexBuffer, indices, indicesMemory);
+            CreateBuffer(data.data(), data.size() * sizeof(uint16_t), vk::BufferUsageFlagBits::eIndexBuffer, indices, indicesMemory);
         }
 
-        uint32_t FindMemoryType(vk::PhysicalDevice gpu, uint32_t typeFilter, vk::MemoryPropertyFlags properties)
+        uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
         {
-            vk::PhysicalDeviceMemoryProperties memory = gpu.getMemoryProperties();
+            vk::PhysicalDeviceMemoryProperties memory = Renderer::gpu.getMemoryProperties();
 
             for (uint32_t i = 0; i < memory.memoryTypeCount; i++)
             {
@@ -82,8 +83,7 @@ namespace atlas
             throw std::runtime_error("no memory type found");
         }
 
-        void MeshObject::CreateBuffer(vk::PhysicalDevice gpu, vk::Device device,
-            void* data, size_t size, vk::BufferUsageFlags usage,
+        void MeshObject::CreateBuffer(void* data, size_t size, vk::BufferUsageFlags usage,
             vk::Buffer& buf, vk::DeviceMemory& memory)
         {
             auto const info = vk::BufferCreateInfo()
@@ -91,24 +91,23 @@ namespace atlas
                 .setUsage(usage)
                 .setSharingMode(vk::SharingMode::eExclusive);
 
-            auto result = device.createBuffer(&info, nullptr, &buf);
+            auto result = Renderer::device.createBuffer(&info, nullptr, &buf);
             CHECK_SUCCESS(result);
 
-            auto const reqs = device.getBufferMemoryRequirements(buf);
+            auto const reqs = Renderer::device.getBufferMemoryRequirements(buf);
 
             auto const alloc = vk::MemoryAllocateInfo()
                 .setAllocationSize(reqs.size)
                 .setMemoryTypeIndex(
-                    FindMemoryType(gpu, reqs.memoryTypeBits,
-                        vk::MemoryPropertyFlagBits::eHostVisible
-                        | vk::MemoryPropertyFlagBits::eHostCoherent));
+                    FindMemoryType(reqs.memoryTypeBits,
+                        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent));
 
             void* tmp;
-            CHECK_SUCCESS(device.allocateMemory(&alloc, nullptr, &memory));
-            device.bindBufferMemory(buf, memory, 0);
-            CHECK_SUCCESS(device.mapMemory(memory, 0, info.size, vk::MemoryMapFlags(), &tmp));
+            CHECK_SUCCESS(Renderer::device.allocateMemory(&alloc, nullptr, &memory));
+            Renderer::device.bindBufferMemory(buf, memory, 0);
+            CHECK_SUCCESS(Renderer::device.mapMemory(memory, 0, info.size, vk::MemoryMapFlags(), &tmp));
             memcpy(tmp, data, static_cast<size_t>(info.size));
-            device.unmapMemory(memory);
+            Renderer::device.unmapMemory(memory);
         }
     }
 }

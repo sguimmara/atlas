@@ -18,10 +18,10 @@ namespace atlas
             vk::Sampler sampler;
             vk::DeviceMemory memory;
 
-            void Destroy(vk::Device device);
+            void Destroy();
 
-            static Image FromFile(Renderer* renderer, std::string path);
-            static Image FromRGBA(Renderer* renderer, void* rgba32, uint32_t width, uint32_t height);
+            static Image FromFile(std::string path);
+            static Image FromRGBA(void* rgba32, uint32_t width, uint32_t height);
         };
     }
 }

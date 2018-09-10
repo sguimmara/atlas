@@ -22,11 +22,13 @@ namespace atlas
             void DestroyScene();
             ~Renderer();
 
-            inline vk::Device device() const noexcept { return _device; }
-            inline vk::PhysicalDevice gpu() const noexcept { return _gpu; }
+            static vk::Device device;
+            static vk::PhysicalDevice gpu;
+            static vk::Viewport viewport;
+            static vk::Extent2D extent;
+            static Renderer* current;
+
             inline vk::CommandPool pool() const noexcept { return _commandPool; }
-            inline vk::Extent2D extent() const noexcept { return _extent; }
-            inline vk::Viewport viewport() const noexcept { return _viewport; }
             inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
             inline size_t swapchainSize() const noexcept { return _renderTargets.size(); }
 
@@ -92,8 +94,6 @@ namespace atlas
             vk::CommandPool _commandPool;
             vk::Queue _presentQueue;
             vk::Queue _graphicsQueue;
-            vk::Extent2D _extent;
-            vk::Viewport _viewport;
             vk::Image _depthImage;
             vk::ImageView _depthImageView;
             vk::DeviceMemory _depthImageMemory;

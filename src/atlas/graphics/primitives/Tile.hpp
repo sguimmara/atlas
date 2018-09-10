@@ -15,9 +15,9 @@ namespace atlas {
             {
                 uint32_t subdivs;
 
-                Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm::vec2 min, glm::vec2 max);
+                Tile(uint16_t subdivs, glm::vec2 min, glm::vec2 max);
 
-                static Tile Create(Renderer* renderer, uint16_t subdivs, int level, int row, int col);
+                static Tile Create(uint16_t subdivs, int level, int row, int col);
             };
         }
     }

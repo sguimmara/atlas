@@ -5,11 +5,11 @@ namespace atlas
 {
     namespace graphics
     {
-        SurfaceTile::SurfaceTile(Renderer* renderer, int level, int row, int col) :
+        SurfaceTile::SurfaceTile(int level, int row, int col) :
             _level(level),
             _row(row),
             _col(col),
-            Mesh(renderer, primitives::Tile::Create(renderer, 16, level, row, col))
+            Mesh(primitives::Tile::Create(16, level, row, col))
         {
             int maxLevel = 10;
             float l = 1.0f / maxLevel * level;
@@ -65,10 +65,10 @@ namespace atlas
                 int r2 = 2 * _row;
                 int c2 = 2 * _col;
 
-                SurfaceTile* topLeft = new SurfaceTile(_renderer, newLevel, r2, c2);
-                SurfaceTile* topRight = new SurfaceTile(_renderer, newLevel, r2, c2 + 1);
-                SurfaceTile* bottomRight = new SurfaceTile(_renderer, newLevel, r2 + 1, c2 + 1);
-                SurfaceTile* bottomLeft = new SurfaceTile(_renderer, newLevel, r2 + 1, c2);
+                SurfaceTile* topLeft = new SurfaceTile(newLevel, r2, c2);
+                SurfaceTile* topRight = new SurfaceTile(newLevel, r2, c2 + 1);
+                SurfaceTile* bottomRight = new SurfaceTile(newLevel, r2 + 1, c2 + 1);
+                SurfaceTile* bottomLeft = new SurfaceTile(newLevel, r2 + 1, c2);
 
                 add_child(topLeft);
                 add_child(topRight);

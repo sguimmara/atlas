@@ -8,11 +8,10 @@ namespace atlas
     {
         Camera* Camera::main = nullptr;
 
-        Camera::Camera(Renderer* renderer) :
-            _renderer(renderer),
+        Camera::Camera() :
             _fovRadians(1),
-            _aspect(renderer->extent().width / static_cast<float>(renderer->extent().height)),
-            _viewport(renderer->viewport()),
+            _aspect(Renderer::extent.width / static_cast<float>(Renderer::extent.height)),
+            _viewport(Renderer::viewport),
             _projectionMatrix(glm::perspective<float>(_fovRadians, _aspect, 0.05f, 15.0f)),
             Node()
         {
@@ -39,8 +38,8 @@ namespace atlas
         {
             if (signal == Signal::WindowResized)
             {
-                _aspect = _renderer->extent().width / static_cast<float>(_renderer->extent().height);
-                _viewport = _renderer->viewport();
+                _aspect = Renderer::extent.width / static_cast<float>(Renderer::extent.height);
+                _viewport = Renderer::viewport;
                 _projectionMatrix = glm::perspective<float>(_fovRadians, _aspect, 0.05f, 15.0f);
             }
         }

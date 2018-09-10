@@ -20,7 +20,7 @@ namespace atlas
         class Mesh : public Drawable
         {
         public:
-            Mesh(Renderer* renderer, MeshObject mesh);
+            Mesh(MeshObject mesh);
             ~Mesh();
 
             /**
@@ -70,7 +70,6 @@ namespace atlas
             vk::DescriptorSetLayout _descriptorSetLayout;
             vk::PolygonMode _currentPolygonMode;
             std::vector<vk::DescriptorSet> _descriptorSets;
-            Renderer* _renderer;
             Shader _fragmentShader;
             Shader _vertexShader;
 

@@ -9,17 +9,17 @@ namespace atlas
 {
     namespace graphics
     {
-        void Image::Destroy(vk::Device device)
+        void Image::Destroy()
         {
             width = 0;
             height = 0;
-            device.destroySampler(sampler);
-            device.destroyImageView(view);
-            device.destroyImage(image);
-            device.freeMemory(memory);
+            Renderer::device.destroySampler(sampler);
+            Renderer::device.destroyImageView(view);
+            Renderer::device.destroyImage(image);
+            Renderer::device.freeMemory(memory);
         }
 
-        Image Image::FromFile(Renderer* renderer, std::string path)
+        Image Image::FromFile(std::string path)
         {
             int width, height, channels;
             const auto pixels = stbi_load(path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -28,19 +28,19 @@ namespace atlas
                 throw std::runtime_error("failed to load texture image: " + path);
             }
 
-            Image img = FromRGBA(renderer, pixels, width, height);
+            Image img = FromRGBA(pixels, width, height);
             stbi_image_free(pixels);
             return img;
         }
 
-        Image Image::FromRGBA(Renderer* renderer, void* rgba32, uint32_t width, uint32_t height)
+        Image Image::FromRGBA(void* rgba32, uint32_t width, uint32_t height)
         {
             vk::Buffer stagingBuffer;
             vk::DeviceMemory stagingBufferMemory;
 
             vk::DeviceSize size = width * height * 4;
 
-            renderer->CreateBuffer(size, rgba32, &stagingBuffer, &stagingBufferMemory, vk::BufferUsageFlagBits::eTransferSrc);
+            Renderer::current->CreateBuffer(size, rgba32, &stagingBuffer, &stagingBufferMemory, vk::BufferUsageFlagBits::eTransferSrc);
 
             vk::Image texture;
             vk::DeviceMemory textureMemory;
@@ -59,24 +59,24 @@ namespace atlas
                 .setSharingMode(vk::SharingMode::eExclusive)
                 .setSamples(vk::SampleCountFlagBits::e1);
 
-            CHECK_SUCCESS(renderer->device().createImage(&imageInfo, nullptr, &texture));
+            CHECK_SUCCESS(Renderer::device.createImage(&imageInfo, nullptr, &texture));
 
-            vk::MemoryRequirements memReq = renderer->device().getImageMemoryRequirements(texture);
+            vk::MemoryRequirements memReq = Renderer::device.getImageMemoryRequirements(texture);
 
             auto const allocInfo = vk::MemoryAllocateInfo()
                 .setAllocationSize(memReq.size)
-                .setMemoryTypeIndex(renderer->GetMemoryIndex(memReq, vk::MemoryPropertyFlagBits::eDeviceLocal));
+                .setMemoryTypeIndex(Renderer::current->GetMemoryIndex(memReq, vk::MemoryPropertyFlagBits::eDeviceLocal));
 
-            CHECK_SUCCESS(renderer->device().allocateMemory(&allocInfo, nullptr, &textureMemory));
+            CHECK_SUCCESS(Renderer::device.allocateMemory(&allocInfo, nullptr, &textureMemory));
 
-            renderer->device().bindImageMemory(texture, textureMemory, 0);
+            Renderer::device.bindImageMemory(texture, textureMemory, 0);
 
-            renderer->TransitionImageLayout(texture, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-            renderer->CopyBufferToImage(width, height, stagingBuffer, texture);
-            renderer->TransitionImageLayout(texture, format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+            Renderer::current->TransitionImageLayout(texture, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+            Renderer::current->CopyBufferToImage(width, height, stagingBuffer, texture);
+            Renderer::current->TransitionImageLayout(texture, format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
-            renderer->device().destroyBuffer(stagingBuffer);
-            renderer->device().freeMemory(stagingBufferMemory);
+            Renderer::device.destroyBuffer(stagingBuffer);
+            Renderer::device.freeMemory(stagingBufferMemory);
 
             auto const viewInfo = vk::ImageViewCreateInfo()
                 .setImage(texture)
@@ -90,7 +90,7 @@ namespace atlas
                     .setLayerCount(1));
 
             vk::ImageView view;
-            CHECK_SUCCESS(renderer->device().createImageView(&viewInfo, nullptr, &view));
+            CHECK_SUCCESS(Renderer::device.createImageView(&viewInfo, nullptr, &view));
 
             auto const samplerInfo = vk::SamplerCreateInfo()
                 .setMagFilter(vk::Filter::eLinear)
@@ -110,7 +110,7 @@ namespace atlas
                 .setMaxLod(0.0f);
 
             vk::Sampler sampler;
-            CHECK_SUCCESS(renderer->device().createSampler(&samplerInfo, nullptr, &sampler));
+            CHECK_SUCCESS(Renderer::device.createSampler(&samplerInfo, nullptr, &sampler));
 
             // TODO
             return Image{ width, height, texture, view, sampler, textureMemory };

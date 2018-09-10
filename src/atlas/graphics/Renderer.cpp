@@ -31,10 +31,18 @@ namespace atlas
 {
     namespace graphics
     {
+        vk::Device Renderer::device = vk::Device();
+        vk::PhysicalDevice Renderer::gpu = vk::PhysicalDevice();
+        vk::Viewport Renderer::viewport = vk::Viewport();
+        vk::Extent2D Renderer::extent = vk::Extent2D();
+        Renderer* Renderer::current = nullptr;
+
         Renderer::Renderer() :
             _imageIndex(0)
         {
             _log = spdlog::stdout_color_mt("renderer");
+
+            Renderer::current = this;
 
 #if DEBUG
             _log->set_level(spdlog::level::trace);
@@ -66,10 +74,10 @@ namespace atlas
             int w, h;
             glfwGetWindowSize(_window, &w, &h);
 
-            _extent = vk::Extent2D(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
-            _viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
-            _viewport.setMinDepth(0);
-            _viewport.setMaxDepth(1);
+            Renderer::extent = vk::Extent2D(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
+            Renderer::viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
+            Renderer::viewport.setMinDepth(0);
+            Renderer::viewport.setMaxDepth(1);
         }
 
         void Renderer::SetScene(Scene * scene)
@@ -625,19 +633,20 @@ namespace atlas
             }
 
             bool gpuFound = false;
-            for (auto& gpu : gpus)
+            for (auto& candidate : gpus)
             {
                 uint32_t present = 0;
                 uint32_t graphics = 0;
-                if (checkQueuesSupport(gpu, _surface, &graphics, &present)
-                    && CheckExtensionSupport(gpu)
-                    && checkSwapchainSupport(gpu, _surface)
-                    && checkFormatSupport(gpu, vk::Format::eR8G8B8A8Unorm))
+                if (checkQueuesSupport(candidate, _surface, &graphics, &present)
+                    && CheckExtensionSupport(candidate)
+                    && checkSwapchainSupport(candidate, _surface)
+                    && checkFormatSupport(candidate, vk::Format::eR8G8B8A8Unorm))
                 {
-                    _gpu = gpu;
+                    _gpu = candidate;
                     _presentFamily = present;
                     _graphicsFamily = graphics;
                     gpuFound = true;
+                    Renderer::gpu = candidate;
                     break;
                 }
             }
@@ -719,6 +728,8 @@ if (!features.feat) \
             _log->debug("created device");
             _device.getQueue(_presentFamily, 0, &_presentQueue);
             _device.getQueue(_graphicsFamily, 0, &_graphicsQueue);
+
+            device = _device;
         }
 
         void Renderer::DestroyDevice()
@@ -849,7 +860,7 @@ if (!features.feat) \
             _log->debug("created render pass");
 
             vk::PresentModeKHR mode = ChooseSwapPresentMode(swapChainSupport.presentModes);
-            _extent = ChooseSwapExtent(swapChainSupport.capabilities, _window);
+            Renderer::extent = ChooseSwapExtent(swapChainSupport.capabilities, _window);
             uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
             if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
             {
@@ -864,7 +875,7 @@ if (!features.feat) \
                 .setMinImageCount(imageCount)
                 .setImageFormat(_swapchainFormat.format)
                 .setImageColorSpace(_swapchainFormat.colorSpace)
-                .setImageExtent(_extent)
+                .setImageExtent(Renderer::extent)
                 .setImageArrayLayers(1)
                 .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
                 .setPreTransform(swapChainSupport.capabilities.currentTransform)
@@ -920,8 +931,8 @@ if (!features.feat) \
                     .setRenderPass(_renderPass)
                     .setAttachmentCount(static_cast<uint32_t>(attachments.size()))
                     .setPAttachments(attachments.data())
-                    .setWidth(_extent.width)
-                    .setHeight(_extent.height)
+                    .setWidth(Renderer::extent.width)
+                    .setHeight(Renderer::extent.height)
                     .setLayers(1);
 
                 CHECK_SUCCESS(_device.createFramebuffer(&fbinfo, nullptr, &target.framebuffer));
@@ -966,7 +977,7 @@ if (!features.feat) \
                 .setArrayLayers(1)
                 .setSharingMode(vk::SharingMode::eExclusive)
                 .setSamples(vk::SampleCountFlagBits::e1)
-                .setExtent(vk::Extent3D(_extent, 1));
+                .setExtent(vk::Extent3D(Renderer::extent, 1));
 
             CHECK_SUCCESS(_device.createImage(&imageInfo, nullptr, &_depthImage));
 
@@ -1040,7 +1051,7 @@ if (!features.feat) \
                 vk::ClearColorValue(std::array<float, 4>({ { 30.0f / 255, 65.0f / 255, 84.0f / 255 , 1 } })),
                 vk::ClearDepthStencilValue(1.0f, 0u) };
 
-            auto const scissor = vk::Rect2D({ 0, 0 }, _extent);
+            auto const scissor = vk::Rect2D({ 0, 0 }, Renderer::extent);
 
             for (uint32_t i = 0; i < _commandBuffers.size(); i++)
             {
@@ -1055,7 +1066,7 @@ if (!features.feat) \
                     auto const renderPassInfo = vk::RenderPassBeginInfo()
                         .setRenderPass(_renderPass)
                         .setFramebuffer(_renderTargets[i].framebuffer)
-                        .setRenderArea(vk::Rect2D(vk::Offset2D(0, 0), _extent))
+                        .setRenderArea(vk::Rect2D(vk::Offset2D(0, 0), Renderer::extent))
                         .setClearValueCount(2)
                         .setPClearValues(clearValues);
 
@@ -1143,9 +1154,6 @@ if (!features.feat) \
 
         void Renderer::RenderFrame()
         {
-            assert(_extent.width > 0);
-            assert(_extent.height > 0);
-
             auto cameras = _scene->cameras();
             if (cameras.empty())
             {

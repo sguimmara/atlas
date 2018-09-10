@@ -11,26 +11,7 @@ const lest::test specification[] =
     {
         CASE("renderer")
         {
-            //GLFWwindow* window;
-
-            //EXPECT(glfwInit() == GLFW_TRUE);
-
-            //glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-            //if (!(window = glfwCreateWindow(800, 600, APP_NAME, nullptr, nullptr)))
-            //{
-            //    throw std::runtime_error("GLFW failed to create window");
-            //}
-
-            //Renderer r;
-            //r.Setup(window);
-
-            //Scene* scene = new Scene();
-
             atlas::Atlas app;
-
-            //r.SetScene(scene);
-            //r.Run();
         }
     },
 

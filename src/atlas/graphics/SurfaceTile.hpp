@@ -15,7 +15,7 @@ namespace atlas
         class SurfaceTile : public Mesh
         {
         public:
-            SurfaceTile(Renderer* renderer, int level, int row, int col);
+            SurfaceTile(int level, int row, int col);
             ~SurfaceTile();
 
             void Update(UpdateContext ctx);

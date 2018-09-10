@@ -15,7 +15,7 @@ namespace atlas
         class Earth : public Node
         {
         public:
-            Earth(Renderer* renderer);
+            Earth();
             ~Earth();
         };
     }

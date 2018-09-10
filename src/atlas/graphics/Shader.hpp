@@ -18,7 +18,7 @@ namespace graphics
         vk::ShaderModule module;
 
         static void SetDirectory(std::string directory);
-        static Shader Get(std::string name, vk::Device device);
+        static Shader Get(std::string name);
 
     private:
         static std::unordered_map<std::string, Shader> _store;

@@ -17,28 +17,28 @@ namespace atlas
         struct MeshObject
         {
             uint32_t indexCount;
+            uint32_t vertexCount;
             vk::Buffer indices;
             vk::IndexType indexType;
+            vk::PrimitiveTopology topology;
 
             vk::Buffer buffer;
 
             MeshObject(uint32_t vertexCount);
 
-            void Destroy(vk::Device device);
-            void SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t>& data);
+            void Destroy();
+            void SetIndices(std::vector<uint16_t>& data);
             void SetPositions(std::vector<glm::vec3>& data);
             void SetNormals(std::vector<glm::vec3>& data);
             void SetUV(std::vector<glm::vec2>& data);
-            void Apply(vk::PhysicalDevice gpu, vk::Device device);
+            void Apply();
 
         private:
             vk::DeviceMemory indicesMemory;
             vk::DeviceMemory bufferMemory;
             std::vector<Vertex> _vertices;
 
-            static void CreateBuffer(vk::PhysicalDevice gpu, vk::Device device,
-                void* data, size_t size, vk::BufferUsageFlags usage,
-                vk::Buffer& buf, vk::DeviceMemory& memory);
+            static void CreateBuffer(void* data, size_t size, vk::BufferUsageFlags usage, vk::Buffer& buf, vk::DeviceMemory& memory);
         };
     }
 }

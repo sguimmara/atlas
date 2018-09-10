@@ -10,7 +10,7 @@ namespace atlas
     {
         namespace primitives
         {
-            Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm::vec2 min, glm::vec2 max) :
+            Tile::Tile(uint16_t subdivs, glm::vec2 min, glm::vec2 max) :
                 MeshObject((subdivs + 1) * (subdivs + 1))
             {
                 const double a = 6378137;     // semimajor axis
@@ -141,11 +141,12 @@ namespace atlas
                 SetPositions(positions);
                 SetNormals(normals);
                 SetUV(uv);
-                SetIndices(gpu, device, indices);
-                Apply(gpu, device);
+                SetIndices(indices);
+                topology = vk::PrimitiveTopology::eTriangleList;
+                Apply();
             }
 
-            Tile Tile::Create(atlas::graphics::Renderer * renderer, uint16_t subdivs, int level, int row, int col)
+            Tile Tile::Create(uint16_t subdivs, int level, int row, int col)
             {
                 int n = 1 << level;
                 double xSize = 2 * PI / n;
@@ -157,7 +158,7 @@ namespace atlas
                 glm::vec2 min(x, y);
                 glm::vec2 max(x + xSize, y + ySize);
 
-                return Tile(renderer->gpu(), renderer->device(), subdivs, min, max);
+                return Tile(subdivs, min, max);
             }
         }
     }
