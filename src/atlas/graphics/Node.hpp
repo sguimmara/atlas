@@ -29,6 +29,11 @@ namespace atlas
             Drawable = 2,
         };
 
+        enum class Signal
+        {
+            WindowResized = 1
+        };
+
         /**
         * @brief      Provides preorder traversal functionality for nodes.
         */
@@ -164,6 +169,8 @@ namespace atlas
             void remove_child(size_t pos);
 
             virtual void Update(UpdateContext ctx) {}
+
+            virtual void SendSignal(Signal signal);
 
             /**************************************************************/
             /*                          operators                         */

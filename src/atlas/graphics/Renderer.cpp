@@ -45,14 +45,9 @@ namespace atlas
 
         void Renderer::Setup(GLFWwindow* window)
         {
-            int w, h;
-            glfwGetWindowSize(window, &w, &h);
-            _extent = vk::Extent2D(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
-            _viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
-            _viewport.setMinDepth(0);
-            _viewport.setMaxDepth(1);
             _window = window;
 
+            UpdateViewportAndExtent();
             CreateInstance();
             SetupDebugCallbacks();
             CreateSurface();
@@ -64,6 +59,17 @@ namespace atlas
             CreateCommandBuffers();
             Shader::SetDirectory(SHADER_DIR);
             _log->debug("setup completed");
+        }
+
+        void Renderer::UpdateViewportAndExtent()
+        {
+            int w, h;
+            glfwGetWindowSize(_window, &w, &h);
+
+            _extent = vk::Extent2D(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
+            _viewport = vk::Viewport(0, 0, static_cast<float>(w), static_cast<float>(h));
+            _viewport.setMinDepth(0);
+            _viewport.setMaxDepth(1);
         }
 
         void Renderer::SetScene(Scene * scene)
@@ -396,6 +402,11 @@ namespace atlas
             renderer->ProcessKeyEvents(key, scancode, action, mods);
         }
 
+        void Renderer::OnWindowResized()
+        {
+            _pendingViewportResize = true;
+        }
+
         void Renderer::ProcessKeyEvents(int key, int scancode, int action, int mods)
         {
             if (key == GLFW_KEY_Z && action == GLFW_PRESS)
@@ -418,18 +429,53 @@ namespace atlas
             Camera::main->SetFov(Camera::main->fov() + static_cast<float>(y * 0.1));
         }
 
+        void WindowResizedCallback(GLFWwindow* window, int width, int height)
+        {
+            auto renderer = reinterpret_cast<Renderer*>(glfwGetWindowUserPointer(window));
+
+            renderer->OnWindowResized();
+        }
+
+        void Renderer::ResizeViewport()
+        {
+            _device.waitIdle();
+            _presentQueue.waitIdle();
+
+            DestroySwapchain();
+            DestroyDepthResources();
+
+            UpdateViewportAndExtent();
+
+            CreateDepthResources();
+            CreateSwapchain();
+
+            for (auto node : *_scene)
+            {
+                node->SendSignal(Signal::WindowResized);
+            }
+
+            _imageIndex = 0;
+        }
+
         void Renderer::Run()
         {
             _log->debug("entered main loop");
 
             glfwSetKeyCallback(_window, KeyCallback);
             glfwSetScrollCallback(_window, ScrollCallback);
+            glfwSetFramebufferSizeCallback(_window, WindowResizedCallback);
 
             while (!glfwWindowShouldClose(_window))
             {
                 glfwPollEvents();
 
                 auto start = std::chrono::steady_clock::now();
+
+                if (_pendingViewportResize)
+                {
+                    ResizeViewport();
+                    _pendingViewportResize = false;
+                }
 
                 RenderFrame();
 
@@ -949,6 +995,13 @@ if (!features.feat) \
             TransitionImageLayout(_depthImage, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
             CHECK_SUCCESS(_device.createImageView(&imageViewInfo, nullptr, &_depthImageView));
+        }
+
+        void Renderer::DestroyDepthResources()
+        {
+            _device.destroyImageView(_depthImageView);
+            _device.destroyImage(_depthImage);
+            _device.freeMemory(_depthImageMemory);
         }
 
         void Renderer::CreateCommandPool()

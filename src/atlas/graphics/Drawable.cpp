@@ -54,6 +54,15 @@ namespace atlas
             buffer.drawIndexed(_mesh.indexCount, 1, 0, 0, 0);
         }
 
+        void Drawable::SendSignal(Signal signal)
+        {
+            if (signal == Signal::WindowResized)
+            {
+                DestroyPipeline();
+                CreatePipeline(_vertexShader.module, _fragmentShader.module);
+            }
+        }
+
         void Drawable::CreateDescriptorPool(size_t swapchainSize)
         {
             auto const sizes = vk::DescriptorPoolSize()

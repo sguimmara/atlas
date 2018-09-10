@@ -23,6 +23,7 @@ namespace atlas
             inline void setViewport(vk::Viewport viewport) noexcept { _viewport = viewport; }
 
             void Update(UpdateContext ctx);
+            void SendSignal(Signal signal);
 
             static Camera* main;
 
@@ -31,6 +32,7 @@ namespace atlas
             float _fovRadians;
             Transform _projectionMatrix;
             vk::Viewport _viewport;
+            Renderer* _renderer;
         };
     }
 }

@@ -52,6 +52,10 @@ namespace atlas
             _children.erase(_children.begin() + pos);
         }
 
+        void Node::SendSignal(Signal signal)
+        {
+        }
+
         void Node::throw_if_out_of_range(size_t child_pos) const
         {
             if (child_pos >= _children.size())

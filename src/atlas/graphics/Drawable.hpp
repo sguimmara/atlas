@@ -27,6 +27,8 @@ namespace atlas
             */
             virtual void Draw(DrawContext context);
 
+            void SendSignal(Signal signal);
+
         protected:
             struct ShaderStages
             {

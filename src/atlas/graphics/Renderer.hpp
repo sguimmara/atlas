@@ -30,6 +30,7 @@ namespace atlas
             inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
             inline size_t swapchainSize() const noexcept { return _renderTargets.size(); }
 
+            void OnWindowResized();
             void ProcessKeyEvents(int key, int scancode, int action, int mods);
             void ProcessScrollEvents(double x, double y);
             void CopyBufferToImage(uint32_t width, uint32_t height, vk::Buffer stage, vk::Image image);
@@ -61,8 +62,11 @@ namespace atlas
             vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>&);
             void CreateSwapchain();
             void DestroySwapchain();
+            void ResizeViewport();
+            void UpdateViewportAndExtent();
 
             void CreateDepthResources();
+            void DestroyDepthResources();
 
             void CreateCommandPool();
             void DestroyCommandPool();
@@ -105,6 +109,7 @@ namespace atlas
 
             std::vector<double> _slidingElapsedTime;
             int _slidingElapsedTimeIndex = 0;
+            bool _pendingViewportResize = false;
 
             GLFWwindow * _window;
 
