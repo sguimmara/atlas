@@ -1,44 +1,82 @@
-#ifndef ATLAS_GRAPHICS_MESH_HPP
-#define ATLAS_GRAPHICS_MESH_HPP
+#ifndef ATLAS_MESH_HPP
+#define ATLAS_MESH_HPP
 
 #include "AtlasGraphics.hpp"
+#include "Node.hpp"
+#include "Drawable.hpp"
+#include "Renderer.hpp"
+#include "Shader.hpp"
+#include "MeshObject.hpp"
+#include "Image.hpp"
+#include "primitives/Tile.hpp"
 
 namespace atlas
 {
     namespace graphics
     {
-        struct Vertex
+        /**
+        * @brief A Mesh is a Drawable with vertices organized in a mesh
+        */
+        class Mesh : public Drawable
         {
-            glm::vec3 position;
-            glm::vec3 normal;
-            uint32_t uv;
-        };
+        public:
+            Mesh(Renderer* renderer, MeshObject mesh);
+            ~Mesh();
 
-        struct Mesh
-        {
-            uint32_t indexCount;
-            vk::Buffer indices;
-            vk::IndexType indexType;
+            /**
+            * @brief Fills the command buffer with draw commands
+            */
+            void Draw(DrawContext context);
 
-            vk::Buffer buffer;
+            void SendSignal(Signal signal);
 
-            Mesh(uint32_t vertexCount);
+        protected:
+            struct ShaderStages
+            {
+                vk::PipelineShaderStageCreateInfo vertexStage;
+                vk::PipelineShaderStageCreateInfo fragmentStage;
 
-            void Destroy(vk::Device device);
-            void SetIndices(vk::PhysicalDevice gpu, vk::Device device, std::vector<uint16_t>& data);
-            void SetPositions(std::vector<glm::vec3>& data);
-            void SetNormals(std::vector<glm::vec3>& data);
-            void SetUV(std::vector<glm::vec2>& data);
-            void Apply(vk::PhysicalDevice gpu, vk::Device device);
+                ShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment)
+                {
+                    vertexStage = vk::PipelineShaderStageCreateInfo()
+                        .setStage(vk::ShaderStageFlagBits::eVertex)
+                        .setModule(vertex)
+                        .setPName("main");
 
-        private:
-            vk::DeviceMemory indicesMemory;
-            vk::DeviceMemory bufferMemory;
-            std::vector<Vertex> _vertices;
+                    fragmentStage = vk::PipelineShaderStageCreateInfo()
+                        .setStage(vk::ShaderStageFlagBits::eFragment)
+                        .setModule(fragment)
+                        .setPName("main");
+                }
+            };
 
-            static void CreateBuffer(vk::PhysicalDevice gpu, vk::Device device,
-                void* data, size_t size, vk::BufferUsageFlags usage,
-                vk::Buffer& buf, vk::DeviceMemory& memory);
+            struct MVP
+            {
+                glm::mat4 model;
+                glm::mat4 view;
+                glm::mat4 proj;
+            };
+
+            void CreateTexture();
+            void CreateDescriptorPool(size_t swapchainSize);
+            void CreateDescriptorSets(size_t swapchainSize);
+            void DestroyDescriptorSets();
+            void CreatePipeline(vk::ShaderModule, vk::ShaderModule);
+            void DestroyPipeline();
+
+            vk::Pipeline _pipeline;
+            vk::PipelineLayout _pipelineLayout;
+            vk::DescriptorPool _descriptorPool;
+            vk::DescriptorSetLayout _descriptorSetLayout;
+            vk::PolygonMode _currentPolygonMode;
+            std::vector<vk::DescriptorSet> _descriptorSets;
+            Renderer* _renderer;
+            Shader _fragmentShader;
+            Shader _vertexShader;
+
+            MeshObject _mesh;
+            Image _texture;
+            glm::vec3 _color;
         };
     }
 }

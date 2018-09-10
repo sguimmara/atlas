@@ -11,7 +11,7 @@ namespace atlas
         namespace primitives
         {
             Tile::Tile(vk::PhysicalDevice gpu, vk::Device device, uint16_t subdivs, glm::vec2 min, glm::vec2 max) :
-                Mesh((subdivs + 1) * (subdivs + 1))
+                MeshObject((subdivs + 1) * (subdivs + 1))
             {
                 const double a = 6378137;     // semimajor axis
                 const double b = 6356752.314; // semiminor axis

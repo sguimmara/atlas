@@ -9,7 +9,7 @@ namespace atlas
             _level(level),
             _row(row),
             _col(col),
-            Drawable(renderer, primitives::Tile::Create(renderer, 16, level, row, col))
+            Mesh(renderer, primitives::Tile::Create(renderer, 16, level, row, col))
         {
             int maxLevel = 10;
             float l = 1.0f / maxLevel * level;

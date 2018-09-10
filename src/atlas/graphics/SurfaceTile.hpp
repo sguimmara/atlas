@@ -3,7 +3,7 @@
 
 #include "AtlasGraphics.hpp"
 #include "Node.hpp"
-#include "Drawable.hpp"
+#include "Mesh.hpp"
 
 namespace atlas
 {
@@ -12,7 +12,7 @@ namespace atlas
         /**
         * @brief      The SurfaceTile node represents a fragment of the earth's surface.
         */
-        class SurfaceTile : public Drawable
+        class SurfaceTile : public Mesh
         {
         public:
             SurfaceTile(Renderer* renderer, int level, int row, int col);

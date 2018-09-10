@@ -1,5 +1,5 @@
 #include "Atlas.hpp"
-#include "atlas/graphics/Drawable.hpp"
+#include "atlas/graphics/Mesh.hpp"
 #include "atlas/graphics/Camera.hpp"
 
 #include "spdlog/sinks/stdout_color_sinks.h"

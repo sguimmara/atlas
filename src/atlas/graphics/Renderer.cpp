@@ -1,4 +1,4 @@
-#include "Drawable.hpp"
+#include "Mesh.hpp"
 #include "Renderer.hpp"
 #include "Time.hpp"
 #include "RenderingOptions.hpp"
@@ -1094,7 +1094,7 @@ if (!features.feat) \
                 node->Update(uctx);
                 if (node->flags() & (int)NodeFlags::Drawable)
                 {
-                    static_cast<Drawable*>(node)->Draw(ctx);
+                    static_cast<Mesh*>(node)->Draw(ctx);
                 }
             }
         }

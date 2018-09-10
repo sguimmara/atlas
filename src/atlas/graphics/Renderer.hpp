@@ -11,7 +11,7 @@ namespace atlas
     namespace graphics
     {
         class Camera;
-        class Drawable;
+        class Mesh;
 
         class Renderer
         {
