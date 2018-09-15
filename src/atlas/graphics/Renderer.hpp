@@ -29,8 +29,9 @@ namespace atlas
             static Renderer* current;
 
             inline vk::CommandPool pool() const noexcept { return _commandPool; }
+            inline vk::DescriptorPool descriptorPool() const noexcept { return _descriptorPool; }
             inline vk::RenderPass renderPass() const noexcept { return _renderPass; }
-            inline size_t swapchainSize() const noexcept { return _renderTargets.size(); }
+            inline uint32_t swapchainSize() const noexcept { return static_cast<uint32_t>(_renderTargets.size()); }
 
             void OnWindowResized();
             void ProcessKeyEvents(int key, int scancode, int action, int mods);
@@ -75,6 +76,9 @@ namespace atlas
             void CreateCommandBuffers();
             void UpdateCommandBuffers();
 
+            void CreateDescriptorPool();
+            void DestroyDescriptorPool();
+
             void RenderFrame();
             void PostFrame(double);
             void ApplyTransformations(Scene& scene);
@@ -92,6 +96,7 @@ namespace atlas
             vk::RenderPass _renderPass;
             vk::SurfaceKHR _surface;
             vk::CommandPool _commandPool;
+            vk::DescriptorPool _descriptorPool;
             vk::Queue _presentQueue;
             vk::Queue _graphicsQueue;
             vk::Image _depthImage;

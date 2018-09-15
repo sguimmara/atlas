@@ -1,6 +1,8 @@
 #include "Atlas.hpp"
 #include "atlas/graphics/Mesh.hpp"
 #include "atlas/graphics/Camera.hpp"
+#include "atlas/graphics/debug/Point.hpp"
+#include "atlas/graphics/debug/Axes.hpp"
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 
@@ -21,8 +23,11 @@ atlas::Atlas::Atlas()
     _renderer->Setup(_window);
 
     _scene = new graphics::Scene();
-    _scene->root()->add_child(new graphics::Earth(_renderer));
-    _scene->root()->add_child(new graphics::Camera(_renderer));
+
+    _scene->root()->add_child(new graphics::debug::Point(glm::vec3(0, 0, 0)));
+    //_scene->root()->add_child(new graphics::debug::Axes());
+    //_scene->root()->add_child(new graphics::Earth());
+    _scene->root()->add_child(new graphics::Camera());
     _renderer->SetScene(_scene);
 
     glfwSetWindowUserPointer(_window, _renderer);

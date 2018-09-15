@@ -9,8 +9,9 @@ namespace atlas
             _level(level),
             _row(row),
             _col(col),
-            Mesh(primitives::Tile::Create(16, level, row, col))
+            Mesh(primitives::Tile::Create(16, level, row, col), Material())
         {
+            //_material = 
             int maxLevel = 10;
             float l = 1.0f / maxLevel * level;
             _color = glm::vec3(l, 1.0f - l, 0);

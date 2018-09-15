@@ -13,6 +13,7 @@ add_sources(core core)
 add_sources(util util)
 add_sources(graphics graphics)
 add_sources(graphics/primitives graphics\\\\primitives)
+add_sources(graphics/debug graphics\\\\debug)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 

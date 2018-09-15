@@ -1,5 +1,5 @@
-#ifndef ATLAS_MESH_HPP
-#define ATLAS_MESH_HPP
+#ifndef ATLAS_GRAPHICS_MESH_HPP
+#define ATLAS_GRAPHICS_MESH_HPP
 
 #include "AtlasGraphics.hpp"
 #include "Node.hpp"
@@ -7,8 +7,8 @@
 #include "Renderer.hpp"
 #include "Shader.hpp"
 #include "MeshObject.hpp"
+#include "Material.hpp"
 #include "Image.hpp"
-#include "primitives/Tile.hpp"
 
 namespace atlas
 {
@@ -20,7 +20,7 @@ namespace atlas
         class Mesh : public Drawable
         {
         public:
-            Mesh(MeshObject mesh);
+            Mesh(MeshObject mesh, Material material);
             ~Mesh();
 
             /**
@@ -30,51 +30,10 @@ namespace atlas
 
             void SendSignal(Signal signal);
 
+
         protected:
-            struct ShaderStages
-            {
-                vk::PipelineShaderStageCreateInfo vertexStage;
-                vk::PipelineShaderStageCreateInfo fragmentStage;
-
-                ShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment)
-                {
-                    vertexStage = vk::PipelineShaderStageCreateInfo()
-                        .setStage(vk::ShaderStageFlagBits::eVertex)
-                        .setModule(vertex)
-                        .setPName("main");
-
-                    fragmentStage = vk::PipelineShaderStageCreateInfo()
-                        .setStage(vk::ShaderStageFlagBits::eFragment)
-                        .setModule(fragment)
-                        .setPName("main");
-                }
-            };
-
-            struct MVP
-            {
-                glm::mat4 model;
-                glm::mat4 view;
-                glm::mat4 proj;
-            };
-
-            void CreateTexture();
-            void CreateDescriptorPool(size_t swapchainSize);
-            void CreateDescriptorSets(size_t swapchainSize);
-            void DestroyDescriptorSets();
-            void CreatePipeline(vk::ShaderModule, vk::ShaderModule);
-            void DestroyPipeline();
-
-            vk::Pipeline _pipeline;
-            vk::PipelineLayout _pipelineLayout;
-            vk::DescriptorPool _descriptorPool;
-            vk::DescriptorSetLayout _descriptorSetLayout;
-            vk::PolygonMode _currentPolygonMode;
-            std::vector<vk::DescriptorSet> _descriptorSets;
-            Shader _fragmentShader;
-            Shader _vertexShader;
-
+            Material _material;
             MeshObject _mesh;
-            Image _texture;
             glm::vec3 _color;
         };
     }

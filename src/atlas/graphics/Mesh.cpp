@@ -7,36 +7,28 @@ namespace atlas
 {
     namespace graphics
     {
-        Mesh::Mesh(MeshObject mesh) :
+        Mesh::Mesh(MeshObject mesh, Material material) :
             _mesh(mesh),
-            _fragmentShader(Shader::Get("tile.frag")),
-            _vertexShader(Shader::Get("tile.vert")),
+            _material(material),
             Drawable()
         {
             _flags |= (int)NodeFlags::Drawable;
-            CreateTexture();
-            CreateDescriptorPool(Renderer::current->swapchainSize());
-            CreateDescriptorSets(Renderer::current->swapchainSize());
-            CreatePipeline(_vertexShader.module, _fragmentShader.module);
         }
 
         Mesh::~Mesh()
         {
             _mesh.Destroy();
-            _texture.Destroy();
-            DestroyPipeline();
-            DestroyDescriptorSets();
         }
 
         void Mesh::Draw(DrawContext context)
         {
             _localTransform = glm::rotate(_localTransform, static_cast<float>(Time::dt * 0.4), glm::vec3(0, 1, 0));
 
-            if (_currentPolygonMode != RenderingOptions::PolygonMode)
-            {
-                DestroyPipeline();
-                CreatePipeline(_vertexShader.module, _fragmentShader.module);
-            }
+            //if (_currentPolygonMode != RenderingOptions::PolygonMode)
+            //{
+            //    DestroyPipeline();
+            //    CreatePipeline(_vertexShader.module, _fragmentShader.module);
+            //}
             
             struct MVP mvp;
             mvp.model = _transform;
@@ -44,10 +36,10 @@ namespace atlas
             mvp.proj = context.projectionMatrix;
 
             vk::CommandBuffer buffer = context.cmdBuffer;
-            buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
-            buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MVP), &mvp);
-            buffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(MVP), sizeof(glm::vec3), &_color);
-            buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, 1, _descriptorSets.data(), 0, nullptr);
+            buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _material.pipeline);
+            buffer.pushConstants(_material.pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MVP), &mvp);
+            //buffer.pushConstants(_material.pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(MVP), sizeof(glm::vec3), &_color);
+            //buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _material.pipelineLayout, 0, 1, _descriptorSets.data(), 0, nullptr);
             buffer.bindVertexBuffers(0, { _mesh.buffer }, { 0 });
 
             if (_mesh.topology == vk::PrimitiveTopology::eTriangleList)
@@ -65,217 +57,8 @@ namespace atlas
         {
             if (signal == Signal::WindowResized)
             {
-                DestroyPipeline();
-                CreatePipeline(_vertexShader.module, _fragmentShader.module);
+                //TODO
             }
-        }
-
-        void Mesh::CreateDescriptorPool(size_t swapchainSize)
-        {
-            auto const sizes = vk::DescriptorPoolSize()
-                .setDescriptorCount(static_cast<uint32_t>(swapchainSize));
-
-            auto const info = vk::DescriptorPoolCreateInfo()
-                .setPoolSizeCount(1)
-                .setPPoolSizes(&sizes)
-                .setMaxSets(static_cast<uint32_t>(swapchainSize));
-
-            CHECK_SUCCESS(Renderer::device.createDescriptorPool(&info, nullptr, &_descriptorPool));
-        }
-
-        void Mesh::CreateDescriptorSets(size_t swapchainSize)
-        {
-            auto const texture0 = vk::DescriptorSetLayoutBinding()
-                .setBinding(0)
-                .setDescriptorCount(1)
-                .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                .setStageFlags(vk::ShaderStageFlagBits::eFragment)
-                .setPImmutableSamplers(nullptr);
-
-            std::vector<vk::DescriptorSetLayoutBinding> bindings{ texture0 };
-
-            auto const layoutInfo = vk::DescriptorSetLayoutCreateInfo()
-                .setBindingCount(static_cast<uint32_t>(bindings.size()))
-                .setPBindings(bindings.data());
-
-            _descriptorSetLayout;
-            CHECK_SUCCESS(Renderer::device.createDescriptorSetLayout(&layoutInfo, nullptr, &_descriptorSetLayout));
-
-            std::vector<vk::DescriptorSetLayout> layouts;
-            for (size_t i = 0; i < swapchainSize; i++)
-            {
-                layouts.push_back(_descriptorSetLayout);
-            }
-            _descriptorSets.resize(swapchainSize);
-
-            auto const allocInfo = vk::DescriptorSetAllocateInfo()
-                .setDescriptorPool(_descriptorPool)
-                .setDescriptorSetCount(static_cast<uint32_t>(swapchainSize))
-                .setPSetLayouts(layouts.data());
-
-            Renderer::device.allocateDescriptorSets(&allocInfo, _descriptorSets.data());
-            
-            auto const imageInfo = vk::DescriptorImageInfo()
-                .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
-                .setImageView(_texture.view)
-                .setSampler(_texture.sampler);
-
-            std::vector<vk::WriteDescriptorSet> writes;
-            writes.resize(_descriptorSets.size());
-
-            for (size_t i = 0; i < _descriptorSets.size(); i++)
-            {
-                auto const write = vk::WriteDescriptorSet()
-                    .setDstSet(_descriptorSets[i])
-                    .setDescriptorCount(1)
-                    .setPImageInfo(&imageInfo)
-                    .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                    .setDstArrayElement(0)
-                    .setDstBinding(0);
-                writes[i] = write;
-            }
-            
-            Renderer::device.updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
-        }
-
-        void Mesh::DestroyDescriptorSets()
-        {
-            Renderer::device.destroyDescriptorSetLayout(_descriptorSetLayout);
-            Renderer::device.destroyDescriptorPool(_descriptorPool);
-        }
-
-        void Mesh::CreateTexture()
-        {
-            _texture = Image::FromFile("C:/Users/sguimmara/Documents/work/c++/atlas/images/equirectangular.jpg");
-        }
-
-        void Mesh::CreatePipeline(
-            vk::ShaderModule vertexShader,
-            vk::ShaderModule fragmentShader)
-        {
-            auto const viewport = Renderer::viewport;
-
-            auto const binding = vk::VertexInputBindingDescription()
-                .setBinding(0)
-                .setStride(sizeof(Vertex))
-                .setInputRate(vk::VertexInputRate::eVertex);
-
-            auto const posAttrib = vk::VertexInputAttributeDescription()
-                .setBinding(0)
-                .setLocation(0)
-                .setFormat(vk::Format::eR32G32B32Sfloat)
-                .setOffset(offsetof(Vertex, position));
-
-            auto const normAttrib = vk::VertexInputAttributeDescription()
-                .setBinding(0)
-                .setLocation(1)
-                .setFormat(vk::Format::eR32G32B32Sfloat)
-                .setOffset(offsetof(Vertex, normal));
-
-            auto const uvAttrib = vk::VertexInputAttributeDescription()
-                .setBinding(0)
-                .setLocation(2)
-                .setFormat(vk::Format::eR16G16Sfloat)
-                .setOffset(offsetof(Vertex, uv));
-
-            std::vector<vk::VertexInputAttributeDescription> attributes;
-            std::vector<vk::VertexInputBindingDescription> bindings;
-
-            attributes.push_back(posAttrib);
-            attributes.push_back(normAttrib);
-            attributes.push_back(uvAttrib);
-
-            bindings.push_back(binding);
-
-            auto const stages = ShaderStages(vertexShader, fragmentShader);
-
-            auto const vertexInput = vk::PipelineVertexInputStateCreateInfo()
-                .setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributes.size()))
-                .setPVertexAttributeDescriptions(attributes.data())
-                .setVertexBindingDescriptionCount(static_cast<uint32_t>(bindings.size()))
-                .setPVertexBindingDescriptions(bindings.data());
-
-            auto const assembly = vk::PipelineInputAssemblyStateCreateInfo()
-                .setTopology(_mesh.topology)
-                .setPrimitiveRestartEnable(VK_FALSE);
-
-            auto const scissor = vk::Rect2D(
-                vk::Offset2D(0, 0),
-                vk::Extent2D(static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)));
-
-            auto const viewportState = vk::PipelineViewportStateCreateInfo()
-                .setPScissors(&scissor)
-                .setScissorCount(1)
-                .setViewportCount(1)
-                .setPViewports(&viewport);
-
-            auto const rasterization = vk::PipelineRasterizationStateCreateInfo()
-                .setPolygonMode(RenderingOptions::PolygonMode)
-                .setCullMode(vk::CullModeFlagBits::eBack)
-                .setFrontFace(vk::FrontFace::eClockwise);
-
-            _currentPolygonMode = RenderingOptions::PolygonMode;
-
-            auto const multisampling = vk::PipelineMultisampleStateCreateInfo()
-                .setRasterizationSamples(vk::SampleCountFlagBits::e1);
-
-            auto const blendAttachment = vk::PipelineColorBlendAttachmentState()
-                .setBlendEnable(VK_FALSE)
-                .setColorWriteMask(
-                    vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-                    vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-
-            auto const blending = vk::PipelineColorBlendStateCreateInfo()
-                .setAttachmentCount(1)
-                .setPAttachments(&blendAttachment);
-
-            std::vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
-
-            auto const constantRange = vk::PushConstantRange()
-                .setOffset(0)
-                .setSize(sizeof(MVP) + sizeof(glm::vec3))
-                .setStageFlags(vk::ShaderStageFlagBits::eVertex);
-
-            auto const dynamicState = vk::PipelineDynamicStateCreateInfo()
-                .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
-                .setPDynamicStates(dynamicStates.data());
-
-            auto const pipelineLayoutInfo = vk::PipelineLayoutCreateInfo()
-                .setSetLayoutCount(1)
-                .setPSetLayouts(&_descriptorSetLayout)
-                .setPushConstantRangeCount(1)
-                .setPPushConstantRanges(&constantRange);
-
-            CHECK_SUCCESS(Renderer::device.createPipelineLayout(&pipelineLayoutInfo, nullptr, &_pipelineLayout));
-
-            auto const depthStencil = vk::PipelineDepthStencilStateCreateInfo()
-                .setDepthTestEnable(VK_TRUE)
-                .setDepthWriteEnable(VK_TRUE)
-                .setDepthCompareOp(vk::CompareOp::eLess)
-                .setStencilTestEnable(VK_FALSE);
-
-            auto const pipelineInfo = vk::GraphicsPipelineCreateInfo()
-                .setStageCount(2)
-                .setPStages(&stages.vertexStage)
-                .setPVertexInputState(&vertexInput)
-                .setPInputAssemblyState(&assembly)
-                .setPViewportState(&viewportState)
-                .setPRasterizationState(&rasterization)
-                .setPMultisampleState(&multisampling)
-                .setPColorBlendState(&blending)
-                .setLayout(_pipelineLayout)
-                .setPDynamicState(&dynamicState)
-                .setRenderPass(Renderer::current->renderPass())
-                .setPDepthStencilState(&depthStencil)
-                .setSubpass(0);
-
-            CHECK_SUCCESS(Renderer::device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &_pipeline));
-        }
-
-        void Mesh::DestroyPipeline()
-        {
-            Renderer::device.destroyPipeline(_pipeline);
-            Renderer::device.destroyPipelineLayout(_pipelineLayout);
         }
     }
 }

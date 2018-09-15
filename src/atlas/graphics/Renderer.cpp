@@ -64,6 +64,7 @@ namespace atlas
             CreateCommandPool();
             CreateDepthResources();
             CreateSwapchain();
+            CreateDescriptorPool();
             CreateCommandBuffers();
             Shader::SetDirectory(SHADER_DIR);
             _log->debug("setup completed");
@@ -103,6 +104,7 @@ namespace atlas
 
             DestroySwapchain();
             DestroyCommandPool();
+            DestroyDescriptorPool();
             DestroyDevice();
             DestroyInstance();
         }
@@ -1020,14 +1022,34 @@ if (!features.feat) \
             auto const info = vk::CommandPoolCreateInfo()
                 .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
 
-            _device.createCommandPool(&info, nullptr, &_commandPool);
+            CHECK_SUCCESS(_device.createCommandPool(&info, nullptr, &_commandPool));
             _log->debug("created command pool");
         }
 
         void Renderer::DestroyCommandPool()
         {
-            _device.destroyCommandPool(_commandPool, nullptr);
+            _device.destroyCommandPool(_commandPool);
             _log->debug("destroyed command pool");
+        }
+
+        void Renderer::CreateDescriptorPool()
+        {
+            auto const poolSize = vk::DescriptorPoolSize()
+                .setDescriptorCount(swapchainSize())
+                .setType(vk::DescriptorType::eCombinedImageSampler);
+
+            auto const descriptorPoolInfo = vk::DescriptorPoolCreateInfo()
+                .setPoolSizeCount(1)
+                .setPPoolSizes(&poolSize)
+                .setMaxSets(swapchainSize());
+
+            CHECK_SUCCESS(_device.createDescriptorPool(&descriptorPoolInfo, nullptr, &_descriptorPool));
+        }
+
+        void Renderer::DestroyDescriptorPool()
+        {
+            _device.destroyDescriptorPool(_descriptorPool);
+            _log->debug("destroyed descriptor pool");
         }
 
         void Renderer::CreateCommandBuffers()
