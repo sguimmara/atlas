@@ -423,20 +423,25 @@ namespace atlas
             {
                 RenderingOptions::PolygonMode = RenderingOptions::PolygonMode == vk::PolygonMode::eFill ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
             }
+            if (key == GLFW_KEY_G && action == GLFW_PRESS)
+            {
+                _renderFlags ^= 1U << (uint32_t)NodeFlags::Debug;
+            }
 
-            if (key == GLFW_KEY_S && action == GLFW_PRESS)
-            {
-                static_cast<SurfaceTile*>(_scene->root()->get_child(0)->get_child(0))->Split();
-            }
-            if (key == GLFW_KEY_R && action == GLFW_PRESS)
-            {
-                static_cast<SurfaceTile*>(_scene->root()->get_child(0)->get_child(0))->Reduce();
-            }
+            // TODO
+            //if (key == GLFW_KEY_S && action == GLFW_PRESS)
+            //{
+            //    static_cast<SurfaceTile*>(_scene->root()->get_child(0)->get_child(0))->Split();
+            //}
+            //if (key == GLFW_KEY_R && action == GLFW_PRESS)
+            //{
+            //    static_cast<SurfaceTile*>(_scene->root()->get_child(0)->get_child(0))->Reduce();
+            //}
         }
 
         void Renderer::ProcessScrollEvents(double x, double y)
         {
-            Camera::main->SetFov(Camera::main->fov() + static_cast<float>(y * 0.1));
+            //Camera::main->SetFov(Camera::main->fov() + static_cast<float>(y * 0.1));
         }
 
         void WindowResizedCallback(GLFWwindow* window, int width, int height)
@@ -689,6 +694,7 @@ if (!features.feat) \
             CHECK_FEATURE(fillModeNonSolid);
             CHECK_FEATURE(samplerAnisotropy);
             CHECK_FEATURE(multiViewport);
+            CHECK_FEATURE(wideLines);
         }
 
         void Renderer::CreateDevice()
@@ -711,7 +717,8 @@ if (!features.feat) \
             auto const features = vk::PhysicalDeviceFeatures()
                 .setFillModeNonSolid(VK_TRUE)
                 .setSamplerAnisotropy(VK_TRUE)
-                .setMultiViewport(VK_TRUE);
+                .setMultiViewport(VK_TRUE)
+                .setWideLines(VK_TRUE);
 
             auto info = vk::DeviceCreateInfo()
                 .setQueueCreateInfoCount(static_cast<uint32_t>(queues.size()))
@@ -1113,7 +1120,8 @@ if (!features.feat) \
             {
                 if (node->parent() != nullptr)
                 {
-                    node->setTransform(node->parent()->transform() * node->localTransform());
+                    //node->setTransform(node->parent()->transform() * node->localTransform());
+                    node->setTransform(node->localTransform() * node->parent()->transform());
                 }
             }
         }
@@ -1125,7 +1133,7 @@ if (!features.feat) \
             for (auto const node : scene)
             {
                 node->Update(uctx);
-                if (node->flags() & (int)NodeFlags::Drawable)
+                if (node->flags() == _renderFlags)
                 {
                     static_cast<Mesh*>(node)->Draw(ctx);
                 }

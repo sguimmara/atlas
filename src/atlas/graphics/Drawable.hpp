@@ -7,7 +7,6 @@
 #include "Shader.hpp"
 #include "MeshObject.hpp"
 #include "Image.hpp"
-#include "primitives/Tile.hpp"
 
 namespace atlas
 {

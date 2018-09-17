@@ -117,6 +117,7 @@ namespace atlas
             bool _pendingViewportResize = false;
 
             GLFWwindow * _window;
+            uint32_t _renderFlags = 1 << (uint32_t)NodeFlags::Drawable;
 
             Scene* _scene;
         };

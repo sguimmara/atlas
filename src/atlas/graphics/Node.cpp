@@ -7,7 +7,7 @@ namespace atlas
         Node::Node() :
             _parent(nullptr),
             _rightSibling(nullptr),
-            _flags((int)NodeFlags::Traversable),
+            _flags((uint32_t)NodeFlags::None),
             _transform(glm::mat4(1.0)),
             _localTransform(glm::mat4(1.0))
         {

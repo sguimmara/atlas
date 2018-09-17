@@ -1,55 +1,8 @@
 #include "Material.hpp"
-#include "MeshObject.hpp"
 #include "Renderer.hpp"
+#include "Vertex.hpp"
 
 using namespace atlas::graphics;
-
-vk::PipelineVertexInputStateCreateInfo CreateVertexInputs(std::vector<Semantic> semantics, std::vector<vk::VertexInputAttributeDescription>* attributes)
-{
-    auto const binding = vk::VertexInputBindingDescription()
-        .setBinding(0)
-        .setStride(sizeof(Vertex))
-        .setInputRate(vk::VertexInputRate::eVertex);
-
-    for (uint32_t i = 0; i < semantics.size(); i++)
-    {
-        uint32_t offset;
-        vk::Format format;
-
-        switch (semantics[i])
-        {
-        case Semantic::Position:
-            offset = offsetof(Vertex, position);
-            format = vk::Format::eR32G32B32Sfloat;
-        case Semantic::Normal:
-        case Semantic::Color:
-            offset = offsetof(Vertex, normal);
-            format = vk::Format::eR32G32B32Sfloat;
-            break;
-        case Semantic::TexCoord:
-            offset = offsetof(Vertex, uv);
-            format = vk::Format::eR16G16Sfloat;
-        default:
-            break;
-        }
-
-        auto const attribute = vk::VertexInputAttributeDescription()
-            .setBinding(0)
-            .setLocation(i)
-            .setFormat(format)
-            .setOffset(offset);
-
-        attributes->push_back(attribute);
-    }
-
-    auto const vertexInput = vk::PipelineVertexInputStateCreateInfo()
-        .setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributes->size()))
-        .setPVertexAttributeDescriptions(attributes->data())
-        .setVertexBindingDescriptionCount(1)
-        .setPVertexBindingDescriptions(&binding);
-
-    return vertexInput;
-}
 
 vk::PipelineViewportStateCreateInfo CreateViewportState(vk::Viewport viewport)
 {
@@ -80,11 +33,11 @@ vk::PipelineColorBlendStateCreateInfo CreateColorBlendState()
     return blending;
 }
 
-vk::PipelineRasterizationStateCreateInfo CreateRasterizationState(vk::PolygonMode polygonMode)
+vk::PipelineRasterizationStateCreateInfo CreateRasterizationState(vk::PolygonMode polygonMode, float lineWidth)
 {
     auto const rasterization = vk::PipelineRasterizationStateCreateInfo()
         .setPolygonMode(polygonMode)
-        .setLineWidth(1.0f)
+        .setLineWidth(lineWidth)
         .setCullMode(vk::CullModeFlagBits::eBack)
         .setFrontFace(vk::FrontFace::eClockwise);
 
@@ -142,14 +95,56 @@ void Material::CreateDescriptorSet(size_t swapchainSize, std::vector<Descriptor>
     Renderer::device.allocateDescriptorSets(&allocInfo, _descriptorSets.data());
 }
 
-atlas::graphics::Material::Material()
+Material::Material()
 {
 }
 
-Material::Material(std::vector<Semantic> locations, std::vector<Descriptor> bindings, Shader vs, Shader fs, vk::PrimitiveTopology topology)
+Material::Material(std::vector<Semantic> semantics, std::vector<Descriptor> bindings, Shader vs, Shader fs, vk::PrimitiveTopology topology) :
+    lineWidth(1.0f)
 {
     std::vector<vk::VertexInputAttributeDescription> attributes;
-    auto const vertexInputs = CreateVertexInputs(locations, &attributes);
+    auto const binding = vk::VertexInputBindingDescription()
+        .setBinding(0)
+        .setStride(sizeof(Vertex))
+        .setInputRate(vk::VertexInputRate::eVertex);
+
+    for (uint32_t i = 0; i < semantics.size(); i++)
+    {
+        uint32_t offset;
+        vk::Format format;
+
+        switch (semantics[i])
+        {
+        case Semantic::Position:
+            offset = offsetof(Vertex, position);
+            format = vk::Format::eR32G32B32Sfloat;
+            break;
+        case Semantic::Normal:
+        case Semantic::Color:
+            offset = offsetof(Vertex, normal);
+            format = vk::Format::eR32G32B32Sfloat;
+            break;
+        case Semantic::TexCoord:
+            offset = offsetof(Vertex, uv);
+            format = vk::Format::eR16G16Sfloat;
+        default:
+            break;
+        }
+
+        auto const attribute = vk::VertexInputAttributeDescription()
+            .setBinding(0)
+            .setLocation(i)
+            .setFormat(format)
+            .setOffset(offset);
+
+        attributes.push_back(attribute);
+    }
+
+    auto const vertexInputs = vk::PipelineVertexInputStateCreateInfo()
+        .setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributes.size()))
+        .setPVertexAttributeDescriptions(attributes.data())
+        .setVertexBindingDescriptionCount(1)
+        .setPVertexBindingDescriptions(&binding);
 
     auto const assembly = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(topology)
@@ -169,7 +164,7 @@ Material::Material(std::vector<Semantic> locations, std::vector<Descriptor> bind
 
     auto const viewportState = CreateViewportState(Renderer::viewport);
 
-    auto const rasterization = CreateRasterizationState(vk::PolygonMode::eFill);
+    auto const rasterization = CreateRasterizationState(vk::PolygonMode::eFill, lineWidth);
 
     auto const multisampling = vk::PipelineMultisampleStateCreateInfo()
         .setRasterizationSamples(vk::SampleCountFlagBits::e1);
@@ -186,7 +181,7 @@ Material::Material(std::vector<Semantic> locations, std::vector<Descriptor> bind
 
     auto const stencil = CreateDepthStencilState();
 
-    std::array<vk::DynamicState, 2> dynamicStates = { vk::DynamicState::eViewport };
+    std::array<vk::DynamicState, 2> dynamicStates = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
     auto const dynamicState = vk::PipelineDynamicStateCreateInfo()
         .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
         .setPDynamicStates(dynamicStates.data());

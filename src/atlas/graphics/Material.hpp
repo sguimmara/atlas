@@ -36,6 +36,8 @@ namespace atlas
             std::vector<Semantic> locations;
             std::vector<Descriptor> bindings;
 
+            float lineWidth;
+
             Shader vertexShader;
             Shader fragmentShader;
 

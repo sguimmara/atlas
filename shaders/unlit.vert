@@ -2,6 +2,7 @@
 
 out gl_PerVertex {
     vec4 gl_Position;
+    float gl_PointSize;
 };
 
 layout(push_constant) uniform pushConstants {
@@ -18,5 +19,6 @@ layout(location = 0) out vec3 fragColor;
 void main()
 {
     gl_Position = push.proj * push.view * push.model * vec4(position, 1.0);
+    gl_PointSize = 5.0;
     fragColor = color;
 }

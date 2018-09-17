@@ -6,7 +6,7 @@
 #include "Drawable.hpp"
 #include "Renderer.hpp"
 #include "Shader.hpp"
-#include "MeshObject.hpp"
+#include "Vertex.hpp"
 #include "Material.hpp"
 #include "Image.hpp"
 
@@ -20,7 +20,7 @@ namespace atlas
         class Mesh : public Drawable
         {
         public:
-            Mesh(MeshObject mesh, Material material);
+            Mesh(uint32_t vertexCount);
             ~Mesh();
 
             /**
@@ -30,11 +30,34 @@ namespace atlas
 
             void SendSignal(Signal signal);
 
+            uint32_t indexCount;
+            uint32_t vertexCount;
+            vk::Buffer indices;
+            vk::IndexType indexType;
+            vk::PrimitiveTopology topology;
+
+            void SetIndices(std::vector<uint16_t>& data);
+            void SetPositions(std::vector<vec3>& data);
+            void SetNormals(std::vector<vec3>& data);
+            void SetUV(std::vector<vec2>& data);
+            void Apply();
+
+            static Mesh MakePoint(vec3 color, vec3 position);
+            static Mesh MakeLine(vec3 color, vec3 start, vec3 end);
+            static Mesh MakePlane(vec3 color);
+            static Mesh MakeEllipsoid(vec3 color, double semimajorAxis, double semiminorAxis);
+
+        private:
+            vk::DeviceMemory indicesMemory;
+            vk::DeviceMemory bufferMemory;
+            std::vector<Vertex> _vertices;
+
+            static void CreateBuffer(void* data, size_t size, vk::BufferUsageFlags usage, vk::Buffer& buf, vk::DeviceMemory& memory);
 
         protected:
+            vk::Buffer buffer;
             Material _material;
-            MeshObject _mesh;
-            glm::vec3 _color;
+            vec3 _color;
         };
     }
 }

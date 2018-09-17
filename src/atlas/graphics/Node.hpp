@@ -24,9 +24,9 @@ namespace atlas
 
         enum class NodeFlags
         {
-            None = 0,
-            Traversable = 1,
-            Drawable = 2,
+            None = 0U,
+            Drawable = 1U,
+            Debug = 2U,
         };
 
         enum class Signal
@@ -215,7 +215,7 @@ namespace atlas
              */
             NodeIterator end() noexcept;
 
-            inline const int flags() const noexcept { return _flags; }
+            inline const uint32_t flags() const noexcept { return _flags; }
 
             /**************************************************************/
             /*                          transform                         */
@@ -232,7 +232,7 @@ namespace atlas
             Node* _parent;
             Node* _rightSibling;
             std::vector<Node*> _children;
-            int _flags;
+            uint32_t _flags;
 
             void throw_if_out_of_range(size_t child_pos) const;
         };

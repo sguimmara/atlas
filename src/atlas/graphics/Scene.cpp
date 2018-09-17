@@ -8,6 +8,14 @@ namespace atlas
         Scene::Scene() :
             _root(new Node())
         {
+            //float ecefToVulkan[] = {
+            //     0, 1, 0, 0,
+            //     0, 0,-1, 0,
+            //    -1, 0, 0, 0,
+            //     0, 0, 0, 1
+            //};
+
+            // _root->setTransform(make_mat4(ecefToVulkan));
         }
 
         std::vector<Camera*> Scene::cameras()
