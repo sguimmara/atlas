@@ -30,6 +30,7 @@ atlas::Atlas::Atlas()
     auto green = vec3(0, 1, 0);
     auto blue = vec3(0, 0, 1);
     auto gray = vec3(0.5f, 0.5f, 0.5f);
+    auto darkGray = vec3(0, 0, 0);
 
     Node* ecef = new Node();
     Mesh point = Mesh::MakePoint(cyan, vec3(0, 0, 0));
@@ -37,7 +38,9 @@ atlas::Atlas::Atlas()
     Mesh yAxis = Mesh::MakeLine(green, vec3(0, 0, 0), vec3(0, 1, 0));
     Mesh zAxis = Mesh::MakeLine(blue, vec3(0, 0, 0), vec3(0, 0, 1));
     Mesh plane = Mesh::MakePlane(gray);
-    Mesh ellipsoid = Mesh::MakeEllipsoid(cyan, 1, 1);
+    plane.setLocalTransform(glm::scale(plane.localTransform(), vec3(4, 4, 4)));
+    Mesh equator = Mesh::MakeEllipse(cyan, 2.01, 2.01);
+    Mesh ellipsoid = Mesh::MakeEllipsoid(darkGray, 20, 2, 2);
 
     const float EcefToVulkan[] = {
          0, 1, 0, 0,
@@ -62,6 +65,7 @@ atlas::Atlas::Atlas()
     ecef->add_child(&zAxis);
     ecef->add_child(&plane);
     ecef->add_child(&ellipsoid);
+    ecef->add_child(&equator);
     //_scene->root()->add_child(new Earth());
     _scene->root()->add_child(new Camera());
     _renderer->SetScene(_scene);

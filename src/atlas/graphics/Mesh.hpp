@@ -45,7 +45,9 @@ namespace atlas
             static Mesh MakePoint(vec3 color, vec3 position);
             static Mesh MakeLine(vec3 color, vec3 start, vec3 end);
             static Mesh MakePlane(vec3 color);
-            static Mesh MakeEllipsoid(vec3 color, double semimajorAxis, double semiminorAxis);
+            static Mesh MakeEllipse(vec3 color, double semimajorAxis, double semiminorAxis);
+            static Mesh MakeEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis);
+            static Mesh MakeSolidEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis);
 
         private:
             vk::DeviceMemory indicesMemory;

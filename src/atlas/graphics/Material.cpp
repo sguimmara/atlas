@@ -99,7 +99,13 @@ Material::Material()
 {
 }
 
-Material::Material(std::vector<Semantic> semantics, std::vector<Descriptor> bindings, Shader vs, Shader fs, vk::PrimitiveTopology topology) :
+Material::Material(
+    std::vector<Semantic> semantics,
+    std::vector<Descriptor> bindings,
+    Shader vs,
+    Shader fs,
+    vk::PrimitiveTopology topology,
+    vk::PolygonMode polygonMode) :
     lineWidth(1.0f)
 {
     std::vector<vk::VertexInputAttributeDescription> attributes;
@@ -164,7 +170,7 @@ Material::Material(std::vector<Semantic> semantics, std::vector<Descriptor> bind
 
     auto const viewportState = CreateViewportState(Renderer::viewport);
 
-    auto const rasterization = CreateRasterizationState(vk::PolygonMode::eFill, lineWidth);
+    auto const rasterization = CreateRasterizationState(polygonMode, lineWidth);
 
     auto const multisampling = vk::PipelineMultisampleStateCreateInfo()
         .setRasterizationSamples(vk::SampleCountFlagBits::e1);

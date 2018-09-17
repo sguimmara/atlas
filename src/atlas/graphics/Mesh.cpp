@@ -36,7 +36,7 @@ namespace atlas
             //    DestroyPipeline();
             //    CreatePipeline(_vertexShader.module, _fragmentShader.module);
             //}
-            
+
             struct MVP mvp;
             mvp.model = _transform;
             mvp.view = context.viewMatrix;
@@ -164,11 +164,11 @@ namespace atlas
 
         Mesh Mesh::MakePlane(vec3 color)
         {
-            Mesh plane(11*2*2);
+            Mesh plane(11 * 2 * 2);
             plane._flags |= 1 << (uint32_t)NodeFlags::Debug;
 
             plane.topology = vk::PrimitiveTopology::eLineList;
-            
+
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
 
@@ -176,7 +176,7 @@ namespace atlas
             {
                 float y = (i / 5.0f) - 1;
                 vec3 start = vec3(-1, y, 0);
-                vec3 end = vec3( 1, y, 0);
+                vec3 end = vec3(1, y, 0);
                 positions.push_back(start);
                 positions.push_back(end);
                 colors.push_back(color);
@@ -208,47 +208,213 @@ namespace atlas
             return plane;
         }
 
-        Mesh Mesh::MakeEllipsoid(vec3 color, double semimajorAxis, double semiminorAxis)
+        vec3 latLonToECEF(double lat, double lon, double semimajorAxis, double semiminorAxis)
         {
-            const int subdivs = 64;
-            Mesh ellipsoid(subdivs+1);
-            ellipsoid._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            const double a = semimajorAxis;
+            const double b = semiminorAxis;
+            const double e2 = 1 - (b * b) / (a * a);
 
-            ellipsoid.topology = vk::PrimitiveTopology::eLineStrip;
+            double sinlat = std::sin(lat);
+            double sinlon = std::sin(lon);
+            double coslon = std::cos(lon);
+            double coslat = std::cos(lat);
 
+            double nLat = a / std::sqrt(1 - e2 * sinlat);
+
+            double x = (nLat)* coslat * coslon;
+            double z = (nLat)* coslat * sinlon;
+            double y = (((b*b) / (a*a)*nLat)) * sinlat;
+
+            return vec3{ x, z, y };
+        }
+
+        Mesh Mesh::MakeEllipse(vec3 color, double semimajorAxis, double semiminorAxis)
+        {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
 
-            float x = 1;
-            float y = 0;
+            double lonDelta;
 
-            const double circle = PI * 2;
-            const double delta = circle / subdivs;
-            double angle = 0;
+            lonDelta = PI * 2 / 64;
 
-            // equator
-            for (size_t i = 0; i <= subdivs; i++)
+            for (size_t i = 0; i <= 64; i++)
             {
-                x = static_cast<float>(sin(angle));
-                y = static_cast<float>(cos(angle));
-                angle += delta;
-                positions.push_back(vec3(x, y, 0));
+                double lon = (i * lonDelta) - PI;
+                auto xyz = latLonToECEF(0, lon, semimajorAxis, semiminorAxis);
+                positions.push_back(xyz);
                 colors.push_back(color);
             }
 
-            ellipsoid.SetPositions(positions);
+            Mesh ellipse(static_cast<uint32_t>(positions.size()));
+            ellipse._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            ellipse.topology = vk::PrimitiveTopology::eLineStrip;
+            ellipse.SetPositions(positions);
 
-            ellipsoid.SetNormals(colors);
-            ellipsoid.Apply();
+            ellipse.SetNormals(colors);
+            ellipse.Apply();
 
-            ellipsoid._material = Material(
+            ellipse._material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                ellipsoid.topology);
+                ellipse.topology);
 
-            return ellipsoid;
+            return ellipse;
+        }
+
+        Mesh Mesh::MakeEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis)
+        {
+            std::vector<glm::vec3> positions;
+            std::vector<glm::vec3> colors;
+
+            double lonDelta, latDelta;
+            double lat, lon;
+
+            lonDelta = PI * 2 / subdivs;
+            latDelta = PI / 64;
+
+            // meridians
+            for (size_t i = 0; i < subdivs; i += 2)
+            {
+                lon = (i * lonDelta) - PI;
+
+                // meridians are drawn by pairs (m0, m1)
+                // m0 is drawn from the south pole to the north pole.
+                // m1 is drawn from the north pole to the south pole.
+                // This scheme enables using a single line strip to draw all
+                // meridians without visual artifacts.
+
+                for (int j = 0; j <= 64; j++)
+                {
+                    lat = (j * latDelta) - PI / 2;
+                    auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                    positions.push_back(xyz);
+                    colors.push_back(color);
+                }
+
+                lon = ((i + 1) * lonDelta) - PI;
+                for (int j = 64; j >= 0; j--)
+                {
+                    lat = (j * latDelta) - PI / 2;
+                    auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                    positions.push_back(xyz);
+                    colors.push_back(color);
+                }
+            }
+
+            lonDelta = PI * 2 / 64;
+            latDelta = PI / subdivs;
+
+            // parallels
+            for (size_t j = 0; j < subdivs; j++)
+            {
+                lat = (j * latDelta) - PI / 2;
+                for (size_t i = 0; i <= 64; i++)
+                {
+                    lon = (i * lonDelta) - PI;
+                    auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                    positions.push_back(xyz);
+                    colors.push_back(color);
+                }
+            }
+
+
+
+            Mesh ellipse(static_cast<uint32_t>(positions.size()));
+            ellipse._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            ellipse.topology = vk::PrimitiveTopology::eLineStrip;
+            ellipse.SetPositions(positions);
+
+            ellipse.SetNormals(colors);
+            ellipse.Apply();
+
+            ellipse._material = Material(
+                std::vector<Semantic>{Semantic::Position, Semantic::Color},
+                std::vector<Descriptor>(),
+                Shader::Get("unlit.vert"),
+                Shader::Get("unlit.frag"),
+                ellipse.topology);
+
+            return ellipse;
+        }
+
+        Mesh Mesh::MakeSolidEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis)
+        {
+            const double minX = 0;
+            const double maxX = PI * 2;
+            const double minY = -PI / 2;
+            const double maxY = PI / 2;
+
+            const uint16_t subdivX = subdivs * 2;
+            const uint16_t subdivY = subdivs;
+
+            const double xStep = (maxX - minX) / subdivX;
+            const double yStep = (maxY - minY) / subdivY;
+
+            const uint16_t vertexPerRow = subdivY + 1;
+            const uint16_t vertexPerCol = subdivX + 1;
+            const int size = vertexPerRow * vertexPerCol;
+
+            std::vector<glm::vec3> positions;
+            std::vector<glm::vec3> colors;
+            std::vector<uint16_t> indices;
+
+            positions.resize(size);
+            colors.resize(size);
+
+            int i = 0;
+
+            for (uint16_t row = 0; row < vertexPerRow; ++row)
+            {
+                uint16_t jww = row * vertexPerCol;
+                uint16_t j1ww = (row + 1) * vertexPerCol;
+
+                for (uint16_t col = 0; col < vertexPerCol; ++col)
+                {
+                    double lat = minY + row * yStep;
+                    double lon = minX + col * xStep;
+
+                    positions[i] = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+
+                    colors[i] = color;
+
+                    ++i;
+
+                    if (row < subdivY && col < subdivX)
+                    {
+                        uint16_t a = col + jww;
+                        uint16_t b = (col + 1) + jww;
+                        uint16_t c = (col + 1) + j1ww;
+                        uint16_t d = col + j1ww;
+
+                        indices.push_back(a);
+                        indices.push_back(b);
+                        indices.push_back(c);
+
+                        indices.push_back(c);
+                        indices.push_back(d);
+                        indices.push_back(a);
+                    }
+                }
+            }
+
+            Mesh result(static_cast<uint32_t>(positions.size()));
+            result.SetPositions(positions);
+            result.SetNormals(colors);
+            result.SetIndices(indices);
+            result.topology = vk::PrimitiveTopology::eTriangleList;
+            result.Apply();
+            result._flags |= 1 << (uint32_t)NodeFlags::Debug;
+
+            result._material = Material(
+                std::vector<Semantic>{Semantic::Position, Semantic::Color},
+                std::vector<Descriptor>(),
+                Shader::Get("unlit.vert"),
+                Shader::Get("unlit.frag"),
+                result.topology);
+
+            return result;
         }
 
         void Mesh::SetIndices(std::vector<uint16_t>& data)

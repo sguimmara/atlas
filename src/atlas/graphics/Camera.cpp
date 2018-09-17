@@ -15,7 +15,7 @@ namespace atlas
             _projectionMatrix(glm::perspective<float>(_fovRadians, _aspect, 0.05f, 15.0f)),
             Node()
         {
-            _localTransform = glm::lookAt(glm::vec3(2, -2, -2), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+            _localTransform = glm::lookAt(glm::vec3(5, -5, -5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
             if (Camera::main == nullptr)
             {
