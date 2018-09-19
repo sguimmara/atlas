@@ -33,12 +33,12 @@ vk::PipelineColorBlendStateCreateInfo CreateColorBlendState()
     return blending;
 }
 
-vk::PipelineRasterizationStateCreateInfo CreateRasterizationState(vk::PolygonMode polygonMode, float lineWidth)
+vk::PipelineRasterizationStateCreateInfo CreateRasterizationState(vk::PolygonMode polygonMode, vk::CullModeFlags culling, float lineWidth)
 {
     auto const rasterization = vk::PipelineRasterizationStateCreateInfo()
         .setPolygonMode(polygonMode)
         .setLineWidth(lineWidth)
-        .setCullMode(vk::CullModeFlagBits::eBack)
+        .setCullMode(culling)
         .setFrontFace(vk::FrontFace::eClockwise);
 
     return rasterization;
@@ -170,7 +170,7 @@ Material::Material(
 
     auto const viewportState = CreateViewportState(Renderer::viewport);
 
-    auto const rasterization = CreateRasterizationState(polygonMode, lineWidth);
+    auto const rasterization = CreateRasterizationState(polygonMode, vk::CullModeFlagBits::eBack, lineWidth);
 
     auto const multisampling = vk::PipelineMultisampleStateCreateInfo()
         .setRasterizationSamples(vk::SampleCountFlagBits::e1);

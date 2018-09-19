@@ -54,6 +54,7 @@ namespace atlas
             static Mesh MakeEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
             static Mesh MakeSolidEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
             static Mesh MakeRegion(vec3 color, vec2 min, vec2 max, Ellipsoid& ellipsoid);
+            static Mesh MakeFrustum(vec3 color, mat4 direction, vec3 origin, float aspect, float fovRadians, float nearClip, float farClip);
 
         private:
             vk::DeviceMemory indicesMemory;

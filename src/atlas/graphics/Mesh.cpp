@@ -1,6 +1,8 @@
 #include "RenderingOptions.hpp"
 #include "Mesh.hpp"
 #include "Time.hpp"
+#include "atlas/core/Plane.hpp"
+#include "atlas/core/Math.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace atlas
@@ -525,6 +527,75 @@ namespace atlas
                 Shader::Get("unlit.frag"),
                 result.topology);
             result._material.lineWidth = 2;
+
+            return result;
+        }
+
+        Mesh Mesh::MakeFrustum(vec3 color, mat4 direction, vec3 origin, float aspect, float fovRadians, float nearClip, float farClip)
+        {
+            std::vector<glm::vec3> positions;
+            std::vector<glm::vec3> colors;
+
+            vec3 axis_x = direction[0];
+            vec3 axis_y = direction[1];
+            vec3 axis_z = direction[2];
+
+            vec3 near_center = axis_z * nearClip;
+            vec3 far_center = axis_z * farClip;
+
+            float e = std::tanf(fovRadians * 0.5f);
+            float near_ext_y = e * nearClip;
+            float near_ext_x = near_ext_y * aspect;
+            float far_ext_y = e * farClip;
+            float far_ext_x = far_ext_y * aspect;
+
+            positions.resize(8);
+            colors.resize(8);
+
+            positions[0] = origin + (near_center - axis_x * near_ext_x - axis_y * near_ext_y);
+            positions[1] = origin + (near_center - axis_x * near_ext_x + axis_y * near_ext_y);
+            positions[2] = origin + (near_center + axis_x * near_ext_x + axis_y * near_ext_y);
+            positions[3] = origin + (near_center + axis_x * near_ext_x - axis_y * near_ext_y);
+            positions[4] = origin + (far_center - axis_x * far_ext_x - axis_y * far_ext_y);
+            positions[5] = origin + (far_center - axis_x * far_ext_x + axis_y * far_ext_y);
+            positions[6] = origin + (far_center + axis_x * far_ext_x + axis_y * far_ext_y);
+            positions[7] = origin + (far_center + axis_x * far_ext_x - axis_y * far_ext_y);
+
+            for (size_t i = 0; i < colors.size(); i++)
+            {
+                colors[i] = color;
+            }
+
+            std::vector<uint16_t> indices{
+                0,2,1,
+                0,3,2,
+                4,5,6,
+                4,6,7,
+                1,6,5,
+                1,2,6,
+                0,1,5,
+                0,5,4,
+                2,7,6,
+                2,3,7,
+                0,4,7,
+                0,7,3
+            };
+
+            Mesh result(static_cast<uint32_t>(positions.size()));
+            result.SetPositions(positions);
+            result.SetNormals(colors);
+            result.SetIndices(indices);
+            result.topology = vk::PrimitiveTopology::eTriangleList;
+            result.Apply();
+            result._flags |= 1 << (uint32_t)NodeFlags::Debug;
+
+            result._material = Material(
+                std::vector<Semantic>{Semantic::Position, Semantic::Color},
+                std::vector<Descriptor>(),
+                Shader::Get("unlit.vert"),
+                Shader::Get("unlit.frag"),
+                result.topology,
+                vk::PolygonMode::eFill);
 
             return result;
         }

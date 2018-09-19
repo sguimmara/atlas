@@ -441,7 +441,7 @@ namespace atlas
 
         void Renderer::ProcessScrollEvents(double x, double y)
         {
-            //Camera::main->SetFov(Camera::main->fov() + static_cast<float>(y * 0.1));
+            Camera::main->SetFov(Camera::main->fov() - static_cast<float>(y * 0.1));
         }
 
         void WindowResizedCallback(GLFWwindow* window, int width, int height)
