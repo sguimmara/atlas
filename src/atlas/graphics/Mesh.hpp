@@ -10,6 +10,10 @@
 #include "Material.hpp"
 #include "Image.hpp"
 
+#include "atlas/core/Ellipsoid.hpp"
+
+using namespace atlas::core;
+
 namespace atlas
 {
     namespace graphics
@@ -45,11 +49,11 @@ namespace atlas
             static Mesh MakePoint(vec3 color, vec3 position);
             static Mesh MakeLine(vec3 color, vec3 start, vec3 end);
             static Mesh MakePlane(vec3 color);
-            static Mesh MakeParallel(vec3 color, double lat, double semimajorAxis, double semiminorAxis);
-            static Mesh MakeMeridian(vec3 color, double lon, double semimajorAxis, double semiminorAxis);
-            static Mesh MakeEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis);
-            static Mesh MakeSolidEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis);
-            static Mesh MakeRegion(vec3 color, vec2 min, vec2 max, double semimajorAxis, double semiminorAxis);
+            static Mesh MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid);
+            static Mesh MakeMeridian(vec3 color, double lon, Ellipsoid& ellipsoid);
+            static Mesh MakeEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
+            static Mesh MakeSolidEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
+            static Mesh MakeRegion(vec3 color, vec2 min, vec2 max, Ellipsoid& ellipsoid);
 
         private:
             vk::DeviceMemory indicesMemory;

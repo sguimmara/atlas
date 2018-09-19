@@ -208,10 +208,12 @@ namespace atlas
             return plane;
         }
 
-        vec3 latLonToECEF(double lat, double lon, double semimajorAxis, double semiminorAxis)
+        vec3 latLonToECEF(double lat, double lon, Ellipsoid& ellipsoid)
         {
-            const double a = semimajorAxis;
-            const double b = semiminorAxis;
+            const double scale = 0.0000005;
+
+            const double a = ellipsoid.semimajorAxis() * scale;
+            const double b = ellipsoid.semiminorAxis() * scale;
             const double e2 = 1 - (b * b) / (a * a);
 
             double sinlat = std::sin(lat);
@@ -228,7 +230,7 @@ namespace atlas
             return vec3{ x, z, y };
         }
 
-        Mesh Mesh::MakeParallel(vec3 color, double lat, double semimajorAxis, double semiminorAxis)
+        Mesh Mesh::MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid)
         {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
@@ -238,7 +240,7 @@ namespace atlas
             for (size_t i = 0; i <= 64; i++)
             {
                 double lon = (i * lonDelta) - PI;
-                auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                auto xyz = latLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(xyz);
                 colors.push_back(color);
             }
@@ -262,7 +264,7 @@ namespace atlas
             return ellipse;
         }
 
-        Mesh Mesh::MakeMeridian(vec3 color, double lon, double semimajorAxis, double semiminorAxis)
+        Mesh Mesh::MakeMeridian(vec3 color, double lon, Ellipsoid& ellipsoid)
         {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
@@ -272,7 +274,7 @@ namespace atlas
             for (size_t i = 0; i <= 64; i++)
             {
                 double lat = (i * latDelta) - PI / 2;
-                auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                auto xyz = latLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(xyz);
                 colors.push_back(color);
             }
@@ -296,7 +298,7 @@ namespace atlas
             return ellipse;
         }
 
-        Mesh Mesh::MakeEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis)
+        Mesh Mesh::MakeEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid)
         {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
@@ -321,7 +323,7 @@ namespace atlas
                 for (int j = 0; j <= 64; j++)
                 {
                     lat = (j * latDelta) - PI / 2;
-                    auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                    auto xyz = latLonToECEF(lat, lon, ellipsoid);
                     positions.push_back(xyz);
                     colors.push_back(color);
                 }
@@ -330,7 +332,7 @@ namespace atlas
                 for (int j = 64; j >= 0; j--)
                 {
                     lat = (j * latDelta) - PI / 2;
-                    auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                    auto xyz = latLonToECEF(lat, lon, ellipsoid);
                     positions.push_back(xyz);
                     colors.push_back(color);
                 }
@@ -346,7 +348,7 @@ namespace atlas
                 for (size_t i = 0; i <= 64; i++)
                 {
                     lon = (i * lonDelta) - PI;
-                    auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                    auto xyz = latLonToECEF(lat, lon, ellipsoid);
                     positions.push_back(xyz);
                     colors.push_back(color);
                 }
@@ -372,7 +374,7 @@ namespace atlas
             return ellipse;
         }
 
-        Mesh Mesh::MakeSolidEllipsoid(vec3 color, uint32_t subdivs, double semimajorAxis, double semiminorAxis)
+        Mesh Mesh::MakeSolidEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid)
         {
             const double minX = 0;
             const double maxX = PI * 2;
@@ -408,7 +410,7 @@ namespace atlas
                     double lat = minY + row * yStep;
                     double lon = minX + col * xStep;
 
-                    positions[i] = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                    positions[i] = latLonToECEF(lat, lon, ellipsoid);
 
                     colors[i] = color;
 
@@ -450,7 +452,7 @@ namespace atlas
             return result;
         }
 
-        Mesh Mesh::MakeRegion(vec3 color, vec2 min, vec2 max, double semimajorAxis, double semiminorAxis)
+        Mesh Mesh::MakeRegion(vec3 color, vec2 min, vec2 max, Ellipsoid& ellipsoid)
         {
             const double minX = min.x;
             const double maxX = max.x;
@@ -471,7 +473,7 @@ namespace atlas
                 double lat = max.y;
                 double lon = min.x + (w / subdivs) * i;
 
-                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }
@@ -482,7 +484,7 @@ namespace atlas
                 double lon = max.x;
                 double lat = max.y - (h / subdivs) * i;
 
-                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }
@@ -493,7 +495,7 @@ namespace atlas
                 double lon = max.x - (w / subdivs) * i;
                 double lat = min.y;
 
-                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }
@@ -504,7 +506,7 @@ namespace atlas
                 double lon = min.x;
                 double lat = min.y + (h / subdivs) * i;
 
-                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }

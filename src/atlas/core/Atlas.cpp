@@ -35,6 +35,7 @@ atlas::Atlas::Atlas()
     auto lightRed = vec3(0.7f, 0.2f, 0.2f);
     auto black = vec3(0, 0, 0);
 
+    Ellipsoid grs80 = Ellipsoid::GRS80;
     Node* ecef = new Node();
     Mesh point = Mesh::MakePoint(cyan, vec3(0, 0, 0));
     Mesh xAxis = Mesh::MakeLine(red, vec3(0, 0, 0), vec3(1, 0, 0));
@@ -42,15 +43,15 @@ atlas::Atlas::Atlas()
     Mesh zAxis = Mesh::MakeLine(blue, vec3(0, 0, 0), vec3(0, 0, 1));
     Mesh plane = Mesh::MakePlane(gray);
     plane.setLocalTransform(glm::scale(plane.localTransform(), vec3(4, 4, 4)));
-    Mesh equator = Mesh::MakeParallel(cyan, 0, 2.01, 2);
-    Mesh zeroMeridian = Mesh::MakeMeridian(green, 0, 2, 2);
-    Mesh northernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(23.43686), 2, 2);
-    Mesh southernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(-23.43686), 2, 2);
-    Mesh ellipsoid = Mesh::MakeSolidEllipsoid(gray, 20, 1.99f, 1.99f);
-    Mesh grid = Mesh::MakeEllipsoid(black, 20, 2, 2);
+    Mesh equator = Mesh::MakeParallel(cyan, 0, grs80);
+    Mesh zeroMeridian = Mesh::MakeMeridian(green, 0, grs80);
+    Mesh northernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(23.43686), grs80);
+    Mesh southernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(-23.43686), grs80);
+    Mesh ellipsoid = Mesh::MakeSolidEllipsoid(gray, 20, grs80);
+    Mesh grid = Mesh::MakeEllipsoid(black, 20, grs80);
 
     vec2 min = vec2(0.1, 0.1);
-    Mesh region = Mesh::MakeRegion(cyan, min, vec2{ min.x + 0.3f, min.y + 0.3f }, 2, 2);
+    Mesh region = Mesh::MakeRegion(cyan, min, vec2{ min.x + 0.3f, min.y + 0.3f }, grs80);
 
     const float EcefToVulkan[] = {
          0, 1, 0, 0,
