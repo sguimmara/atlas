@@ -228,19 +228,17 @@ namespace atlas
             return vec3{ x, z, y };
         }
 
-        Mesh Mesh::MakeEllipse(vec3 color, double semimajorAxis, double semiminorAxis)
+        Mesh Mesh::MakeParallel(vec3 color, double lat, double semimajorAxis, double semiminorAxis)
         {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
 
-            double lonDelta;
-
-            lonDelta = PI * 2 / 64;
+            double lonDelta = PI * 2 / 64;
 
             for (size_t i = 0; i <= 64; i++)
             {
                 double lon = (i * lonDelta) - PI;
-                auto xyz = latLonToECEF(0, lon, semimajorAxis, semiminorAxis);
+                auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
                 positions.push_back(xyz);
                 colors.push_back(color);
             }
@@ -259,6 +257,41 @@ namespace atlas
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
                 ellipse.topology);
+            ellipse._material.lineWidth = 2;
+
+            return ellipse;
+        }
+
+        Mesh Mesh::MakeMeridian(vec3 color, double lon, double semimajorAxis, double semiminorAxis)
+        {
+            std::vector<glm::vec3> positions;
+            std::vector<glm::vec3> colors;
+
+            double latDelta = PI / 64;
+
+            for (size_t i = 0; i <= 64; i++)
+            {
+                double lat = (i * latDelta) - PI / 2;
+                auto xyz = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                positions.push_back(xyz);
+                colors.push_back(color);
+            }
+
+            Mesh ellipse(static_cast<uint32_t>(positions.size()));
+            ellipse._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            ellipse.topology = vk::PrimitiveTopology::eLineStrip;
+            ellipse.SetPositions(positions);
+
+            ellipse.SetNormals(colors);
+            ellipse.Apply();
+
+            ellipse._material = Material(
+                std::vector<Semantic>{Semantic::Position, Semantic::Color},
+                std::vector<Descriptor>(),
+                Shader::Get("unlit.vert"),
+                Shader::Get("unlit.frag"),
+                ellipse.topology);
+            ellipse._material.lineWidth = 2;
 
             return ellipse;
         }
@@ -413,6 +446,83 @@ namespace atlas
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
                 result.topology);
+
+            return result;
+        }
+
+        Mesh Mesh::MakeRegion(vec3 color, vec2 min, vec2 max, double semimajorAxis, double semiminorAxis)
+        {
+            const double minX = min.x;
+            const double maxX = max.x;
+            const double minY = min.y;
+            const double maxY = max.y;
+
+            std::vector<glm::vec3> positions;
+            std::vector<glm::vec3> colors;
+
+            uint32_t subdivs = 10;
+
+            double w = std::abs(max.x - min.x);
+            double h = std::abs(max.y - min.y);
+
+            // top edge
+            for (uint32_t i = 0; i < subdivs; i++)
+            {
+                double lat = max.y;
+                double lon = min.x + (w / subdivs) * i;
+
+                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                positions.push_back(pos);
+                colors.push_back(color);
+            }
+
+            // right edge
+            for (uint32_t i = 0; i < subdivs; i++)
+            {
+                double lon = max.x;
+                double lat = max.y - (h / subdivs) * i;
+
+                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                positions.push_back(pos);
+                colors.push_back(color);
+            }
+
+            // bottom edge
+            for (uint32_t i = 0; i < subdivs; i++)
+            {
+                double lon = max.x - (w / subdivs) * i;
+                double lat = min.y;
+
+                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                positions.push_back(pos);
+                colors.push_back(color);
+            }
+
+            // left edge
+            for (uint32_t i = 0; i <= subdivs; i++)
+            {
+                double lon = min.x;
+                double lat = min.y + (h / subdivs) * i;
+
+                vec3 pos = latLonToECEF(lat, lon, semimajorAxis, semiminorAxis);
+                positions.push_back(pos);
+                colors.push_back(color);
+            }
+
+            Mesh result(static_cast<uint32_t>(positions.size()));
+            result.SetPositions(positions);
+            result.SetNormals(colors);
+            result.topology = vk::PrimitiveTopology::eLineStrip;
+            result.Apply();
+            result._flags |= 1 << (uint32_t)NodeFlags::Debug;
+
+            result._material = Material(
+                std::vector<Semantic>{Semantic::Position, Semantic::Color},
+                std::vector<Descriptor>(),
+                Shader::Get("unlit.vert"),
+                Shader::Get("unlit.frag"),
+                result.topology);
+            result._material.lineWidth = 2;
 
             return result;
         }

@@ -1,0 +1,7 @@
+#ifndef ATLAS_CONSTANTS_HPP
+#define ATLAS_CONSTANTS_HPP
+
+const double PI = 3.141592653589793238463;
+const float  PI_F = 3.14159265358979f;
+
+#endif

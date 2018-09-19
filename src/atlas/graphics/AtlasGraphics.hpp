@@ -18,6 +18,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/transform.hpp"
 
 typedef glm::mat4 Transform;
@@ -26,6 +27,8 @@ typedef glm::mat4 Transform;
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
+#include "atlas/core/Constants.hpp"
+
 #include "atlas/core/Color.hpp"
 
 #include "VulkanTools.hpp"
@@ -33,9 +36,6 @@ typedef glm::mat4 Transform;
 #include "SwapchainSupportDetails.hpp"
 
 using namespace glm;
-
-const double PI = 3.141592653589793238463;
-const float  PI_F = 3.14159265358979f;
 
 #define CHECK_SUCCESS(x) (assert(x == vk::Result::eSuccess))
 
