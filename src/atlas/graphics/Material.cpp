@@ -39,7 +39,7 @@ vk::PipelineRasterizationStateCreateInfo CreateRasterizationState(vk::PolygonMod
         .setPolygonMode(polygonMode)
         .setLineWidth(lineWidth)
         .setCullMode(culling)
-        .setFrontFace(vk::FrontFace::eClockwise);
+        .setFrontFace(vk::FrontFace::eCounterClockwise);
 
     return rasterization;
 }

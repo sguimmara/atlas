@@ -828,8 +828,8 @@ if (!features.feat) \
                 .setSamples(vk::SampleCountFlagBits::e1)
                 .setLoadOp(vk::AttachmentLoadOp::eClear)
                 .setStoreOp(vk::AttachmentStoreOp::eStore)
-                .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-                .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+                .setStencilLoadOp(vk::AttachmentLoadOp::eClear)
+                .setStencilStoreOp(vk::AttachmentStoreOp::eStore)
                 .setInitialLayout(vk::ImageLayout::eUndefined)
                 .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
@@ -1006,7 +1006,7 @@ if (!features.feat) \
                 .setViewType(vk::ImageViewType::e2D)
                 .setSubresourceRange(
                     vk::ImageSubresourceRange()
-                    .setAspectMask(vk::ImageAspectFlagBits::eDepth)
+                    .setAspectMask(vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
                     .setBaseMipLevel(0)
                     .setLevelCount(1)
                     .setBaseArrayLayer(0)

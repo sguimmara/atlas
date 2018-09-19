@@ -34,6 +34,7 @@ atlas::Atlas::Atlas()
     auto gray = vec3(0.5f, 0.5f, 0.5f);
     auto lightRed = vec3(0.7f, 0.2f, 0.2f);
     auto black = vec3(0, 0, 0);
+    auto white = vec3(1, 1, 1);
     auto yellow = vec3(1, 1, 0);
 
     Ellipsoid grs80 = Ellipsoid::GRS80;
@@ -48,12 +49,12 @@ atlas::Atlas::Atlas()
     Mesh zeroMeridian = Mesh::MakeMeridian(green, 0, grs80);
     Mesh northernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(23.43686), grs80);
     Mesh southernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(-23.43686), grs80);
-    Mesh ellipsoid = Mesh::MakeSolidEllipsoid(gray, 20, grs80);
-    Mesh grid = Mesh::MakeEllipsoid(black, 20, grs80);
+    Mesh ellipsoid = Mesh::MakeSolidEllipsoid(gray, 32, grs80);
+    Mesh grid = Mesh::MakeEllipsoid(white, 20, grs80);
 
-    auto lookAt = glm::rotate(0.0f, vec3(1, 0, 0));
-    auto origin = vec3(0, 0, -5);
-    Mesh frustum = Mesh::MakeFrustum(yellow, lookAt, origin, 1, PI_F / 4, 0.7f, 4);
+    auto lookAt = glm::rotate(static_cast<float>(Math::ToRadians(-90.0)), vec3(0, 1, 0));
+    auto origin = vec3(5, 0, 0);
+    Mesh frustum = Mesh::MakeFrustum(yellow, lookAt, origin, 1, PI_F / 4, 0.7f, 10);
 
     vec2 min = vec2(0.1, 0.1);
     Mesh region = Mesh::MakeRegion(cyan, min, vec2{ min.x + 0.3f, min.y + 0.3f }, grs80);
@@ -87,7 +88,7 @@ atlas::Atlas::Atlas()
     ecef->add_child(&northernTropic);
     ecef->add_child(&southernTropic);
     ecef->add_child(&region);
-    _scene->root()->add_child(&frustum);
+    ecef->add_child(&frustum);
     //_scene->root()->add_child(new Earth());
     _scene->root()->add_child(new Camera());
     _renderer->SetScene(_scene);
