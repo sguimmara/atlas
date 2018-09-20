@@ -441,7 +441,7 @@ namespace atlas
 
         void Renderer::ProcessScrollEvents(double x, double y)
         {
-            Camera::main->SetFov(Camera::main->fov() - static_cast<float>(y * 0.1));
+            Camera::current->SetFov(Camera::current->fov() - static_cast<float>(y * 0.1));
         }
 
         void WindowResizedCallback(GLFWwindow* window, int width, int height)
@@ -1120,7 +1120,6 @@ if (!features.feat) \
             {
                 if (node->parent() != nullptr)
                 {
-                    //node->setTransform(node->parent()->transform() * node->localTransform());
                     node->setTransform(node->localTransform() * node->parent()->transform());
                 }
             }
@@ -1129,7 +1128,7 @@ if (!features.feat) \
         void Renderer::RenderScene(Scene& scene, Camera& camera, vk::CommandBuffer& cmdBuffer)
         {
             auto uctx = UpdateContext{ &camera };
-            auto ctx = DrawContext{ cmdBuffer, camera.transform(), camera.projection() };
+            auto ctx = DrawContext{ cmdBuffer, camera.view(), camera.projection() };
             for (auto const node : scene)
             {
                 node->Update(uctx);

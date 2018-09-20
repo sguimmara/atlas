@@ -6,7 +6,7 @@ namespace atlas
 {
     namespace graphics
     {
-        Camera* Camera::main = nullptr;
+        Camera* Camera::current = nullptr;
 
         Camera::Camera() :
             _fovRadians(1),
@@ -15,11 +15,12 @@ namespace atlas
             _projectionMatrix(glm::perspective<float>(_fovRadians, _aspect, 0.05f, 15.0f)),
             Node()
         {
-            _localTransform = glm::lookAt(glm::vec3(5, -5, -5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+            _viewMatrix = glm::lookAt(glm::vec3(5, -5, -5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+            _localTransform = glm::inverse(_viewMatrix);
 
-            if (Camera::main == nullptr)
+            if (Camera::current == nullptr)
             {
-                Camera::main = this;
+                Camera::current = this;
             }
         }
 

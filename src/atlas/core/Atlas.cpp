@@ -2,11 +2,13 @@
 #include "atlas/core/Math.hpp"
 #include "atlas/graphics/Mesh.hpp"
 #include "atlas/graphics/Camera.hpp"
+#include "atlas/graphics/objects/Earth.hpp"
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 using namespace glm;
 using namespace atlas::graphics;
+using namespace atlas::graphics::objects;
 using namespace atlas::core;
 
 atlas::Atlas::Atlas()
@@ -27,69 +29,7 @@ atlas::Atlas::Atlas()
 
     _scene = new Scene();
 
-    auto cyan = vec3(0, 1, 1);
-    auto red = vec3(1, 0, 0);
-    auto green = vec3(0, 1, 0);
-    auto blue = vec3(0, 0, 1);
-    auto gray = vec3(0.5f, 0.5f, 0.5f);
-    auto lightRed = vec3(0.7f, 0.2f, 0.2f);
-    auto black = vec3(0, 0, 0);
-    auto white = vec3(1, 1, 1);
-    auto yellow = vec3(1, 1, 0);
-
-    Ellipsoid grs80 = Ellipsoid::GRS80;
-    Node* ecef = new Node();
-    Mesh point = Mesh::MakePoint(cyan, vec3(0, 0, 0));
-    Mesh xAxis = Mesh::MakeLine(red, vec3(0, 0, 0), vec3(5, 0, 0));
-    Mesh yAxis = Mesh::MakeLine(green, vec3(0, 0, 0), vec3(0, 5, 0));
-    Mesh zAxis = Mesh::MakeLine(blue, vec3(0, 0, 0), vec3(0, 0, 5));
-    Mesh plane = Mesh::MakePlane(gray);
-    plane.setLocalTransform(glm::scale(plane.localTransform(), vec3(5, 5, 5)));
-    Mesh equator = Mesh::MakeParallel(cyan, 0, grs80);
-    Mesh zeroMeridian = Mesh::MakeMeridian(green, 0, grs80);
-    Mesh northernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(23.43686), grs80);
-    Mesh southernTropic = Mesh::MakeParallel(lightRed, Math::ToRadians(-23.43686), grs80);
-    Mesh ellipsoid = Mesh::MakeSolidEllipsoid(gray, 32, grs80);
-    Mesh grid = Mesh::MakeEllipsoid(white, 20, grs80);
-
-    auto lookAt = glm::rotate(static_cast<float>(Math::ToRadians(-90.0)), vec3(0, 1, 0));
-    auto origin = vec3(5, 0, 0);
-    Mesh frustum = Mesh::MakeFrustum(yellow, lookAt, origin, 1, PI_F / 4, 0.7f, 10);
-
-    vec2 min = vec2(0.1, 0.1);
-    Mesh region = Mesh::MakeRegion(cyan, min, vec2{ min.x + 0.3f, min.y + 0.3f }, grs80);
-
-    const float EcefToVulkan[] = {
-         0, 1, 0, 0,
-         0, 0,-1, 0,
-        -1, 0, 0, 0,
-         0, 0, 0, 1
-    };
-
-    const float VulkanToEcef[] = {
-         0, 0,-1, 0,
-         1, 0, 0, 0,
-         0,-1, 0, 0,
-         0, 0, 0, 1
-    };
-
-    ecef->setLocalTransform(make_mat4(VulkanToEcef));
-
-    _scene->root()->add_child(ecef);
-    ecef->add_child(&point);
-    ecef->add_child(&xAxis);
-    ecef->add_child(&yAxis);
-    ecef->add_child(&zAxis);
-    ecef->add_child(&plane);
-    ecef->add_child(&ellipsoid);
-    ecef->add_child(&grid);
-    ecef->add_child(&zeroMeridian);
-    ecef->add_child(&equator);
-    ecef->add_child(&northernTropic);
-    ecef->add_child(&southernTropic);
-    ecef->add_child(&region);
-    ecef->add_child(&frustum);
-    //_scene->root()->add_child(new Earth());
+    _scene->root()->add_child(new Earth(Ellipsoid::GRS80, 1));
     _scene->root()->add_child(new Camera());
     _renderer->SetScene(_scene);
 

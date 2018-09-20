@@ -1,7 +1,6 @@
 #include "RenderingOptions.hpp"
 #include "Mesh.hpp"
 #include "Time.hpp"
-#include "atlas/core/Plane.hpp"
 #include "atlas/core/Math.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -9,14 +8,6 @@ namespace atlas
 {
     namespace graphics
     {
-        //Mesh::Mesh(MeshObject mesh, Material material) :
-        //    _mesh(mesh),
-        //    _material(material),
-        //    Drawable()
-        //{
-        //    _flags |= (int)NodeFlags::Drawable;
-        //}
-
         Mesh::Mesh(uint32_t vertexCount) :
             vertexCount(vertexCount)
         {
@@ -116,67 +107,69 @@ namespace atlas
             CreateBuffer(_vertices.data(), _vertices.size() * sizeof(Vertex), vk::BufferUsageFlagBits::eVertexBuffer, buffer, bufferMemory);
         }
 
-        Mesh Mesh::MakePoint(vec3 color, vec3 position)
+        Mesh* Mesh::MakePoint(vec3 color, vec3 position)
         {
-            Mesh point(1);
-            point._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            Mesh* point = new Mesh(1);
+            point->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            point.topology = vk::PrimitiveTopology::ePointList;
+            point->topology = vk::PrimitiveTopology::ePointList;
             std::vector<glm::vec3> positions{ position };
-            point.SetPositions(positions);
+            point->SetPositions(positions);
 
             std::vector<glm::vec3> colors{ color };
-            point.SetNormals(colors);
-            point.Apply();
+            point->SetNormals(colors);
+            point->Apply();
 
-            point._material = Material(
+            point->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                point.topology);
+                point->topology);
 
-            point._material.lineWidth = 3;
+            point->_material.lineWidth = 3;
 
             return point;
         }
 
-        Mesh Mesh::MakeLine(vec3 color, vec3 start, vec3 end)
+        Mesh* Mesh::MakeLine(vec3 color, vec3 start, vec3 end)
         {
-            Mesh line(2);
-            line._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            Mesh* line = new Mesh(2);
+            line->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            line.topology = vk::PrimitiveTopology::eLineList;
+            line->topology = vk::PrimitiveTopology::eLineList;
             std::vector<glm::vec3> positions{ start, end };
-            line.SetPositions(positions);
+            line->SetPositions(positions);
 
             std::vector<glm::vec3> colors{ color, color };
-            line.SetNormals(colors);
-            line.Apply();
+            line->SetNormals(colors);
+            line->Apply();
 
-            line._material = Material(
+            line->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                line.topology);
+                line->topology);
+            line->_material.lineWidth = 2;
 
             return line;
         }
 
-        Mesh Mesh::MakePlane(vec3 color)
+        Mesh* Mesh::MakePlane(vec3 color)
         {
-            Mesh plane(11 * 2 * 2);
-            plane._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            uint32_t subdivs = 20;
+            Mesh* plane = new Mesh((subdivs + 1) * 2 * 2);
+            plane->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            plane.topology = vk::PrimitiveTopology::eLineList;
+            plane->topology = vk::PrimitiveTopology::eLineList;
 
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
 
-            for (size_t i = 0; i <= 10; i++)
+            for (uint32_t i = 0; i <= subdivs; i++)
             {
-                float y = (i / 5.0f) - 1;
+                float y = (i / (subdivs / 2.0f)) - 1;
                 vec3 start = vec3(-1, y, 0);
                 vec3 end = vec3(1, y, 0);
                 positions.push_back(start);
@@ -184,9 +177,9 @@ namespace atlas
                 colors.push_back(color);
                 colors.push_back(color);
             }
-            for (size_t i = 0; i <= 10; i++)
+            for (uint32_t i = 0; i <= subdivs; i++)
             {
-                float x = (i / 5.0f) - 1;
+                float x = (i / (subdivs / 2.0f)) - 1;
                 vec3 start = vec3(x, -1, 0);
                 vec3 end = vec3(x, 1, 0);
                 positions.push_back(start);
@@ -195,17 +188,17 @@ namespace atlas
                 colors.push_back(color);
             }
 
-            plane.SetPositions(positions);
+            plane->SetPositions(positions);
 
-            plane.SetNormals(colors);
-            plane.Apply();
+            plane->SetNormals(colors);
+            plane->Apply();
 
-            plane._material = Material(
+            plane->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                plane.topology);
+                plane->topology);
 
             return plane;
         }
@@ -232,7 +225,7 @@ namespace atlas
             return vec3{ x, z, y };
         }
 
-        Mesh Mesh::MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid)
+        Mesh* Mesh::MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid)
         {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
@@ -247,26 +240,26 @@ namespace atlas
                 colors.push_back(color);
             }
 
-            Mesh ellipse(static_cast<uint32_t>(positions.size()));
-            ellipse._flags |= 1 << (uint32_t)NodeFlags::Debug;
-            ellipse.topology = vk::PrimitiveTopology::eLineStrip;
-            ellipse.SetPositions(positions);
+            Mesh* parallel = new Mesh(static_cast<uint32_t>(positions.size()));
+            parallel->_flags |= 1 << (uint32_t)NodeFlags::Debug;
+            parallel->topology = vk::PrimitiveTopology::eLineStrip;
+            parallel->SetPositions(positions);
 
-            ellipse.SetNormals(colors);
-            ellipse.Apply();
+            parallel->SetNormals(colors);
+            parallel->Apply();
 
-            ellipse._material = Material(
+            parallel->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                ellipse.topology);
-            ellipse._material.lineWidth = 2;
+                parallel->topology);
+            parallel->_material.lineWidth = 2;
 
-            return ellipse;
+            return parallel;
         }
 
-        Mesh Mesh::MakeMeridian(vec3 color, double lon, Ellipsoid& ellipsoid)
+        Mesh* Mesh::MakeMeridian(vec3 color, double lon, Ellipsoid& ellipsoid)
         {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
@@ -281,26 +274,26 @@ namespace atlas
                 colors.push_back(color);
             }
 
-            Mesh ellipse(static_cast<uint32_t>(positions.size()));
-            ellipse._flags |= 1 << (uint32_t)NodeFlags::Debug;
-            ellipse.topology = vk::PrimitiveTopology::eLineStrip;
-            ellipse.SetPositions(positions);
+            Mesh* ellipse = new Mesh(static_cast<uint32_t>(positions.size()));
+            ellipse->_flags |= 1 << (uint32_t)NodeFlags::Debug;
+            ellipse->topology = vk::PrimitiveTopology::eLineStrip;
+            ellipse->SetPositions(positions);
 
-            ellipse.SetNormals(colors);
-            ellipse.Apply();
+            ellipse->SetNormals(colors);
+            ellipse->Apply();
 
-            ellipse._material = Material(
+            ellipse->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                ellipse.topology);
-            ellipse._material.lineWidth = 2;
+                ellipse->topology);
+            ellipse->_material.lineWidth = 2;
 
             return ellipse;
         }
 
-        Mesh Mesh::MakeEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid)
+        Mesh* Mesh::MakeEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid)
         {
             std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
@@ -358,25 +351,25 @@ namespace atlas
 
 
 
-            Mesh ellipse(static_cast<uint32_t>(positions.size()));
-            ellipse._flags |= 1 << (uint32_t)NodeFlags::Debug;
-            ellipse.topology = vk::PrimitiveTopology::eLineStrip;
-            ellipse.SetPositions(positions);
+            Mesh* ellipse = new Mesh(static_cast<uint32_t>(positions.size()));
+            ellipse->_flags |= 1 << (uint32_t)NodeFlags::Debug;
+            ellipse->topology = vk::PrimitiveTopology::eLineStrip;
+            ellipse->SetPositions(positions);
 
-            ellipse.SetNormals(colors);
-            ellipse.Apply();
+            ellipse->SetNormals(colors);
+            ellipse->Apply();
 
-            ellipse._material = Material(
+            ellipse->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                ellipse.topology);
+                ellipse->topology);
 
             return ellipse;
         }
 
-        Mesh Mesh::MakeSolidEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid)
+        Mesh* Mesh::MakeSolidEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid)
         {
             const double minX = 0;
             const double maxX = PI * 2;
@@ -436,25 +429,25 @@ namespace atlas
                 }
             }
 
-            Mesh result(static_cast<uint32_t>(positions.size()));
-            result.SetPositions(positions);
-            result.SetNormals(colors);
-            result.SetIndices(indices);
-            result.topology = vk::PrimitiveTopology::eTriangleList;
-            result.Apply();
-            result._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            Mesh* result = new Mesh(static_cast<uint32_t>(positions.size()));
+            result->SetPositions(positions);
+            result->SetNormals(colors);
+            result->SetIndices(indices);
+            result->topology = vk::PrimitiveTopology::eTriangleList;
+            result->Apply();
+            result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result._material = Material(
+            result->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                result.topology);
+                result->topology);
 
             return result;
         }
 
-        Mesh Mesh::MakeRegion(vec3 color, vec2 min, vec2 max, Ellipsoid& ellipsoid)
+        Mesh* Mesh::MakeRegion(vec3 color, vec2 min, vec2 max, Ellipsoid& ellipsoid)
         {
             const double minX = min.x;
             const double maxX = max.x;
@@ -513,27 +506,26 @@ namespace atlas
                 colors.push_back(color);
             }
 
-            Mesh result(static_cast<uint32_t>(positions.size()));
-            result.SetPositions(positions);
-            result.SetNormals(colors);
-            result.topology = vk::PrimitiveTopology::eLineStrip;
-            result.Apply();
-            result._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            Mesh* result = new Mesh(static_cast<uint32_t>(positions.size()));
+            result->SetPositions(positions);
+            result->SetNormals(colors);
+            result->topology = vk::PrimitiveTopology::eLineStrip;
+            result->Apply();
+            result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result._material = Material(
+            result->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                result.topology);
-            result._material.lineWidth = 2;
+                result->topology);
+            result->_material.lineWidth = 2;
 
             return result;
         }
 
-        Mesh Mesh::MakeFrustum(vec3 color, mat4 direction, vec3 origin, float aspect, float fovRadians, float nearClip, float farClip)
+        Mesh* Mesh::MakeFrustum(vec3 color, mat4 direction, vec3 origin, float aspect, float fovRadians, float nearClip, float farClip)
         {
-            std::vector<glm::vec3> positions;
             std::vector<glm::vec3> colors;
 
             vec3 axis_x = direction[0];
@@ -543,59 +535,47 @@ namespace atlas
             vec3 near_center = axis_z * nearClip;
             vec3 far_center = axis_z * farClip;
 
-            float e = std::tanf(fovRadians * 0.5f);
-            float near_ext_y = e * nearClip;
+            float e0 = std::tanf(fovRadians * 0.5f);
+            float near_ext_y = e0 * nearClip;
             float near_ext_x = near_ext_y * aspect;
-            float far_ext_y = e * farClip;
+            float far_ext_y = e0 * farClip;
             float far_ext_x = far_ext_y * aspect;
 
-            positions.resize(8);
-            colors.resize(8);
+            vec3 a = origin + (near_center - axis_x * near_ext_x - axis_y * near_ext_y);
+            vec3 b = origin + (near_center - axis_x * near_ext_x + axis_y * near_ext_y);
+            vec3 c = origin + (near_center + axis_x * near_ext_x + axis_y * near_ext_y);
+            vec3 d = origin + (near_center + axis_x * near_ext_x - axis_y * near_ext_y);
 
-            positions[0] = origin + (near_center - axis_x * near_ext_x - axis_y * near_ext_y);
-            positions[1] = origin + (near_center - axis_x * near_ext_x + axis_y * near_ext_y);
-            positions[2] = origin + (near_center + axis_x * near_ext_x + axis_y * near_ext_y);
-            positions[3] = origin + (near_center + axis_x * near_ext_x - axis_y * near_ext_y);
-            positions[4] = origin + (far_center - axis_x * far_ext_x - axis_y * far_ext_y);
-            positions[5] = origin + (far_center - axis_x * far_ext_x + axis_y * far_ext_y);
-            positions[6] = origin + (far_center + axis_x * far_ext_x + axis_y * far_ext_y);
-            positions[7] = origin + (far_center + axis_x * far_ext_x - axis_y * far_ext_y);
+            vec3 e = origin + (far_center - axis_x * far_ext_x - axis_y * far_ext_y);
+            vec3 f = origin + (far_center - axis_x * far_ext_x + axis_y * far_ext_y);
+            vec3 g = origin + (far_center + axis_x * far_ext_x + axis_y * far_ext_y);
+            vec3 h = origin + (far_center + axis_x * far_ext_x - axis_y * far_ext_y);
 
-            for (size_t i = 0; i < colors.size(); i++)
-            {
-                colors[i] = color;
-            }
-
-            std::vector<uint16_t> indices{
-                0,1,2,
-                0,2,3,
-                4,6,5,
-                4,7,6,
-                1,5,6,
-                1,6,2,
-                0,5,1,
-                0,4,5,
-                2,6,7,
-                2,7,3,
-                0,7,4,
-                0,3,7
+            std::vector<glm::vec3> positions{
+                a,b,b,c,c,d,d,a,
+                e,f,f,g,g,h,h,e,
+                a,e,b,f,c,g,d,h
             };
 
-            Mesh result(static_cast<uint32_t>(positions.size()));
-            result.SetPositions(positions);
-            result.SetNormals(colors);
-            result.SetIndices(indices);
-            result.topology = vk::PrimitiveTopology::eTriangleList;
-            result.Apply();
-            result._flags |= 1 << (uint32_t)NodeFlags::Debug;
+            for (size_t i = 0; i < positions.size(); i++)
+            {
+                colors.push_back(color);
+            }
 
-            result._material = Material(
+            Mesh* result = new Mesh(static_cast<uint32_t>(positions.size()));
+            result->SetPositions(positions);
+            result->SetNormals(colors);
+            result->topology = vk::PrimitiveTopology::eLineList;
+            result->Apply();
+            result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
+
+            result->_material = Material(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
-                result.topology,
-                vk::PolygonMode::eFill);
+                result->topology,
+                vk::PolygonMode::eLine);
 
             return result;
         }

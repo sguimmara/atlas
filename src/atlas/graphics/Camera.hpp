@@ -16,7 +16,8 @@ namespace atlas
         public:
             Camera();
 
-            Transform projection() const noexcept { return _projectionMatrix; }
+            inline Transform projection() const noexcept { return _projectionMatrix; }
+            inline Transform view() const noexcept { return _viewMatrix; }
             void SetFov(float radians);
             inline float fov() const noexcept { return _fovRadians; }
             inline vk::Viewport viewport() const noexcept { return _viewport; }
@@ -25,11 +26,14 @@ namespace atlas
             void Update(UpdateContext ctx);
             void SendSignal(Signal signal);
 
-            static Camera* main;
+            static Camera* current;
 
         private:
+            float _nearClip;
+            float _farClip;
             float _aspect;
             float _fovRadians;
+            Transform _viewMatrix;
             Transform _projectionMatrix;
             vk::Viewport _viewport;
         };

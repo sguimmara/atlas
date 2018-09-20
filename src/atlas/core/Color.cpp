@@ -36,4 +36,14 @@ namespace atlas
 
         return Color(r1, g1, b1, a1);
     }
+
+    Color Color::white = { 255,255,255,255 };
+    Color Color::black = { 0,0,0,255 };
+    Color Color::clear = { 0,0,0,0 };
+    Color Color::green = { 0,255,0,255 };
+    Color Color::yellow = { 255,255,0,255 };
+    Color Color::cyan = { 0,255,255,255 };
+    Color Color::gray = { 127,127,127,255 };
+    Color Color::red = { 255,0,0,255 };
+    Color Color::blue = { 0,0,255,255 };
 }

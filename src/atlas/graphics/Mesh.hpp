@@ -46,15 +46,15 @@ namespace atlas
             void SetUV(std::vector<vec2>& data);
             void Apply();
 
-            static Mesh MakePoint(vec3 color, vec3 position);
-            static Mesh MakeLine(vec3 color, vec3 start, vec3 end);
-            static Mesh MakePlane(vec3 color);
-            static Mesh MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid);
-            static Mesh MakeMeridian(vec3 color, double lon, Ellipsoid& ellipsoid);
-            static Mesh MakeEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
-            static Mesh MakeSolidEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
-            static Mesh MakeRegion(vec3 color, vec2 min, vec2 max, Ellipsoid& ellipsoid);
-            static Mesh MakeFrustum(vec3 color, mat4 direction, vec3 origin, float aspect, float fovRadians, float nearClip, float farClip);
+            static Mesh* MakePoint(vec3 color, vec3 position);
+            static Mesh* MakeLine(vec3 color, vec3 start, vec3 end);
+            static Mesh* MakePlane(vec3 color);
+            static Mesh* MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid);
+            static Mesh* MakeMeridian(vec3 color, double lon, Ellipsoid& ellipsoid);
+            static Mesh* MakeEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
+            static Mesh* MakeSolidEllipsoid(vec3 color, uint32_t subdivs, Ellipsoid& ellipsoid);
+            static Mesh* MakeRegion(vec3 color, vec2 min, vec2 max, Ellipsoid& ellipsoid);
+            static Mesh* MakeFrustum(vec3 color, mat4 direction, vec3 origin, float aspect, float fovRadians, float nearClip, float farClip);
 
         private:
             vk::DeviceMemory indicesMemory;
