@@ -3,8 +3,11 @@
 
 #include <vector>
 #include <string>
+#include <glm/glm.hpp>
 
 #include "Constants.hpp"
+
+using namespace glm;
 
 namespace atlas
 {

@@ -3,11 +3,14 @@
 
 #include <vector>
 #include <string>
+#include <glm/glm.hpp>
 
 #include "Constants.hpp"
 #include "Plane.hpp"
+#include "Ellipsoid.hpp"
 
 using namespace atlas::core;
+using namespace glm;
 
 namespace atlas
 {
@@ -35,6 +38,8 @@ namespace atlas
                 auto dot1 = glm::dot(plane.normal, line);
                 return p0 + line * static_cast<float>((((plane.distance - dot0) / dot1)));
             }
+
+            static vec3 LatLonToECEF(double lat, double lon, Ellipsoid& ellipsoid);
         };
     }
 }

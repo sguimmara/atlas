@@ -2,6 +2,7 @@
 #include "atlas/graphics/Mesh.hpp"
 #include "atlas/core/Color.hpp"
 #include "atlas/core/Math.hpp"
+#include "atlas/graphics/objects/SurfaceTile.hpp"
 
 using namespace atlas::graphics::objects;
 
@@ -42,6 +43,8 @@ Earth::Earth(Ellipsoid ellipsoid, double scale) :
     // earth shape : solid and grid
     add_child(Mesh::MakeSolidEllipsoid(Color::gray, 32, ellipsoid));
     add_child(Mesh::MakeEllipsoid(Color::white, 20, ellipsoid));
+
+    add_child(new SurfaceTile(ellipsoid, 0, 0, 0));
 }
 
 Earth::~Earth()

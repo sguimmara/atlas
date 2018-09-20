@@ -203,28 +203,6 @@ namespace atlas
             return plane;
         }
 
-        vec3 latLonToECEF(double lat, double lon, Ellipsoid& ellipsoid)
-        {
-            const double scale = 0.0000005;
-
-            const double a = ellipsoid.semimajorAxis() * scale;
-            const double b = ellipsoid.semiminorAxis() * scale;
-            const double e2 = 1 - (b * b) / (a * a);
-
-            double sinlat = std::sin(lat);
-            double sinlon = std::sin(lon);
-            double coslon = std::cos(lon);
-            double coslat = std::cos(lat);
-
-            double nLat = a / std::sqrt(1 - e2 * sinlat);
-
-            double x = (nLat)* coslat * coslon;
-            double z = (nLat)* coslat * sinlon;
-            double y = (((b*b) / (a*a)*nLat)) * sinlat;
-
-            return vec3{ x, z, y };
-        }
-
         Mesh* Mesh::MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid)
         {
             std::vector<glm::vec3> positions;
@@ -235,7 +213,7 @@ namespace atlas
             for (size_t i = 0; i <= 64; i++)
             {
                 double lon = (i * lonDelta) - PI;
-                auto xyz = latLonToECEF(lat, lon, ellipsoid);
+                auto xyz = Math::LatLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(xyz);
                 colors.push_back(color);
             }
@@ -269,7 +247,7 @@ namespace atlas
             for (size_t i = 0; i <= 64; i++)
             {
                 double lat = (i * latDelta) - PI / 2;
-                auto xyz = latLonToECEF(lat, lon, ellipsoid);
+                auto xyz = Math::LatLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(xyz);
                 colors.push_back(color);
             }
@@ -318,7 +296,7 @@ namespace atlas
                 for (int j = 0; j <= 64; j++)
                 {
                     lat = (j * latDelta) - PI / 2;
-                    auto xyz = latLonToECEF(lat, lon, ellipsoid);
+                    auto xyz = Math::LatLonToECEF(lat, lon, ellipsoid);
                     positions.push_back(xyz);
                     colors.push_back(color);
                 }
@@ -327,7 +305,7 @@ namespace atlas
                 for (int j = 64; j >= 0; j--)
                 {
                     lat = (j * latDelta) - PI / 2;
-                    auto xyz = latLonToECEF(lat, lon, ellipsoid);
+                    auto xyz = Math::LatLonToECEF(lat, lon, ellipsoid);
                     positions.push_back(xyz);
                     colors.push_back(color);
                 }
@@ -343,7 +321,7 @@ namespace atlas
                 for (size_t i = 0; i <= 64; i++)
                 {
                     lon = (i * lonDelta) - PI;
-                    auto xyz = latLonToECEF(lat, lon, ellipsoid);
+                    auto xyz = Math::LatLonToECEF(lat, lon, ellipsoid);
                     positions.push_back(xyz);
                     colors.push_back(color);
                 }
@@ -405,7 +383,7 @@ namespace atlas
                     double lat = minY + row * yStep;
                     double lon = minX + col * xStep;
 
-                    positions[i] = latLonToECEF(lat, lon, ellipsoid);
+                    positions[i] = Math::LatLonToECEF(lat, lon, ellipsoid);
 
                     colors[i] = color;
 
@@ -468,7 +446,7 @@ namespace atlas
                 double lat = max.y;
                 double lon = min.x + (w / subdivs) * i;
 
-                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
+                vec3 pos = Math::LatLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }
@@ -479,7 +457,7 @@ namespace atlas
                 double lon = max.x;
                 double lat = max.y - (h / subdivs) * i;
 
-                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
+                vec3 pos = Math::LatLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }
@@ -490,7 +468,7 @@ namespace atlas
                 double lon = max.x - (w / subdivs) * i;
                 double lat = min.y;
 
-                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
+                vec3 pos = Math::LatLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }
@@ -501,7 +479,7 @@ namespace atlas
                 double lon = min.x;
                 double lat = min.y + (h / subdivs) * i;
 
-                vec3 pos = latLonToECEF(lat, lon, ellipsoid);
+                vec3 pos = Math::LatLonToECEF(lat, lon, ellipsoid);
                 positions.push_back(pos);
                 colors.push_back(color);
             }
