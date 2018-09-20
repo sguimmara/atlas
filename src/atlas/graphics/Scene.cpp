@@ -18,6 +18,11 @@ namespace atlas
             // _root->setTransform(make_mat4(ecefToVulkan));
         }
 
+        Scene::~Scene()
+        {
+            delete _root;
+        }
+
         std::vector<Camera*> Scene::cameras()
         {
             std::vector<Camera*> result;

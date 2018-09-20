@@ -1,6 +1,5 @@
 #include "SurfaceTile.hpp"
 #include "atlas/core/Math.hpp"
-#include "Camera.hpp"
 
 const uint32_t TileSubdivisions = 16;
 
@@ -108,6 +107,7 @@ namespace atlas
         SurfaceTile::~SurfaceTile()
         {
             // TODO
+            spdlog::get("renderer")->warn("SurfaceTile: destructor not implemented");
         }
 
         void SurfaceTile::Update(UpdateContext ctx)

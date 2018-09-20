@@ -1,9 +1,9 @@
 #ifndef ATLAS_GRAPHICS_SURFACETILE_HPP
 #define ATLAS_GRAPHICS_SURFACETILE_HPP
 
-#include "AtlasGraphics.hpp"
-#include "Node.hpp"
-#include "Mesh.hpp"
+#include "atlas/graphics/AtlasGraphics.hpp"
+#include "atlas/graphics/Node.hpp"
+#include "atlas/graphics/Mesh.hpp"
 
 namespace atlas
 {

@@ -91,7 +91,7 @@ namespace atlas
              * @brief      Constructs a Node.
              */
             Node();
-            virtual ~Node() {}
+            virtual ~Node();
 
             /**
              * @brief      Returns the number of elements in this Node, recursively.

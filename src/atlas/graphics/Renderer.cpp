@@ -2,7 +2,6 @@
 #include "Renderer.hpp"
 #include "Time.hpp"
 #include "RenderingOptions.hpp"
-#include "SurfaceTile.hpp"
 #include "Camera.hpp"
 #include <numeric>
 #include <sstream>

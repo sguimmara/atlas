@@ -15,13 +15,8 @@ namespace atlas
         {
         public:
             Scene();
-            ~Scene()
-            { 
-                for (auto node : *_root)
-                {
-                    delete node;
-                }
-            }
+            ~Scene();
+
             inline Node* root() const noexcept { return _root; }
 
             std::vector<Camera*> cameras();

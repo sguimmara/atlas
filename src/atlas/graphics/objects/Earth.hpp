@@ -20,7 +20,6 @@ namespace atlas
             public:
 
                 Earth(Ellipsoid ellipsoid, double scale);
-                ~Earth();
             private:
                 Ellipsoid _ellipsoid;
                 double _scale;

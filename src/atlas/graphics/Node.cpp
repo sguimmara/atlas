@@ -13,6 +13,14 @@ namespace atlas
         {
         }
 
+        Node::~Node()
+        {
+            for (auto child : _children)
+            {
+                delete child;
+            }
+        }
+
         size_t Node::size() const noexcept
         {
             size_t size = 1;

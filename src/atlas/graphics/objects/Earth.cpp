@@ -46,8 +46,3 @@ Earth::Earth(Ellipsoid ellipsoid, double scale) :
 
     add_child(new SurfaceTile(ellipsoid, 0, 0, 0));
 }
-
-Earth::~Earth()
-{
-    // TODO
-}

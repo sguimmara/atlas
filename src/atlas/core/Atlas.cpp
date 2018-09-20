@@ -40,6 +40,12 @@ atlas::Atlas::Atlas()
     _renderer->Run();
 }
 
+atlas::Atlas::~Atlas()
+{
+    delete _scene;
+    delete _renderer;
+}
+
 /* initializes the GLFW window */
 void atlas::Atlas::InitWindow()
 {

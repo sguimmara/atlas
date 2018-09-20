@@ -18,6 +18,7 @@ namespace atlas
     {
     public:
         Atlas();
+        ~Atlas();
 
         inline graphics::Scene* scene() const noexcept { return _scene; };
 
