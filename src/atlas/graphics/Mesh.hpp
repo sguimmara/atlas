@@ -36,7 +36,7 @@ namespace atlas
 
             uint32_t indexCount;
             uint32_t vertexCount;
-            vk::Buffer indices;
+
             vk::IndexType indexType;
             vk::PrimitiveTopology topology;
 
@@ -65,7 +65,8 @@ namespace atlas
 
         protected:
             vk::Buffer buffer;
-            Material _material;
+            vk::Buffer indices;
+            std::shared_ptr<Material> _material;
             vec3 _color;
         };
     }

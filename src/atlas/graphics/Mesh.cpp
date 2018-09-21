@@ -17,7 +17,10 @@ namespace atlas
 
         Mesh::~Mesh()
         {
-            // TODO
+            Renderer::device.destroyBuffer(buffer);
+            Renderer::device.freeMemory(bufferMemory);
+            Renderer::device.destroyBuffer(indices);
+            Renderer::device.freeMemory(indicesMemory);
         }
 
         void Mesh::Draw(DrawContext context)
@@ -36,9 +39,9 @@ namespace atlas
             mvp.proj = context.projectionMatrix;
 
             vk::CommandBuffer cmdBuffer = context.cmdBuffer;
-            cmdBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _material.pipeline);
-            cmdBuffer.pushConstants(_material.pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MVP), &mvp);
-            cmdBuffer.setLineWidth(_material.lineWidth);
+            cmdBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, _material->pipeline);
+            cmdBuffer.pushConstants(_material->pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MVP), &mvp);
+            cmdBuffer.setLineWidth(_material->lineWidth);
             //buffer.pushConstants(_material.pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(MVP), sizeof(glm::vec3), &_color);
             //buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _material.pipelineLayout, 0, 1, _descriptorSets.data(), 0, nullptr);
             vk::DeviceSize offsets[] = { 0 };
@@ -120,14 +123,14 @@ namespace atlas
             point->SetNormals(colors);
             point->Apply();
 
-            point->_material = Material(
+            point->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
                 point->topology);
 
-            point->_material.lineWidth = 3;
+            point->_material->lineWidth = 3;
 
             return point;
         }
@@ -145,13 +148,13 @@ namespace atlas
             line->SetNormals(colors);
             line->Apply();
 
-            line->_material = Material(
+            line->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
                 line->topology);
-            line->_material.lineWidth = 2;
+            line->_material->lineWidth = 2;
 
             return line;
         }
@@ -193,7 +196,7 @@ namespace atlas
             plane->SetNormals(colors);
             plane->Apply();
 
-            plane->_material = Material(
+            plane->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
@@ -226,13 +229,13 @@ namespace atlas
             parallel->SetNormals(colors);
             parallel->Apply();
 
-            parallel->_material = Material(
+            parallel->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
                 parallel->topology);
-            parallel->_material.lineWidth = 2;
+            parallel->_material->lineWidth = 2;
 
             return parallel;
         }
@@ -260,13 +263,13 @@ namespace atlas
             ellipse->SetNormals(colors);
             ellipse->Apply();
 
-            ellipse->_material = Material(
+            ellipse->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
                 ellipse->topology);
-            ellipse->_material.lineWidth = 2;
+            ellipse->_material->lineWidth = 2;
 
             return ellipse;
         }
@@ -337,7 +340,7 @@ namespace atlas
             ellipse->SetNormals(colors);
             ellipse->Apply();
 
-            ellipse->_material = Material(
+            ellipse->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
@@ -415,7 +418,7 @@ namespace atlas
             result->Apply();
             result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result->_material = Material(
+            result->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
@@ -491,13 +494,13 @@ namespace atlas
             result->Apply();
             result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result->_material = Material(
+            result->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
                 Shader::Get("unlit.frag"),
                 result->topology);
-            result->_material.lineWidth = 2;
+            result->_material->lineWidth = 2;
 
             return result;
         }
@@ -547,7 +550,7 @@ namespace atlas
             result->Apply();
             result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result->_material = Material(
+            result->_material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),

@@ -17,7 +17,6 @@ namespace atlas
         {
         public:
             SurfaceTile(Ellipsoid ellipsoid, int level, int row, int col);
-            ~SurfaceTile();
 
             void Update(UpdateContext ctx);
 

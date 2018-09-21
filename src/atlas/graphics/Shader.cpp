@@ -46,5 +46,15 @@ namespace atlas
                 return shader;
             }
         }
+
+        void Shader::ClearStore()
+        {
+            for (auto shader : _store)
+            {
+                Renderer::device.destroyShaderModule(shader.second.module);
+                spdlog::get("renderer")->debug("unloaded shader module '{0}'", shader.first);
+            }
+            _store.clear();
+        }
     }
 }

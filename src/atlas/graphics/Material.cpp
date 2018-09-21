@@ -95,9 +95,13 @@ void Material::CreateDescriptorSet(size_t swapchainSize, std::vector<Descriptor>
     Renderer::device.allocateDescriptorSets(&allocInfo, _descriptorSets.data());
 }
 
-Material::Material()
+Material::~Material()
 {
+    Renderer::device.destroyPipelineLayout(pipelineLayout);
+    Renderer::device.destroyPipeline(pipeline);
+    Renderer::device.destroyDescriptorSetLayout(_layout);
 }
+
 
 Material::Material(
     std::vector<Semantic> semantics,

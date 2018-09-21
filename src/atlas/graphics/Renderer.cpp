@@ -101,6 +101,9 @@ namespace atlas
 
             DestroyScene();
 
+            Shader::ClearStore();
+
+            DestroyDepthResources();
             DestroySwapchain();
             DestroyCommandPool();
             DestroyDescriptorPool();
@@ -1021,6 +1024,7 @@ if (!features.feat) \
             _device.destroyImageView(_depthImageView);
             _device.destroyImage(_depthImage);
             _device.freeMemory(_depthImageMemory);
+            _log->debug("destroyed depth resources");
         }
 
         void Renderer::CreateCommandPool()

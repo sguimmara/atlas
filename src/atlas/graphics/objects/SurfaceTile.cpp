@@ -96,18 +96,12 @@ namespace atlas
             Apply();
 
             topology = vk::PrimitiveTopology::eTriangleList;
-            _material = Material(
+            _material = std::make_shared<Material>(
                 std::vector<Semantic>{Semantic::Position, Semantic::Normal, Semantic::TexCoord},
                 std::vector<Descriptor>(),
                 Shader::Get("tile.vert"),
                 Shader::Get("tile.frag"),
                 topology);
-        }
-
-        SurfaceTile::~SurfaceTile()
-        {
-            // TODO
-            spdlog::get("renderer")->warn("SurfaceTile: destructor not implemented");
         }
 
         void SurfaceTile::Update(UpdateContext ctx)

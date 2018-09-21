@@ -19,6 +19,7 @@ namespace graphics
 
         static void SetDirectory(std::string directory);
         static Shader Get(std::string name);
+        static void ClearStore();
 
     private:
         static std::unordered_map<std::string, Shader> _store;

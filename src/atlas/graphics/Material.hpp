@@ -44,8 +44,8 @@ namespace atlas
             vk::Pipeline pipeline;
             vk::PipelineLayout pipelineLayout;
 
-            Material();
             Material(std::vector<Semantic> locations, std::vector<Descriptor> bindings, Shader vs, Shader fs, vk::PrimitiveTopology topology, vk::PolygonMode polygonMode = vk::PolygonMode::eFill);
+            ~Material();
 
         private:
             vk::DescriptorSetLayout _layout;
