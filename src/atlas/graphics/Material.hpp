@@ -35,6 +35,7 @@ namespace atlas
 
         struct Material
         {
+            uint32_t materialID;
             std::string name;
             float lineWidth;
             vk::PrimitiveTopology topology;
@@ -53,6 +54,7 @@ namespace atlas
             static std::shared_ptr<Material> Get(std::string name);
 
         private:
+            static uint32_t materialIDs;
             static std::unordered_map<std::string, std::shared_ptr<Material>> _store;
             vk::DescriptorSetLayout _layout;
             std::vector<vk::DescriptorSet> _descriptorSets;

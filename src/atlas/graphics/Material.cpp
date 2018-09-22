@@ -147,6 +147,7 @@ void atlas::graphics::Material::DestroyMaterials()
     _store.clear();
 }
 
+uint32_t Material::materialIDs = 0;
 std::unordered_map<std::string, std::shared_ptr<Material>> Material::_store = std::unordered_map<std::string, std::shared_ptr<Material>>();
 
 std::shared_ptr<Material> Material::Get(std::string name)

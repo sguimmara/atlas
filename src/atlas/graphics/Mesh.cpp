@@ -13,6 +13,8 @@ namespace atlas
         {
             _vertices.resize(vertexCount);
             _flags |= 1 << (uint32_t)NodeFlags::Drawable;
+
+            BubbleEvent(SceneGraphEvent::MeshAdded);
         }
 
         Mesh::~Mesh()
@@ -21,6 +23,8 @@ namespace atlas
             Renderer::device.freeMemory(bufferMemory);
             Renderer::device.destroyBuffer(indices);
             Renderer::device.freeMemory(indicesMemory);
+
+            BubbleEvent(SceneGraphEvent::MeshDeleted);
         }
 
         void Mesh::Draw(DrawContext context)

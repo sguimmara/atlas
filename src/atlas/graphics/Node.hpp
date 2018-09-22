@@ -2,6 +2,7 @@
 #define ATLAS_GRAPHICS_NODE_HPP
 
 #include "AtlasGraphics.hpp"
+#include <unordered_set>
 
 namespace atlas
 {
@@ -28,6 +29,12 @@ namespace atlas
             Drawable = 1U,
             Debug = 2U,
             Compositing = 4U,
+        };
+
+        enum class SceneGraphEvent
+        {
+            MeshAdded = 1U,
+            MeshDeleted = 2U
         };
 
         enum class Signal
@@ -218,6 +225,10 @@ namespace atlas
 
             inline const uint32_t flags() const noexcept { return _flags; }
 
+            inline uint32_t pendingEvents() const noexcept { return _pendingEvents; }
+
+            inline void ClearPendingEvents() noexcept { _pendingEvents = 0; }
+
             /**************************************************************/
             /*                          transform                         */
             /**************************************************************/
@@ -234,6 +245,10 @@ namespace atlas
             Node* _rightSibling;
             std::vector<Node*> _children;
             uint32_t _flags;
+
+            uint32_t _pendingEvents;
+
+            void BubbleEvent(SceneGraphEvent event);
 
             void throw_if_out_of_range(size_t child_pos) const;
         };

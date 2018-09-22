@@ -64,6 +64,18 @@ namespace atlas
         {
         }
 
+        void Node::BubbleEvent(SceneGraphEvent event)
+        {
+            if (_parent != nullptr)
+            {
+                _parent->BubbleEvent(event);
+            }
+            else
+            {
+                _pendingEvents |= 1 << (uint32_t)event;
+            }
+        }
+
         void Node::throw_if_out_of_range(size_t child_pos) const
         {
             if (child_pos >= _children.size())

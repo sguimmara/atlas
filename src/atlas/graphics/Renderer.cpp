@@ -1137,14 +1137,20 @@ if (!features.feat) \
 
         void Renderer::RenderScene(Scene& scene, Camera& camera, vk::CommandBuffer& cmdBuffer)
         {
+            scene.ProcessEvents();
+
             auto uctx = UpdateContext{ &camera };
             auto ctx = DrawContext{ cmdBuffer, camera.view(), camera.projection() };
             for (auto const node : scene)
             {
                 node->Update(uctx);
-                if (node->flags() == _renderFlags)
+            }
+
+            for (auto const mesh : scene.renderList())
+            {
+                if (mesh->flags() == _renderFlags)
                 {
-                    static_cast<Mesh*>(node)->Draw(ctx);
+                    mesh->Draw(ctx);
                 }
             }
         }

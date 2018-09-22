@@ -19,9 +19,9 @@ namespace atlas
     namespace graphics
     {
         /**
-        * @brief A Mesh is a Drawable with vertices organized in a mesh
+        * @brief A Mesh is a drawable node.
         */
-        class Mesh : public Drawable
+        class Mesh : public Node
         {
         public:
             Mesh(uint32_t vertexCount);
@@ -39,6 +39,8 @@ namespace atlas
 
             vk::IndexType indexType;
             vk::PrimitiveTopology topology;
+
+            inline Material* material() const noexcept { return _material.get(); }
 
             void SetIndices(std::vector<uint16_t>& data);
             void SetPositions(std::vector<vec3>& data);
