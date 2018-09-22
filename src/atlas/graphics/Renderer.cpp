@@ -66,6 +66,7 @@ namespace atlas
             CreateDescriptorPool();
             CreateCommandBuffers();
             Shader::SetDirectory(SHADER_DIR);
+            Material::CreateMaterials();
             _log->debug("setup completed");
         }
 
@@ -83,6 +84,11 @@ namespace atlas
         void Renderer::SetScene(Scene * scene)
         {
             _scene = scene;
+
+            //_compositeCamera = new Camera();
+            //_compositeCamera->SetFov(PI_F);
+            //_compositeCamera->setLocalTransform(glm::mat4(1.0));
+            //_scene->root()->add_child(_compositeCamera);
         }
 
         void Renderer::DestroyScene()
@@ -103,6 +109,7 @@ namespace atlas
 
             Shader::ClearStore();
 
+            Material::DestroyMaterials();
             DestroyDepthResources();
             DestroySwapchain();
             DestroyCommandPool();

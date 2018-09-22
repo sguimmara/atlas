@@ -3,10 +3,6 @@
 
 #include "AtlasGraphics.hpp"
 #include "Node.hpp"
-#include "Renderer.hpp"
-#include "Shader.hpp"
-#include "MeshObject.hpp"
-#include "Image.hpp"
 
 namespace atlas
 {

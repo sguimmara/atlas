@@ -96,12 +96,7 @@ namespace atlas
             Apply();
 
             topology = vk::PrimitiveTopology::eTriangleList;
-            _material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Normal, Semantic::TexCoord},
-                std::vector<Descriptor>(),
-                Shader::Get("tile.vert"),
-                Shader::Get("tile.frag"),
-                topology);
+            _material = Material::Get("surfaceTile");
         }
 
         void SurfaceTile::Update(UpdateContext ctx)

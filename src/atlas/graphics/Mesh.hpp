@@ -48,6 +48,7 @@ namespace atlas
 
             static Mesh* MakePoint(vec3 color, vec3 position);
             static Mesh* MakeLine(vec3 color, vec3 start, vec3 end);
+            static Mesh* MakeEquirectangularRegion(vec2 min, vec2 max);
             static Mesh* MakePlane(vec3 color);
             static Mesh* MakeParallel(vec3 color, double lat, Ellipsoid& ellipsoid);
             static Mesh* MakeMeridian(vec3 color, double lon, Ellipsoid& ellipsoid);

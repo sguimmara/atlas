@@ -120,6 +120,7 @@ namespace atlas
             uint32_t _renderFlags = 1 << (uint32_t)NodeFlags::Drawable;
 
             Scene* _scene;
+            Camera* _compositeCamera;
         };
     }
 }

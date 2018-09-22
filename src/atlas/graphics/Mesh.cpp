@@ -124,6 +124,7 @@ namespace atlas
             point->Apply();
 
             point->_material = std::make_shared<Material>(
+                "unlitPoint",
                 std::vector<Semantic>{Semantic::Position, Semantic::Color},
                 std::vector<Descriptor>(),
                 Shader::Get("unlit.vert"),
@@ -148,15 +149,46 @@ namespace atlas
             line->SetNormals(colors);
             line->Apply();
 
-            line->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                line->topology);
-            line->_material->lineWidth = 2;
+            line->_material = Material::Get("unlitLines");
 
             return line;
+        }
+
+        Mesh * Mesh::MakeEquirectangularRegion(vec2 min, vec2 max)
+        {
+            std::vector<glm::vec3> positions
+            {
+                vec3(0, min.x, min.y),
+                vec3(0, min.x, max.y),
+                vec3(0, max.x, max.y),
+                vec3(0, max.x, min.y),
+            };
+
+            std::vector<glm::vec3> colors
+            {
+                Color::white,
+                Color::white,
+                Color::white,
+                Color::white
+            };
+
+            std::vector<uint16_t> indices
+            {
+                0,2,1,
+                0,3,2
+            };
+
+            Mesh* region = new Mesh(4);
+            region->topology = vk::PrimitiveTopology::eTriangleList;
+            region->_flags |= (uint32_t)NodeFlags::Compositing;
+
+            region->SetPositions(positions);
+            region->SetNormals(colors);
+            region->SetIndices(indices);
+            region->Apply();
+
+            region->_material = Material::Get("unlitTriangles");
+            return region;
         }
 
         Mesh* Mesh::MakePlane(vec3 color)
@@ -196,12 +228,7 @@ namespace atlas
             plane->SetNormals(colors);
             plane->Apply();
 
-            plane->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                plane->topology);
+            plane->_material = Material::Get("unlitLines");
 
             return plane;
         }
@@ -229,13 +256,7 @@ namespace atlas
             parallel->SetNormals(colors);
             parallel->Apply();
 
-            parallel->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                parallel->topology);
-            parallel->_material->lineWidth = 2;
+            parallel->_material = Material::Get("unlitLineStrip");
 
             return parallel;
         }
@@ -263,13 +284,7 @@ namespace atlas
             ellipse->SetNormals(colors);
             ellipse->Apply();
 
-            ellipse->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                ellipse->topology);
-            ellipse->_material->lineWidth = 2;
+            ellipse->_material = Material::Get("unlitLineStrip");
 
             return ellipse;
         }
@@ -330,8 +345,6 @@ namespace atlas
                 }
             }
 
-
-
             Mesh* ellipse = new Mesh(static_cast<uint32_t>(positions.size()));
             ellipse->_flags |= 1 << (uint32_t)NodeFlags::Debug;
             ellipse->topology = vk::PrimitiveTopology::eLineStrip;
@@ -340,12 +353,7 @@ namespace atlas
             ellipse->SetNormals(colors);
             ellipse->Apply();
 
-            ellipse->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                ellipse->topology);
+            ellipse->_material = Material::Get("unlitLineStrip");
 
             return ellipse;
         }
@@ -418,12 +426,7 @@ namespace atlas
             result->Apply();
             result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                result->topology);
+            result->_material = Material::Get("unlitTriangles");
 
             return result;
         }
@@ -494,13 +497,7 @@ namespace atlas
             result->Apply();
             result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                result->topology);
-            result->_material->lineWidth = 2;
+            result->_material = Material::Get("unlitLineStrip");
 
             return result;
         }
@@ -550,13 +547,7 @@ namespace atlas
             result->Apply();
             result->_flags |= 1 << (uint32_t)NodeFlags::Debug;
 
-            result->_material = std::make_shared<Material>(
-                std::vector<Semantic>{Semantic::Position, Semantic::Color},
-                std::vector<Descriptor>(),
-                Shader::Get("unlit.vert"),
-                Shader::Get("unlit.frag"),
-                result->topology,
-                vk::PolygonMode::eLine);
+            result->_material = Material::Get("unlitLines");
 
             return result;
         }

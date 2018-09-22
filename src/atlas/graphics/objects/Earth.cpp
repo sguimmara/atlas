@@ -10,15 +10,6 @@ Earth::Earth(Ellipsoid ellipsoid, double scale) :
     _ellipsoid(ellipsoid),
     _scale(scale)
 {
-    const float VulkanToEcef[] = {
-        0, 0,-1, 0,
-        1, 0, 0, 0,
-        0,-1, 0, 0,
-        0, 0, 0, 1
-    };
-
-    setLocalTransform(make_mat4(VulkanToEcef));
-
     // equatorial plane
     Mesh* plane = Mesh::MakePlane(Color::gray);
     plane->setLocalTransform(glm::scale(plane->localTransform(), vec3(10, 10, 10)));

@@ -27,6 +27,7 @@ namespace atlas
             None = 0U,
             Drawable = 1U,
             Debug = 2U,
+            Compositing = 4U,
         };
 
         enum class Signal

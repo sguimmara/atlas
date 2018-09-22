@@ -3,6 +3,8 @@
 
 #include "AtlasGraphics.hpp"
 #include "Shader.hpp"
+#include <unordered_map>
+#include <memory>
 
 namespace atlas
 {
@@ -33,10 +35,9 @@ namespace atlas
 
         struct Material
         {
-            std::vector<Semantic> locations;
-            std::vector<Descriptor> bindings;
-
+            std::string name;
             float lineWidth;
+            vk::PrimitiveTopology topology;
 
             Shader vertexShader;
             Shader fragmentShader;
@@ -44,10 +45,15 @@ namespace atlas
             vk::Pipeline pipeline;
             vk::PipelineLayout pipelineLayout;
 
-            Material(std::vector<Semantic> locations, std::vector<Descriptor> bindings, Shader vs, Shader fs, vk::PrimitiveTopology topology, vk::PolygonMode polygonMode = vk::PolygonMode::eFill);
+            Material(std::string name, std::vector<Semantic> locations, std::vector<Descriptor> bindings, Shader vs, Shader fs, vk::PrimitiveTopology topology, vk::PolygonMode polygonMode = vk::PolygonMode::eFill);
             ~Material();
 
+            static void CreateMaterials();
+            static void DestroyMaterials();
+            static std::shared_ptr<Material> Get(std::string name);
+
         private:
+            static std::unordered_map<std::string, std::shared_ptr<Material>> _store;
             vk::DescriptorSetLayout _layout;
             std::vector<vk::DescriptorSet> _descriptorSets;
 

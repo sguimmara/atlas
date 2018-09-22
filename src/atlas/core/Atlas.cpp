@@ -29,7 +29,19 @@ atlas::Atlas::Atlas()
 
     _scene = new Scene();
 
-    _scene->root()->add_child(new Earth(Ellipsoid::GRS80, 1));
+    const float VulkanToEcef[] = {
+        0, 0,-1, 0,
+        1, 0, 0, 0,
+        0,-1, 0, 0,
+        0, 0, 0, 1
+    };
+
+    Node* ecef = new Node();
+    ecef->setLocalTransform(make_mat4(VulkanToEcef));
+    _scene->root()->add_child(ecef);
+
+    ecef->add_child(new Earth(Ellipsoid::GRS80, 1));
+    //ecef->add_child(Mesh::MakeEquirectangularRegion(vec2(-PI_F, -PI_F / 2), vec2(PI_F, PI_F / 2)));
     _scene->root()->add_child(new Camera());
     _renderer->SetScene(_scene);
 

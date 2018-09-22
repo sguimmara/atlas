@@ -102,15 +102,77 @@ Material::~Material()
     Renderer::device.destroyDescriptorSetLayout(_layout);
 }
 
+void Material::CreateMaterials()
+{
+    auto const unlitTriangles = std::make_shared<Material>(
+        "unlitTriangles",
+        std::vector<Semantic>{Semantic::Position, Semantic::Color},
+        std::vector<Descriptor>(),
+        Shader::Get("unlit.vert"),
+        Shader::Get("unlit.frag"),
+        vk::PrimitiveTopology::eTriangleList);
+    _store.insert({ unlitTriangles->name, unlitTriangles });
+
+    auto const unlitLines = std::make_shared<Material>(
+        "unlitLines",
+        std::vector<Semantic>{Semantic::Position, Semantic::Color},
+        std::vector<Descriptor>(),
+        Shader::Get("unlit.vert"),
+        Shader::Get("unlit.frag"),
+        vk::PrimitiveTopology::eLineList);
+    _store.insert({ unlitLines->name, unlitLines });
+
+    auto const unlitLineStrip = std::make_shared<Material>(
+        "unlitLineStrip",
+        std::vector<Semantic>{Semantic::Position, Semantic::Color},
+        std::vector<Descriptor>(),
+        Shader::Get("unlit.vert"),
+        Shader::Get("unlit.frag"),
+        vk::PrimitiveTopology::eLineStrip);
+    unlitLineStrip->lineWidth = 2;
+    _store.insert({ unlitLineStrip->name, unlitLineStrip });
+
+    auto const surfaceTile = std::make_shared<Material>(
+        "surfaceTile",
+        std::vector<Semantic>{Semantic::Position, Semantic::Normal, Semantic::TexCoord},
+        std::vector<Descriptor>(),
+        Shader::Get("tile.vert"),
+        Shader::Get("tile.frag"),
+        vk::PrimitiveTopology::eTriangleList);
+    _store.insert({ surfaceTile->name, surfaceTile });
+}
+
+void atlas::graphics::Material::DestroyMaterials()
+{
+    _store.clear();
+}
+
+std::unordered_map<std::string, std::shared_ptr<Material>> Material::_store = std::unordered_map<std::string, std::shared_ptr<Material>>();
+
+std::shared_ptr<Material> Material::Get(std::string name)
+{
+    auto search = _store.find(name);
+    if (search != _store.end())
+    {
+        return (*search).second;
+    }
+    else
+    {
+        throw std::runtime_error("could not find material: " + name);
+    }
+}
 
 Material::Material(
+    std::string name,
     std::vector<Semantic> semantics,
     std::vector<Descriptor> bindings,
     Shader vs,
     Shader fs,
     vk::PrimitiveTopology topology,
     vk::PolygonMode polygonMode) :
-    lineWidth(1.0f)
+    name(name),
+    lineWidth(1.0f),
+    topology(topology)
 {
     std::vector<vk::VertexInputAttributeDescription> attributes;
     auto const binding = vk::VertexInputBindingDescription()
@@ -191,7 +253,7 @@ Material::Material(
 
     auto const stencil = CreateDepthStencilState();
 
-    std::array<vk::DynamicState, 2> dynamicStates = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
+    std::array<vk::DynamicState, 3> dynamicStates = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth, vk::DynamicState::eScissor };
     auto const dynamicState = vk::PipelineDynamicStateCreateInfo()
         .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
         .setPDynamicStates(dynamicStates.data());
