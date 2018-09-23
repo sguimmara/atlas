@@ -56,6 +56,7 @@ atlas::Atlas::~Atlas()
 {
     delete _scene;
     delete _renderer;
+    glfwDestroyWindow(_window);
 }
 
 /* initializes the GLFW window */
