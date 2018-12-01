@@ -1,4 +1,5 @@
 #include "atlas/renderer/instance.hpp"
+#include "atlas/renderer/pipeline.hpp"
 #include <GLFW/glfw3.h>
 
 int main(int argc, char* argv[])
@@ -13,11 +14,21 @@ int main(int argc, char* argv[])
     GLFWwindow* window = glfwCreateWindow(800, 600, "test", nullptr, nullptr);
 
     atlas::renderer::Instance::initialize(window);
+    atlas::renderer::Instance::setShaderDirectory("C:/Users/sguimmara/Documents/work/c++/atlas4/.build/bin/shaders/");
+
+    atlas::renderer::Pipeline::create(R"%(
+        {
+            "name": "test",
+            "vertex": "default.vert.spv",
+            "fragment": "default.frag.spv",
+            "rasterizer":{
+                "cullMode": "front",
+                "frontFace": "ccw"
+            }
+        })%");
+    atlas::renderer::Pipeline::get("test");
 
     auto framesToRender = 10;
-
-    spdlog::set_level(spdlog::level::info);
-
     while (!glfwWindowShouldClose(window) && framesToRender > 0)
     {
         glfwPollEvents();

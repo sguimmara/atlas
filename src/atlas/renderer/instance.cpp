@@ -19,6 +19,7 @@ vk::SurfaceFormatKHR Instance::_surfaceFormat = vk::SurfaceFormatKHR();
 vk::PhysicalDevice Instance::physicalDevice = vk::PhysicalDevice();
 vk::RenderPass Instance::renderPass = vk::RenderPass();
 vk::Device Instance::device = vk::Device();
+vk::DescriptorPool Instance::descriptorPool = vk::DescriptorPool();
 GLFWwindow* Instance::_window = nullptr;
 uint32_t Instance::_exitCode = 0;
 std::unique_ptr<Context> Instance::_context = nullptr;
@@ -26,6 +27,7 @@ vk::Queue Instance::graphicsQueue = vk::Queue();
 vk::Queue Instance::presentQueue = vk::Queue();
 vk::Queue Instance::computeQueue = vk::Queue();
 vk::Queue Instance::transferQueue = vk::Queue();
+std::string Instance::_shaderDirectory = "";
 VkDebugReportCallbackEXT Instance::_debugCallback = {};
 
 const uint32_t NVIDIA = 0x10DE;
@@ -54,6 +56,15 @@ void Instance::raiseValidationError(const std::string& msg)
 {
     _log->error(msg);
     _exitCode = 1;
+}
+
+std::string Instance::shaderDirectory() noexcept { return _shaderDirectory; }
+
+void Instance::setShaderDirectory(const std::string& path)
+{
+    // TODO check validity.
+    _log->debug("shader directory set to {0}", path);
+    _shaderDirectory = path;
 }
 
 void Instance::createInstance()
@@ -255,6 +266,30 @@ void Instance::pickPhysicalDevice()
         // TODO : select best physical device
     }
 }
+
+void Instance::createDescriptorPool()
+{
+    auto sizes = std::vector<vk::DescriptorPoolSize>();
+
+    sizes.push_back(vk::DescriptorPoolSize()
+        .setType(vk::DescriptorType::eCombinedImageSampler)
+        .setDescriptorCount(128));
+
+    sizes.push_back(vk::DescriptorPoolSize()
+        .setType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(128));
+
+    sizes.push_back(vk::DescriptorPoolSize()
+        .setType(vk::DescriptorType::eUniformBufferDynamic)
+        .setDescriptorCount(128));
+
+    descriptorPool = device.createDescriptorPool(vk::DescriptorPoolCreateInfo()
+        .setPoolSizeCount(static_cast<uint32_t>(sizes.size()))
+        .setMaxSets(128)
+        .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+        .setPPoolSizes(sizes.data()));
+}
+
 
 void Instance::createDevice()
 {
@@ -459,6 +494,8 @@ void Instance::initialize(GLFWwindow* window)
     _surfaceFormat = pickSurfaceFormat(physicalDevice.getSurfaceFormatsKHR(_surface));
     createRenderPass();
     createContext();
+    createDescriptorPool();
+    Pipeline::initialize();
 }
 
 void Instance::createContext()
@@ -481,6 +518,7 @@ uint32_t Instance::terminate()
     _context = nullptr;
     device.destroyRenderPass(renderPass);
     Pipeline::terminate();
+    device.destroyDescriptorPool(descriptorPool);
     Allocator::terminate();
     destroyDevice();
 

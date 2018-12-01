@@ -70,14 +70,9 @@ include_directories(SYSTEM lib)
 
 # include_directories(test)
 include_directories(src)
-# include_directories(SPIRV-Cross)
 
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(lib)
 # add_subdirectory(apps)
-# add_subdirectory(shaders)
-
-# FILE(GLOB SPIRVCROSS_SOURCES "SPIRV-Cross/*.cpp")
-
-# add_library(SPIRVCROSS STATIC ${SPIRVCROSS_SOURCES})
+add_subdirectory(shaders)

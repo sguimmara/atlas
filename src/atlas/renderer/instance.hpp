@@ -4,6 +4,7 @@
 #include "common.hpp"
 #include "context.hpp"
 #include "allocator.hpp"
+#include "pipeline.hpp"
 
 namespace atlas::renderer
 {
@@ -29,6 +30,9 @@ namespace atlas::renderer
 
         static void raiseValidationError(const std::string&);
 
+        static void setShaderDirectory(const std::string&);
+        static std::string shaderDirectory() noexcept;
+
         static vk::PhysicalDevice physicalDevice;
         static vk::Device device;
 
@@ -37,6 +41,7 @@ namespace atlas::renderer
         static vk::Queue computeQueue;
         static vk::Queue transferQueue;
         static vk::RenderPass renderPass;
+        static vk::DescriptorPool descriptorPool;
 
     private:
         static std::shared_ptr<spdlog::logger> _log;
@@ -47,6 +52,7 @@ namespace atlas::renderer
         static std::unique_ptr<Context> _context;
         static GLFWwindow* _window;
         static uint32_t _exitCode;
+        static std::string _shaderDirectory;
 
         static void createInstance();
         static void setupDebugCallbacks();
@@ -55,6 +61,7 @@ namespace atlas::renderer
         static void pickPhysicalDevice();
         static void createDevice();
         static void destroyDevice();
+        static void createDescriptorPool();
         static void createRenderPass();
         static void createContext();
     };

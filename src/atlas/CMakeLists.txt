@@ -11,4 +11,4 @@ add_sources(renderer renderer)
 add_sources(io io)
 
 add_library(${LIBNAME} SHARED ${SOURCES})
-target_link_libraries(${LIBNAME} ${Vulkan_LIBRARY} ${GLFW_LIBRARY})
+target_link_libraries(${LIBNAME} ${Vulkan_LIBRARY} ${GLFW_LIBRARY} SPIRVCROSS json)
