@@ -28,16 +28,23 @@ namespace atlas::renderer
 
         Pipeline(const std::string& json);
         ~Pipeline();
+
         uint32_t getSamplerBinding(const std::string& name) const;
         uint32_t getBindingInfo(const std::string& name) const;
+
+        static vk::DescriptorSetLayout globalPropertyLayout() noexcept;
+        static vk::DescriptorSetLayout entityPropertyLayout() noexcept;
+
+        inline vk::DescriptorSetLayout descriptorSetLayout() const noexcept { return _descriptorSetLayout; }
+        inline vk::Pipeline vkPipeline() const noexcept { return _pipeline; }
+        inline vk::PipelineLayout layout() const noexcept { return _layout; }
+
     private:
         static std::unordered_map<std::string, std::unique_ptr<Pipeline>> _cache;
         static std::shared_ptr<spdlog::logger> _log;
         static spdlog::logger* getLog();
         static vk::DescriptorSetLayout _globalPropertyLayout;
-        static vk::DescriptorSetLayout _instancePropertyLayout;
-        static vk::Buffer _globalPropertyBuffer;
-        static vk::DescriptorSet _globalPropertySet;
+        static vk::DescriptorSetLayout _entityPropertyLayout;
 
         std::string _json;
         std::string _name;

@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "pipeline.hpp"
+#include "texture.hpp"
 
 namespace atlas::renderer
 {
@@ -10,11 +11,36 @@ namespace atlas::renderer
     class Material
     {
     public:
-        // build a material from a JSON description
+        // constructs an empty material
+        Material();
+
+        // constructs a material from a JSON description
         Material(const std::string& description);
+
+        // constructs a material from the given pipeline.
+        Material(Pipeline*);
+
+        // constructs a material from transferring ownership of resources from
+        // the specified material. The old material becomes empty.
+        Material(Material&& rhs);
+
+        ~Material();
+
+        // returns a material with its own copy of the resources.
+        Material instantiate() const;
+
+        void setTexture(const std::string & name, const Texture * texture);
+
+        inline Pipeline* pipeline() const noexcept { return _pipeline; }
+
+        inline vk::DescriptorSet descriptorSet() const noexcept { return _descriptorSet; }
 
     private:
         Pipeline* _pipeline;
+        vk::DescriptorSet _descriptorSet;
+
+        void createDescriptorSet();
+        void updateTexture(const uint32_t binding, const vk::ImageView & view, const vk::Sampler & sampler);
     };
 }
 

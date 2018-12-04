@@ -210,13 +210,35 @@ void Allocator::transition(vk::Image image, vk::Format format,
     endSingleTimeCommand(cmdBuffer);
 }
 
-void Allocator::write(vk::Buffer buf, void * data, size_t size)
+void Allocator::copyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)
+{
+    vk::CommandBuffer cmd = beginSingleTimeCommand();
+
+    vk::BufferImageCopy region = {};
+    region.setBufferOffset(0)
+        .setBufferRowLength(0)
+        .setBufferImageHeight(0)
+        .setImageSubresource(
+            vk::ImageSubresourceLayers()
+            .setAspectMask(vk::ImageAspectFlagBits::eColor)
+            .setMipLevel(0)
+            .setBaseArrayLayer(0)
+            .setLayerCount(1))
+        .setImageOffset({ 0, 0, 0 })
+        .setImageExtent({ width, height, 1 });
+
+    cmd.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+
+    endSingleTimeCommand(cmd);
+}
+
+void Allocator::write(vk::Buffer buf, void* data, size_t size, size_t offset)
 {
     auto const block = _allocatedBuffers[buf];
 
     void *target;
     vmaMapMemory(_vma, block, &target);
-    memcpy(target, data, size);
+    memcpy((char*)target + offset, data, size);
     vmaUnmapMemory(_vma, block);
 }
 

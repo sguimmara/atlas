@@ -1,7 +1,7 @@
 #include <json/json.h>
 
 #include "global_properties.hpp"
-#include "instance_properties.hpp"
+#include "entity_properties.hpp"
 #include "pipeline.hpp"
 #include "instance.hpp"
 #include "atlas/io/utils.hpp"
@@ -12,9 +12,7 @@ using namespace spirv_cross;
 std::unordered_map<std::string, std::unique_ptr<Pipeline>> Pipeline::_cache;
 std::shared_ptr<spdlog::logger> Pipeline::_log = nullptr;
 vk::DescriptorSetLayout Pipeline::_globalPropertyLayout;
-vk::Buffer Pipeline::_globalPropertyBuffer;
-vk::DescriptorSet Pipeline::_globalPropertySet;
-vk::DescriptorSetLayout Pipeline::_instancePropertyLayout;
+vk::DescriptorSetLayout Pipeline::_entityPropertyLayout;
 
 struct BindingInfoDescription
 {
@@ -41,7 +39,7 @@ const std::unordered_set<std::string> acceptedSamplerNamesFS
 const std::unordered_map<std::string, BindingInfoDescription> recognizedUniformsGlobals
 {
     { "globals", { sizeof(GlobalProperties), 0 } },
-    { "instance", { sizeof(InstanceProperties), 1 } }
+    { "instance", { sizeof(EntityProperties), 1 } }
 };
 const std::unordered_map<std::string, BindingInfoDescription> recognizedUniformsVS
 {
@@ -59,8 +57,6 @@ const std::unordered_map<std::string, InputInfo> recognizedInputsVS
 
 void Pipeline::initialize()
 {
-    _globalPropertyBuffer = Allocator::getBuffer(sizeof(GlobalProperties), vk::BufferUsageFlagBits::eUniformBuffer);
-
     auto binding = vk::DescriptorSetLayoutBinding()
         .setBinding(0)
         .setDescriptorCount(1)
@@ -73,13 +69,6 @@ void Pipeline::initialize()
 
     _globalPropertyLayout = Instance::device.createDescriptorSetLayout(layoutInfo);
 
-    auto const allocateInfo = vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(Instance::descriptorPool)
-        .setDescriptorSetCount(1)
-        .setPSetLayouts(&_globalPropertyLayout);
-
-    _globalPropertySet = Instance::device.allocateDescriptorSets(allocateInfo)[0];
-
     auto instanceBinding = vk::DescriptorSetLayoutBinding()
         .setBinding(1)
         .setDescriptorCount(1)
@@ -90,7 +79,7 @@ void Pipeline::initialize()
         .setBindingCount(1)
         .setPBindings(&instanceBinding);
 
-    _instancePropertyLayout = Instance::device.createDescriptorSetLayout(instanceLayoutInfo);
+    _entityPropertyLayout = Instance::device.createDescriptorSetLayout(instanceLayoutInfo);
 }
 
 Pipeline * Pipeline::get(const std::string & name)
@@ -132,9 +121,8 @@ vk::ShaderModule createShaderModule(std::vector<char> code)
 
 void Pipeline::terminate()
 {
-    Allocator::free(_globalPropertyBuffer);
     Instance::device.destroyDescriptorSetLayout(_globalPropertyLayout);
-    Instance::device.destroyDescriptorSetLayout(_instancePropertyLayout);
+    Instance::device.destroyDescriptorSetLayout(_entityPropertyLayout);
     _cache.clear();
 }
 
@@ -476,6 +464,9 @@ uint32_t Pipeline::getBindingInfo(const std::string & name) const
     throw std::runtime_error("no uniform binding found with name <" + name + ">");
 }
 
+vk::DescriptorSetLayout Pipeline::globalPropertyLayout() noexcept { return _globalPropertyLayout; }
+
+vk::DescriptorSetLayout Pipeline::entityPropertyLayout() noexcept { return _entityPropertyLayout; }
 
 Pipeline::Pipeline(const std::string& json) :
     _json(json)
@@ -522,7 +513,7 @@ Pipeline::Pipeline(const std::string& json) :
 
         _descriptorSetLayout = Instance::device.createDescriptorSetLayout(layoutInfo);
 
-        std::array<vk::DescriptorSetLayout, 3> setLayouts = { _globalPropertyLayout, _instancePropertyLayout, _descriptorSetLayout };
+        std::array<vk::DescriptorSetLayout, 3> setLayouts = { _globalPropertyLayout, _entityPropertyLayout, _descriptorSetLayout };
 
         auto pipelineLayoutInfo = vk::PipelineLayoutCreateInfo()
             .setPPushConstantRanges(constantRanges.data())

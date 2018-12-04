@@ -130,10 +130,19 @@ Context::Context(GLFWwindow * window, vk::SurfaceKHR surface,
             _commandBuffers[i], _size, swapchainImages[i],
             _depthAttachmentView);
     }
+
+    auto const allocateInfo = vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(Instance::descriptorPool)
+        .setDescriptorSetCount(1)
+        .setPSetLayouts(&Pipeline::globalPropertyLayout());
+
+    _globalPropertyBuffer = Allocator::getBuffer(sizeof(GlobalProperties), vk::BufferUsageFlagBits::eUniformBuffer);
+    _globalPropertySet = Instance::device.allocateDescriptorSets(allocateInfo)[0];
 }
 
 Context::~Context()
 {
+    Allocator::free(_globalPropertyBuffer);
     Allocator::free(_depthImage);
     _device.destroySemaphore(_imageAcquired);
     _device.destroyImageView(_depthAttachmentView);
@@ -148,6 +157,7 @@ Context::~Context()
 
 void Context::beginFrame()
 {
+    _currentPipeline = nullptr;
     auto const img = _device.acquireNextImageKHR(_swapchain, 100, _imageAcquired, vk::Fence());
     check(img.result);
     _currentSwapchainImage = img.value;
@@ -178,6 +188,53 @@ void Context::beginFrame()
         buffer.setScissor(0, 1, &scissor);
         buffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
     }
+}
+
+void Context::bind(GlobalProperties properties)
+{
+    // TODO move logic to scene ?
+    Allocator::write(_globalPropertyBuffer, &properties, sizeof(GlobalProperties));
+
+    auto const bufferInfo = vk::DescriptorBufferInfo()
+        .setBuffer(_globalPropertyBuffer)
+        .setOffset(0)
+        .setRange(sizeof(GlobalProperties));
+
+    auto const write = vk::WriteDescriptorSet()
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDstBinding(0)
+        .setDstSet(_globalPropertySet)
+        .setPBufferInfo(&bufferInfo);
+
+    Instance::device.updateDescriptorSets(1, &write, 0, nullptr);
+}
+
+void Context::bind(Pipeline* pipeline)
+{
+    if (_currentPipeline != pipeline)
+    {
+        auto const cmd = _framebuffers[_currentSwapchainImage].cmdBuffer();
+        cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline->vkPipeline());
+        _currentPipeline = pipeline;
+        _currentPipelineLayout = pipeline->layout();
+    }
+}
+
+void Context::draw(vk::DescriptorSet instanceSet, vk::DescriptorSet materialSet, const Mesh& mesh)
+{
+    auto const cmd = _framebuffers[_currentSwapchainImage].cmdBuffer();
+
+    std::array<vk::DescriptorSet, 3> sets = { _globalPropertySet, instanceSet, materialSet };
+    //std::array<vk::DescriptorSet, 2> sets = { _globalPropertySet, instanceSet };
+
+    cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _currentPipelineLayout, 0, (uint32_t)sets.size(), sets.data(), 0, nullptr);
+
+    auto const vOffset = mesh.vertexOffset();
+
+    cmd.bindVertexBuffers(0, 1, &mesh.buffer(), &vOffset);
+    cmd.bindIndexBuffer(mesh.buffer(), mesh.indexOffset(), vk::IndexType::eUint16);
+    cmd.drawIndexed(mesh.indexCount(), 1, 0, 0, 0);
 }
 
 void Context::endFrame()

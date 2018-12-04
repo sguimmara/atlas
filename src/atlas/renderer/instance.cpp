@@ -1,4 +1,5 @@
 #include "instance.hpp"
+#include <filesystem>
 
 using namespace atlas::renderer;
 
@@ -60,11 +61,31 @@ void Instance::raiseValidationError(const std::string& msg)
 
 std::string Instance::shaderDirectory() noexcept { return _shaderDirectory; }
 
+vk::DescriptorSet atlas::renderer::Instance::createDescriptorSet(vk::DescriptorSetLayout layout)
+{
+    return device.allocateDescriptorSets(vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(descriptorPool)
+        .setDescriptorSetCount(1)
+        .setPSetLayouts(&layout))[0];
+}
+
+void atlas::renderer::Instance::free(vk::DescriptorSet set)
+{
+    device.freeDescriptorSets(descriptorPool, 1, &set);
+}
+
 void Instance::setShaderDirectory(const std::string& path)
 {
-    // TODO check validity.
-    _log->debug("shader directory set to {0}", path);
-    _shaderDirectory = path;
+    if (std::filesystem::exists(path))
+    {
+        _log->debug("shader directory set to {0}", path);
+        _shaderDirectory = path;
+    }
+    else
+    {
+        _log->critical("invalid shader directory: " + path);
+        throw std::runtime_error("invalid shader directory");
+    }
 }
 
 void Instance::createInstance()
@@ -290,7 +311,6 @@ void Instance::createDescriptorPool()
         .setPPoolSizes(sizes.data()));
 }
 
-
 void Instance::createDevice()
 {
     auto const swapchainExtension = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -397,8 +417,8 @@ void Instance::createDevice()
         deviceInfo.setPpEnabledLayerNames(validationLayersNames.data());
     }
 
+    _log->debug("create device");
     device = physicalDevice.createDevice(deviceInfo);
-    _log->debug("created device");
 
     graphicsQueue = device.getQueue(graphicsFamily, 0);
     presentQueue = device.getQueue(presentFamily, 0);
@@ -410,12 +430,14 @@ void Instance::createDevice()
 
 void Instance::destroyDevice()
 {
+    _log->trace("destroy device");
     device.destroy();
-    _log->trace("device destroyed");
 }
 
 void Instance::createRenderPass()
 {
+    _log->trace("create render pass");
+
     // render pass creation
     auto const colorAttachment = vk::AttachmentDescription()
         .setFormat(_surfaceFormat.format)
@@ -470,8 +492,6 @@ void Instance::createRenderPass()
         .setPDependencies(&dependency);
 
     renderPass = device.createRenderPass(renderPassInfo);
-
-    _log->trace("render pass created");
 }
 
 void Instance::initialize(GLFWwindow* window)
@@ -479,7 +499,7 @@ void Instance::initialize(GLFWwindow* window)
     _window = window;
 
     _log = spdlog::stdout_color_mt("instance");
-    _log->info("initializing");
+    _log->info("initialize");
 
 #ifdef WIN32
     // this layer causes crashes in the swapchain creation process.
@@ -493,9 +513,9 @@ void Instance::initialize(GLFWwindow* window)
     createDevice();
     _surfaceFormat = pickSurfaceFormat(physicalDevice.getSurfaceFormatsKHR(_surface));
     createRenderPass();
-    createContext();
     createDescriptorPool();
     Pipeline::initialize();
+    createContext();
 }
 
 void Instance::createContext()
@@ -522,17 +542,18 @@ uint32_t Instance::terminate()
     Allocator::terminate();
     destroyDevice();
 
+    destroyDebugCallbacks();
+    _instance.destroy();
+    _log->trace("destroy vk instance");
+
     if (_exitCode == 0)
     {
-        _log->info("terminated successfully");
+        _log->info("terminate");
     }
     else
     {
         _log->warn("validation error(s) occurred.");
     }
 
-    destroyDebugCallbacks();
-    _instance.destroy();
-    _log->trace("instance destroyed");
     return _exitCode;
 }

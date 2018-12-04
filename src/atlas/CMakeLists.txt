@@ -7,8 +7,11 @@ macro(add_sources DIRNAME GROUPNAME)
           DESTINATION include/atlas/${DIRNAME})
 endmacro()
 
-add_sources(renderer renderer)
+add_sources(core core)
 add_sources(io io)
+add_sources(renderer renderer)
+add_sources(scene scene)
+add_sources(viewer viewer)
 
 add_library(${LIBNAME} SHARED ${SOURCES})
 target_link_libraries(${LIBNAME} ${Vulkan_LIBRARY} ${GLFW_LIBRARY} SPIRVCROSS json)

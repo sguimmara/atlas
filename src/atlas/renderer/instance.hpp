@@ -33,6 +33,9 @@ namespace atlas::renderer
         static void setShaderDirectory(const std::string&);
         static std::string shaderDirectory() noexcept;
 
+        static vk::DescriptorSet createDescriptorSet(vk::DescriptorSetLayout);
+        static void free(vk::DescriptorSet);
+
         static vk::PhysicalDevice physicalDevice;
         static vk::Device device;
 

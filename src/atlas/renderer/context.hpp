@@ -3,6 +3,9 @@
 
 #include "common.hpp"
 #include "framebuffer.hpp"
+#include "mesh.hpp"
+#include "material.hpp"
+#include "global_properties.hpp"
 
 namespace atlas::renderer
 {
@@ -17,9 +20,13 @@ namespace atlas::renderer
         inline const vk::Viewport viewport() const noexcept { return _viewport; }
 
         void beginFrame();
+        void bind(GlobalProperties);
+        void bind(Pipeline*);
+        void draw(vk::DescriptorSet instanceSet, vk::DescriptorSet materialSet, const Mesh & mesh);
         void endFrame();
 
     private:
+        // global context
         vk::SurfaceKHR _surface;
         GLFWwindow* _window;
         std::shared_ptr<spdlog::logger> _log;
@@ -34,7 +41,14 @@ namespace atlas::renderer
         vk::Image _depthImage;
         vk::ImageView _depthAttachmentView;
         vk::Semaphore _imageAcquired;
+
+        vk::Buffer _globalPropertyBuffer;
+        vk::DescriptorSet _globalPropertySet;
+
+        // frame context
         uint32_t _currentSwapchainImage;
+        Pipeline* _currentPipeline;
+        vk::PipelineLayout _currentPipelineLayout;
     };
 }
 

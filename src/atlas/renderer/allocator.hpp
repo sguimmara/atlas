@@ -22,7 +22,8 @@ namespace atlas::renderer
             vk::ImageUsageFlags usage,
             vk::ImageTiling tiling = vk::ImageTiling::eOptimal);
         static void transition(vk::Image, vk::Format, vk::ImageLayout from, vk::ImageLayout to);
-        static void write(vk::Buffer, void* data, size_t size);
+        static void copyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height);
+        static void write(vk::Buffer, void* data, size_t size, size_t offset = 0);
         static void free(vk::Buffer);
         static void free(vk::Image);
 
