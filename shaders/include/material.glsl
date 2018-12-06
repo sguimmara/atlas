@@ -1,6 +1,6 @@
 layout(set = MATERIAL, binding = MATERIAL) uniform MaterialProperties
 {
-    float shininess;
+    vec4 color;
 } material;
 
 float lambert(vec3 normal, vec3 light)

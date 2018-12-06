@@ -70,27 +70,24 @@ std::shared_ptr<Mesh> MeshBuilder::bounds(const Bounds& bounds)
     const float maxY = bounds.max.y;
     const float maxZ = bounds.max.z;
 
+    const auto A = Vertex{ {minX, minY, minZ} };
+    const auto B = Vertex{ {minX, maxY, minZ} };
+    const auto C = Vertex{ {maxX, maxY, minZ} };
+    const auto D = Vertex{ {maxX, minY, minZ} };
+
+    const auto E = Vertex{ {minX, minY, maxZ} };
+    const auto F = Vertex{ {minX, maxY, maxZ} };
+    const auto G = Vertex{ {maxX, maxY, maxZ} };
+    const auto H = Vertex{ {maxX, minY, maxZ} };
+
     std::vector<Vertex> vertices
     {
-        Vertex{{minX, minY, minZ}},
-        Vertex{{minX, maxY, minZ}},
-        Vertex{{maxX, maxY, minZ}},
-        Vertex{{maxX, minY, minZ}},
+        A,B,B,C,C,D,D,A,
+        E,F,F,G,G,H,H,E,
+        A,E,B,F,C,G,D,H
+    };
 
-        Vertex{{minX, minY, maxZ}},
-        Vertex{{minX, maxY, maxZ}},
-        Vertex{{maxX, maxY, maxZ}},
-        Vertex{{maxX, minY, maxZ}}
-    };
-    std::vector<uint16_t> indices
-    {
-        0, 1, 2, 0, 2, 3,
-        4, 5, 6, 4, 6, 7,
-        1, 5, 4, 1, 4, 0,
-        0, 4, 7, 0, 7, 3,
-        2, 6, 5, 2, 5, 1,
-        3, 7, 6, 3, 6, 2
-    };
+    std::vector<uint16_t> indices(0);
 
     return std::make_shared<Mesh>(vertices, indices);
 }

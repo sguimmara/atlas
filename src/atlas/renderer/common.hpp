@@ -8,6 +8,8 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
+using namespace glm;
+
 inline void check(vk::Result result)
 {
     if (result != vk::Result::eSuccess)

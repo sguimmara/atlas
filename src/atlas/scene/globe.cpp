@@ -8,7 +8,7 @@ using namespace atlas::renderer;
 Globe::Globe() :
     _quadtree(std::make_unique<Quadtree>(Region::world(), 8, 4))
 {
-    _TEMPterrainMaterial = std::make_unique<Material>(R"%(
+    _TEMPterrainMaterial = std::make_shared<Material>(R"%(
         {
             "name": "terrain",
             "vertex": "default.vert.spv",
@@ -23,14 +23,18 @@ Globe::Globe() :
     _TEMPterrainMaterial->setTexture("diffuse", _TEMPtexture.get());
     _TEMPterrainMaterial->setTexture("specular", _TEMPtexture.get());
 
+    // TODO allocate tiles dynamically after each quadtree update.
+    // 1. nodes that became leaves : allocate tile
+    // 2. nodes that became non-leaves : hide them, keep them for a while as cache
     for (auto& node : *_quadtree)
     {
         if (node.isleaf())
         {
-            auto ent = std::make_shared<Entity>();
-            ent->mesh = MeshBuilder::terrain(node.region(), 16, Ellipsoid::unitSphere());
-            ent->material = _TEMPterrainMaterial.get();
-            _tiles.push_back(ent);
+            auto tile = std::make_shared<Entity>(
+                _TEMPterrainMaterial,
+                MeshBuilder::terrain(node.region(), 16, Ellipsoid::unitSphere()));
+            _tiles.push_back(tile);
+            _tiles.push_back(Entity::createDebugEntity(*tile));
         }
     }
 }

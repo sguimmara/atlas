@@ -8,7 +8,7 @@
 #include "atlas/viewer/viewer.hpp"
 #include "atlas/renderer/material.hpp"
 #include "atlas/renderer/texture.hpp"
-#include "atlas/renderer/global_properties.hpp"
+#include "atlas/renderer/globalproperties.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
 #include <GLFW/glfw3.h>

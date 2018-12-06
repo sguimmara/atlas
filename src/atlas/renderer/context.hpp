@@ -5,7 +5,7 @@
 #include "framebuffer.hpp"
 #include "mesh.hpp"
 #include "material.hpp"
-#include "global_properties.hpp"
+#include "globalproperties.hpp"
 
 namespace atlas::renderer
 {

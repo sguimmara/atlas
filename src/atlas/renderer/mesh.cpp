@@ -10,6 +10,7 @@ Mesh::Mesh(Mesh&& rhs) :
     _buffer(rhs._buffer),
     _bounds(rhs._bounds),
     _indexCount(rhs._indexCount),
+    _vertexCount(rhs._vertexCount),
     _vertexOffset(rhs._vertexOffset),
     _indexOffset(rhs._indexOffset)
 {
@@ -17,7 +18,8 @@ Mesh::Mesh(Mesh&& rhs) :
 }
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<uint16_t> indices) :
-    _indexCount((uint32_t)indices.size())
+    _indexCount((uint32_t)indices.size()),
+    _vertexCount((uint32_t)vertices.size())
 {
     size_t vertexSize = vertices.size() * sizeof(Vertex);
     size_t indexSize = indices.size() * sizeof(uint16_t);

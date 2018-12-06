@@ -40,7 +40,7 @@ void UniformBuffer::update(void * data)
     auto const bufferInfo = vk::DescriptorBufferInfo()
         .setBuffer(_buffer)
         .setOffset(0)
-        .setRange(sizeof(GlobalProperties));
+        .setRange(_size);
 
     auto const write = vk::WriteDescriptorSet()
         .setDescriptorCount(1)

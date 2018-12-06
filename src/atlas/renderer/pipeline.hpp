@@ -3,7 +3,7 @@
 
 #include "common.hpp"
 #include "vertex.hpp"
-#include "binding_info.hpp"
+#include "bindinginfo.hpp"
 #include <unordered_set>
 #include <spirv-cross/spirv_cross.hpp>
 

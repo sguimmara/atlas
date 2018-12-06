@@ -1,7 +1,7 @@
 #ifndef ATLAS_SCENE_SCENE_HPP
 #define ATLAS_SCENE_SCENE_HPP
 
-#include "atlas/renderer/global_properties.hpp"
+#include "atlas/renderer/globalproperties.hpp"
 #include "atlas/renderer/instance.hpp"
 #include "atlas/renderer/pipeline.hpp"
 #include "atlas/renderer/context.hpp"
@@ -27,8 +27,6 @@ namespace atlas::scene
 
         std::unique_ptr<Globe> _globe;
         std::vector<std::unique_ptr<View>> _views;
-
-        std::vector<Entity*> _entities;
 
         void setupView(View& view);
         void renderGlobe(atlas::renderer::Context*, View&);

@@ -35,12 +35,6 @@ Scene::~Scene()
     _log->info("destroyed");
 }
 
-void Scene::addEntity(Entity* entity)
-{
-    _entities.push_back(entity);
-    _log->debug("entity '{0}' added", entity->name);
-}
-
 void Scene::render()
 {
     auto ctx = renderer::Instance::context();
@@ -49,17 +43,14 @@ void Scene::render()
         return;
     }
 
-    for (auto const& entity : _entities)
-    {
-        entity->update();
-    }
-
     ctx->beginFrame();
-    for (auto const& view : _views)
     {
-        setupView(*view);
+        for (auto const& view : _views)
+        {
+            setupView(*view);
 
-        renderGlobe(ctx, *view);
+            renderGlobe(ctx, *view);
+        }
     }
     ctx->endFrame();
 }
@@ -68,12 +59,12 @@ void Scene::renderGlobe(atlas::renderer::Context* ctx, View& view)
 {
     for (auto const& tile : _globe->tiles())
     {
-        ctx->bind(tile->material->pipeline());
+        ctx->bind(tile->material().pipeline());
         ctx->draw(
             view.properties()->descriptorSet(),
             tile->data()->descriptorSet(),
-            tile->material->descriptorSet(),
-            *tile->mesh);
+            tile->material().descriptorSet(),
+            tile->mesh());
     }
 }
 

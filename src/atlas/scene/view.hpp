@@ -3,7 +3,7 @@
 
 #include "common.hpp"
 #include "camera.hpp"
-#include "atlas/renderer/global_properties.hpp"
+#include "atlas/renderer/globalproperties.hpp"
 #include "atlas/renderer/uniformbuffer.hpp"
 
 namespace atlas::scene

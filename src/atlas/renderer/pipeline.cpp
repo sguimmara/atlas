@@ -1,7 +1,8 @@
 #include <json/json.h>
 
-#include "global_properties.hpp"
+#include "globalproperties.hpp"
 #include "entityproperties.hpp"
+#include "materialproperties.hpp"
 #include "pipeline.hpp"
 #include "instance.hpp"
 #include "atlas/io/utils.hpp"
@@ -46,7 +47,7 @@ const std::unordered_map<std::string, BindingInfoDescription> recognizedUniforms
 };
 const std::unordered_map<std::string, BindingInfoDescription> recognizedUniformsFS
 {
-    { "material", { sizeof(float), 2 } }
+    { "material", { sizeof(MaterialProperties), 2 } }
 };
 const std::unordered_map<std::string, InputInfo> recognizedInputsVS
 {
@@ -176,6 +177,7 @@ float parse(Json::Value json, float defaultValue)
     return json.asFloat();
 }
 
+
 vk::PipelineRasterizationStateCreateInfo parseRasterizer(Json::Value json)
 {
     if (json.empty())
@@ -190,10 +192,30 @@ vk::PipelineRasterizationStateCreateInfo parseRasterizer(Json::Value json)
         .setPolygonMode(parsePolygonMode(json["polygonMode"]));
 }
 
+vk::PrimitiveTopology parsePrimitiveTopology(Json::Value json)
+{
+    if (json.empty()) { return vk::PrimitiveTopology::eTriangleList; }
+    if (json.asString() == "triangleList") { return vk::PrimitiveTopology::eTriangleList; }
+    if (json.asString() == "lineList") { return vk::PrimitiveTopology::eLineList; }
+    return vk::PrimitiveTopology::eTriangleList;
+}
+
 vk::PipelineInputAssemblyStateCreateInfo defaultAssemblyState()
 {
     return vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList)
+        .setPrimitiveRestartEnable(VK_FALSE);
+}
+
+vk::PipelineInputAssemblyStateCreateInfo parseAssemblyState(Json::Value json)
+{
+    if (json.empty())
+    {
+        return defaultAssemblyState();
+    }
+
+    return vk::PipelineInputAssemblyStateCreateInfo()
+        .setTopology(parsePrimitiveTopology(json["topology"]))
         .setPrimitiveRestartEnable(VK_FALSE);
 }
 
@@ -523,7 +545,7 @@ Pipeline::Pipeline(const std::string& json) :
 
         _layout = Instance::device.createPipelineLayout(pipelineLayoutInfo);
 
-        const auto assemblyState = defaultAssemblyState();
+        const auto assemblyState = parseAssemblyState(root["assemblyState"]);
         const auto rasterizer = parseRasterizer(root["rasterizer"]);
         const auto stencil = defaultStencilState();
         const auto msaa = defaultMultisampleState();

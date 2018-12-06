@@ -210,8 +210,15 @@ void Context::draw(vk::DescriptorSet globalSet, vk::DescriptorSet instanceSet, v
     auto const vOffset = mesh.vertexOffset();
 
     cmd.bindVertexBuffers(0, 1, &mesh.buffer(), &vOffset);
-    cmd.bindIndexBuffer(mesh.buffer(), mesh.indexOffset(), vk::IndexType::eUint16);
-    cmd.drawIndexed(mesh.indexCount(), 1, 0, 0, 0);
+    if (mesh.indexCount() > 0)
+    {
+        cmd.bindIndexBuffer(mesh.buffer(), mesh.indexOffset(), vk::IndexType::eUint16);
+        cmd.drawIndexed(mesh.indexCount(), 1, 0, 0, 0);
+    }
+    else
+    {
+        cmd.draw(mesh.vertexCount(), 1, 0, 0);
+    }
 }
 
 void Context::endFrame()

@@ -283,19 +283,19 @@ void Allocator::createDescriptorPool()
 
     sizes.push_back(vk::DescriptorPoolSize()
         .setType(vk::DescriptorType::eCombinedImageSampler)
-        .setDescriptorCount(128));
+        .setDescriptorCount(256));
 
     sizes.push_back(vk::DescriptorPoolSize()
         .setType(vk::DescriptorType::eUniformBuffer)
-        .setDescriptorCount(128));
+        .setDescriptorCount(256));
 
     sizes.push_back(vk::DescriptorPoolSize()
         .setType(vk::DescriptorType::eUniformBufferDynamic)
-        .setDescriptorCount(128));
+        .setDescriptorCount(256));
 
     _descriptorPool = _device.createDescriptorPool(vk::DescriptorPoolCreateInfo()
         .setPoolSizeCount(static_cast<uint32_t>(sizes.size()))
-        .setMaxSets(128)
+        .setMaxSets(256)
         .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
         .setPPoolSizes(sizes.data()));
 }

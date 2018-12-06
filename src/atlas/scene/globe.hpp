@@ -23,7 +23,7 @@ namespace atlas::scene
         std::unique_ptr<Texture> _TEMPtexture;
         std::vector<std::shared_ptr<Entity>> _tiles;
 
-        std::unique_ptr<Material> _TEMPterrainMaterial;
+        std::shared_ptr<Material> _TEMPterrainMaterial;
     };
 }
 
