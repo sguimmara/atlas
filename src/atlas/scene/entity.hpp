@@ -4,7 +4,8 @@
 #include "transform.hpp"
 #include "atlas/renderer/material.hpp"
 #include "atlas/renderer/mesh.hpp"
-#include "atlas/renderer/entity_data.hpp"
+#include "atlas/renderer/uniformbuffer.hpp"
+#include "atlas/renderer/entityproperties.hpp"
 
 namespace atlas::scene
 {
@@ -22,10 +23,11 @@ namespace atlas::scene
 
         void update();
 
-        inline renderer::EntityData* data() const noexcept { return _data.get(); }
+        inline renderer::UniformBuffer* data() const noexcept { return _uniformBuffer.get(); }
 
     private:
-        std::unique_ptr<renderer::EntityData> _data;
+        renderer::EntityProperties _properties;
+        std::unique_ptr<renderer::UniformBuffer> _uniformBuffer;
     };
 }
 

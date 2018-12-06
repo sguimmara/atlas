@@ -5,12 +5,11 @@
 
 using namespace atlas::renderer;
 
-constexpr vk::DeviceSize MB = 1024 * 1024;
-
 vk::Device Allocator::_device = vk::Device();
 vk::CommandPool Allocator::_commandPool = vk::CommandPool();
 vk::Queue Allocator::_transferQueue = vk::Queue();
 std::shared_ptr<spdlog::logger> Allocator::_log = nullptr;
+vk::DescriptorPool Allocator::_descriptorPool = nullptr;
 vk::PhysicalDevice Allocator::_physicalDevice = vk::PhysicalDevice();
 std::unordered_map<vk::Buffer, VmaAllocation> Allocator::_allocatedBuffers = std::unordered_map<vk::Buffer, VmaAllocation>();
 std::unordered_map<vk::Image, VmaAllocation> Allocator::_allocatedImages = std::unordered_map<vk::Image, VmaAllocation>();
@@ -38,6 +37,8 @@ void Allocator::init(vk::Device device, vk::PhysicalDevice gpu, uint32_t transfe
 
     vmaCreateAllocator(&info, &_vma);
 
+    createDescriptorPool();
+
     _log->trace("VMA allocator successfully created");
 }
 
@@ -45,6 +46,7 @@ void Allocator::terminate()
 {
     vmaDestroyAllocator(_vma);
     _device.destroyCommandPool(_commandPool);
+    _device.destroyDescriptorPool(_descriptorPool);
     _log->info("terminated");
 }
 
@@ -260,4 +262,40 @@ void Allocator::free(vk::Image img)
     vmaDestroyImage(_vma, img, block);
 
     _allocatedImages.erase(img);
+}
+
+vk::DescriptorSet Allocator::getDescriptorSet(vk::DescriptorSetLayout layout)
+{
+    return _device.allocateDescriptorSets(vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(_descriptorPool)
+        .setDescriptorSetCount(1)
+        .setPSetLayouts(&layout))[0];
+}
+
+void Allocator::free(vk::DescriptorSet set)
+{
+    _device.freeDescriptorSets(_descriptorPool, 1, &set);
+}
+
+void Allocator::createDescriptorPool()
+{
+    auto sizes = std::vector<vk::DescriptorPoolSize>();
+
+    sizes.push_back(vk::DescriptorPoolSize()
+        .setType(vk::DescriptorType::eCombinedImageSampler)
+        .setDescriptorCount(128));
+
+    sizes.push_back(vk::DescriptorPoolSize()
+        .setType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(128));
+
+    sizes.push_back(vk::DescriptorPoolSize()
+        .setType(vk::DescriptorType::eUniformBufferDynamic)
+        .setDescriptorCount(128));
+
+    _descriptorPool = _device.createDescriptorPool(vk::DescriptorPoolCreateInfo()
+        .setPoolSizeCount(static_cast<uint32_t>(sizes.size()))
+        .setMaxSets(128)
+        .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+        .setPPoolSizes(sizes.data()));
 }

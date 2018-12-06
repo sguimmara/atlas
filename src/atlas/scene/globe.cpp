@@ -18,6 +18,7 @@ Globe::Globe() :
             }
         })%");
 
+    // TODO cleanup material allocations.
     _TEMPtexture = std::make_unique<Texture>("C:/Users/sguimmara/Documents/work/c++/atlas/images/uv_grid.jpg");
     _TEMPterrainMaterial->setTexture("diffuse", _TEMPtexture.get());
     _TEMPterrainMaterial->setTexture("specular", _TEMPtexture.get());

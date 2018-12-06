@@ -60,3 +60,37 @@ std::shared_ptr<Mesh> MeshBuilder::terrain(const Region& region, uint16_t subdiv
 
     return std::make_shared<Mesh>(vertices, indices);
 }
+
+std::shared_ptr<Mesh> MeshBuilder::bounds(const Bounds& bounds)
+{
+    const float minX = bounds.min.x;
+    const float minY = bounds.min.y;
+    const float minZ = bounds.min.z;
+    const float maxX = bounds.max.x;
+    const float maxY = bounds.max.y;
+    const float maxZ = bounds.max.z;
+
+    std::vector<Vertex> vertices
+    {
+        Vertex{{minX, minY, minZ}},
+        Vertex{{minX, maxY, minZ}},
+        Vertex{{maxX, maxY, minZ}},
+        Vertex{{maxX, minY, minZ}},
+
+        Vertex{{minX, minY, maxZ}},
+        Vertex{{minX, maxY, maxZ}},
+        Vertex{{maxX, maxY, maxZ}},
+        Vertex{{maxX, minY, maxZ}}
+    };
+    std::vector<uint16_t> indices
+    {
+        0, 1, 2, 0, 2, 3,
+        4, 5, 6, 4, 6, 7,
+        1, 5, 4, 1, 4, 0,
+        0, 4, 7, 0, 7, 3,
+        2, 6, 5, 2, 5, 1,
+        3, 7, 6, 3, 6, 2
+    };
+
+    return std::make_shared<Mesh>(vertices, indices);
+}

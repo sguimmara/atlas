@@ -6,4 +6,6 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 
+using namespace glm;
+
 #endif // ATLAS_SCENE_COMMON_HPP

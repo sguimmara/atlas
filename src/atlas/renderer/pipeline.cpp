@@ -1,7 +1,7 @@
 #include <json/json.h>
 
 #include "global_properties.hpp"
-#include "entity_properties.hpp"
+#include "entityproperties.hpp"
 #include "pipeline.hpp"
 #include "instance.hpp"
 #include "atlas/io/utils.hpp"

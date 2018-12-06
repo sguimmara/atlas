@@ -5,6 +5,7 @@
 #include "context.hpp"
 #include "allocator.hpp"
 #include "pipeline.hpp"
+#include "uniformbuffer.hpp"
 
 namespace atlas::renderer
 {
@@ -28,13 +29,12 @@ namespace atlas::renderer
         // May be null if the window is minimized or unable to render.
         static Context* context() noexcept;
 
+        static std::unique_ptr<UniformBuffer> getGlobalPropertyBuffer();
+
         static void raiseValidationError(const std::string&);
 
         static void setShaderDirectory(const std::string&);
         static std::string shaderDirectory() noexcept;
-
-        static vk::DescriptorSet createDescriptorSet(vk::DescriptorSetLayout);
-        static void free(vk::DescriptorSet);
 
         static vk::PhysicalDevice physicalDevice;
         static vk::Device device;
@@ -64,7 +64,6 @@ namespace atlas::renderer
         static void pickPhysicalDevice();
         static void createDevice();
         static void destroyDevice();
-        static void createDescriptorPool();
         static void createRenderPass();
         static void createContext();
     };

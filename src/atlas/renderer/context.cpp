@@ -130,19 +130,10 @@ Context::Context(GLFWwindow * window, vk::SurfaceKHR surface,
             _commandBuffers[i], _size, swapchainImages[i],
             _depthAttachmentView);
     }
-
-    auto const allocateInfo = vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(Instance::descriptorPool)
-        .setDescriptorSetCount(1)
-        .setPSetLayouts(&Pipeline::globalPropertyLayout());
-
-    _globalPropertyBuffer = Allocator::getBuffer(sizeof(GlobalProperties), vk::BufferUsageFlagBits::eUniformBuffer);
-    _globalPropertySet = Instance::device.allocateDescriptorSets(allocateInfo)[0];
 }
 
 Context::~Context()
 {
-    Allocator::free(_globalPropertyBuffer);
     Allocator::free(_depthImage);
     _device.destroySemaphore(_imageAcquired);
     _device.destroyImageView(_depthAttachmentView);
@@ -190,24 +181,10 @@ void Context::beginFrame()
     }
 }
 
-void Context::bind(GlobalProperties properties)
+void Context::setViewport(vk::Viewport viewport)
 {
-    // TODO move logic to scene ?
-    Allocator::write(_globalPropertyBuffer, &properties, sizeof(GlobalProperties));
-
-    auto const bufferInfo = vk::DescriptorBufferInfo()
-        .setBuffer(_globalPropertyBuffer)
-        .setOffset(0)
-        .setRange(sizeof(GlobalProperties));
-
-    auto const write = vk::WriteDescriptorSet()
-        .setDescriptorCount(1)
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setDstBinding(0)
-        .setDstSet(_globalPropertySet)
-        .setPBufferInfo(&bufferInfo);
-
-    Instance::device.updateDescriptorSets(1, &write, 0, nullptr);
+    auto const cmd = _framebuffers[_currentSwapchainImage].cmdBuffer();
+    cmd.setViewport(0, 1, &viewport);
 }
 
 void Context::bind(Pipeline* pipeline)
@@ -221,11 +198,11 @@ void Context::bind(Pipeline* pipeline)
     }
 }
 
-void Context::draw(vk::DescriptorSet instanceSet, vk::DescriptorSet materialSet, const Mesh& mesh)
+void Context::draw(vk::DescriptorSet globalSet, vk::DescriptorSet instanceSet, vk::DescriptorSet materialSet, const Mesh& mesh)
 {
     auto const cmd = _framebuffers[_currentSwapchainImage].cmdBuffer();
 
-    std::array<vk::DescriptorSet, 3> sets = { _globalPropertySet, instanceSet, materialSet };
+    std::array<vk::DescriptorSet, 3> sets = { globalSet, instanceSet, materialSet };
     //std::array<vk::DescriptorSet, 2> sets = { _globalPropertySet, instanceSet };
 
     cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _currentPipelineLayout, 0, (uint32_t)sets.size(), sets.data(), 0, nullptr);

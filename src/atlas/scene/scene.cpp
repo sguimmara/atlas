@@ -1,6 +1,4 @@
 #include "scene.hpp"
-#include "atlas/renderer/instance.hpp"
-#include "atlas/renderer/pipeline.hpp"
 
 using namespace atlas::scene;
 
@@ -15,16 +13,21 @@ Scene::Scene(std::string name) : _name(name)
     _log->info("initialized");
 
     _globe = std::make_unique<Globe>();
-}
 
-void Scene::updateGlobalProperties()
-{
-    _properties.viewMatrix = glm::lookAt(glm::vec3{ 0, 0, 3 }, glm::vec3{ 0,0,0 }, glm::vec3{ 0, -1, 0 });
-    auto const viewport = renderer::Instance::context()->viewport();
-    _properties.projMatrix = glm::perspective<float>(1, viewport.width / (float)viewport.height, 0.2f, 10.0f);
-    _properties.viewportTime = glm::vec4(viewport.width, viewport.height, 0, 0);
-    _properties.sunDirection = glm::vec4(-1, 1, -1, 0);
-    _properties.sunColorAndIntensity = glm::vec4(1, 1, 0.9, 2);
+    View* front = new View();
+    auto frontCam = front->camera();
+    frontCam->transform().move(0, 0, 3);
+    frontCam->viewport().height = 1;
+    frontCam->viewport().width = 0.5f;
+    _views.push_back(std::unique_ptr<View>(front));
+
+    View* side = new View();
+    auto sideCam = side->camera();
+    sideCam->transform().move(3, 0, 0);
+    sideCam->viewport().height = 1;
+    sideCam->viewport().width = 0.5f;
+    sideCam->viewport().x = 0.5f;
+    _views.push_back(std::unique_ptr<View>(side));
 }
 
 Scene::~Scene()
@@ -46,26 +49,47 @@ void Scene::render()
         return;
     }
 
-    updateGlobalProperties();
-
     for (auto const& entity : _entities)
     {
         entity->update();
     }
 
     ctx->beginFrame();
-    ctx->bind(_properties);
+    for (auto const& view : _views)
+    {
+        setupView(*view);
 
+        renderGlobe(ctx, *view);
+    }
+    ctx->endFrame();
+}
+
+void Scene::renderGlobe(atlas::renderer::Context* ctx, View& view)
+{
     for (auto const& tile : _globe->tiles())
     {
         ctx->bind(tile->material->pipeline());
-        ctx->draw(tile->data()->descriptorSet(), tile->material->descriptorSet(), *tile->mesh);
+        ctx->draw(
+            view.properties()->descriptorSet(),
+            tile->data()->descriptorSet(),
+            tile->material->descriptorSet(),
+            *tile->mesh);
     }
+}
 
-    //for (auto const& entity : _entities)
-    //{
-    //    ctx->bind(entity->material->pipeline());
-    //    ctx->draw(entity->data()->descriptorSet(), entity->material->descriptorSet(), *entity->mesh);
-    //}
-    ctx->endFrame();
+void Scene::setupView(View& view)
+{
+    view.update();
+
+    auto const viewport = view.camera()->viewport();
+
+    // TODO move logic into context
+    auto const screen = Instance::context()->viewport();
+    vk::Viewport screenSpaceViewport = {
+        viewport.x * screen.width,
+        viewport.y * screen.height,
+        viewport.width * screen.width,
+        viewport.height * screen.height };
+
+    Instance::context()->setViewport(screenSpaceViewport);
 }

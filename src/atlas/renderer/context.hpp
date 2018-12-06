@@ -20,9 +20,9 @@ namespace atlas::renderer
         inline const vk::Viewport viewport() const noexcept { return _viewport; }
 
         void beginFrame();
-        void bind(GlobalProperties);
+        void setViewport(vk::Viewport);
         void bind(Pipeline*);
-        void draw(vk::DescriptorSet instanceSet, vk::DescriptorSet materialSet, const Mesh & mesh);
+        void draw(vk::DescriptorSet globals, vk::DescriptorSet instanceSet, vk::DescriptorSet materialSet, const Mesh & mesh);
         void endFrame();
 
     private:
@@ -41,9 +41,6 @@ namespace atlas::renderer
         vk::Image _depthImage;
         vk::ImageView _depthAttachmentView;
         vk::Semaphore _imageAcquired;
-
-        vk::Buffer _globalPropertyBuffer;
-        vk::DescriptorSet _globalPropertySet;
 
         // frame context
         uint32_t _currentSwapchainImage;

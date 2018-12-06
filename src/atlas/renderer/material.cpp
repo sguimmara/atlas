@@ -12,7 +12,7 @@ Material::Material(const std::string& json)
 
 void Material::createDescriptorSet()
 {
-    _descriptorSet = Instance::createDescriptorSet(_pipeline->descriptorSetLayout());
+    _descriptorSet = Allocator::getDescriptorSet(_pipeline->descriptorSetLayout());
 }
 
 Material::Material(Pipeline* pipeline) :
@@ -44,7 +44,7 @@ Material::~Material()
     if (_descriptorSet)
     {
         auto set = _descriptorSet;
-        Instance::device.freeDescriptorSets(Instance::descriptorPool, 1, &set);
+        Allocator::free(_descriptorSet);
     }
 }
 

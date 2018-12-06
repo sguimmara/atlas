@@ -20,7 +20,6 @@ vk::SurfaceFormatKHR Instance::_surfaceFormat = vk::SurfaceFormatKHR();
 vk::PhysicalDevice Instance::physicalDevice = vk::PhysicalDevice();
 vk::RenderPass Instance::renderPass = vk::RenderPass();
 vk::Device Instance::device = vk::Device();
-vk::DescriptorPool Instance::descriptorPool = vk::DescriptorPool();
 GLFWwindow* Instance::_window = nullptr;
 uint32_t Instance::_exitCode = 0;
 std::unique_ptr<Context> Instance::_context = nullptr;
@@ -53,6 +52,11 @@ std::vector<const char*> getRequiredExtensions()
 
 Context* Instance::context() noexcept { return _context.get(); }
 
+std::unique_ptr<UniformBuffer> Instance::getGlobalPropertyBuffer()
+{
+    return std::make_unique<UniformBuffer>((uint32_t)sizeof(GlobalProperties), 0, Pipeline::globalPropertyLayout());
+}
+
 void Instance::raiseValidationError(const std::string& msg)
 {
     _log->error(msg);
@@ -60,19 +64,6 @@ void Instance::raiseValidationError(const std::string& msg)
 }
 
 std::string Instance::shaderDirectory() noexcept { return _shaderDirectory; }
-
-vk::DescriptorSet atlas::renderer::Instance::createDescriptorSet(vk::DescriptorSetLayout layout)
-{
-    return device.allocateDescriptorSets(vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(descriptorPool)
-        .setDescriptorSetCount(1)
-        .setPSetLayouts(&layout))[0];
-}
-
-void atlas::renderer::Instance::free(vk::DescriptorSet set)
-{
-    device.freeDescriptorSets(descriptorPool, 1, &set);
-}
 
 void Instance::setShaderDirectory(const std::string& path)
 {
@@ -288,29 +279,6 @@ void Instance::pickPhysicalDevice()
     }
 }
 
-void Instance::createDescriptorPool()
-{
-    auto sizes = std::vector<vk::DescriptorPoolSize>();
-
-    sizes.push_back(vk::DescriptorPoolSize()
-        .setType(vk::DescriptorType::eCombinedImageSampler)
-        .setDescriptorCount(128));
-
-    sizes.push_back(vk::DescriptorPoolSize()
-        .setType(vk::DescriptorType::eUniformBuffer)
-        .setDescriptorCount(128));
-
-    sizes.push_back(vk::DescriptorPoolSize()
-        .setType(vk::DescriptorType::eUniformBufferDynamic)
-        .setDescriptorCount(128));
-
-    descriptorPool = device.createDescriptorPool(vk::DescriptorPoolCreateInfo()
-        .setPoolSizeCount(static_cast<uint32_t>(sizes.size()))
-        .setMaxSets(128)
-        .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
-        .setPPoolSizes(sizes.data()));
-}
-
 void Instance::createDevice()
 {
     auto const swapchainExtension = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -513,7 +481,6 @@ void Instance::initialize(GLFWwindow* window)
     createDevice();
     _surfaceFormat = pickSurfaceFormat(physicalDevice.getSurfaceFormatsKHR(_surface));
     createRenderPass();
-    createDescriptorPool();
     Pipeline::initialize();
     createContext();
 }
@@ -538,7 +505,6 @@ uint32_t Instance::terminate()
     _context = nullptr;
     device.destroyRenderPass(renderPass);
     Pipeline::terminate();
-    device.destroyDescriptorPool(descriptorPool);
     Allocator::terminate();
     destroyDevice();
 

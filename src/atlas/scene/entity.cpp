@@ -1,20 +1,24 @@
 #include "entity.hpp"
+#include "atlas/renderer/pipeline.hpp"
 
 using namespace atlas::scene;
+using namespace atlas::renderer;
 
 Entity::Entity() :
-    _data(std::make_unique<renderer::EntityData>())
+    _uniformBuffer(std::make_unique<renderer::UniformBuffer>(sizeof(EntityProperties), 1, Pipeline::entityPropertyLayout()))
 {
-    _data->update(renderer::EntityProperties());
+    _uniformBuffer->update(&_properties);
 }
 
 Entity::Entity(Entity& rhs) :
     mesh(rhs.mesh),
     material(rhs.material),
     transform(rhs.transform),
-    _data(std::make_unique<renderer::EntityData>())
-{}
-
+    _properties(rhs._properties),
+    _uniformBuffer(std::make_unique<renderer::UniformBuffer>(sizeof(EntityProperties), 1, Pipeline::entityPropertyLayout()))
+{
+    _uniformBuffer->update(&_properties);
+}
 
 Entity::~Entity()
 {
@@ -25,5 +29,5 @@ void Entity::update()
     renderer::EntityProperties props = {};
     props.modelMatrix = transform.modelMatrix();
 
-    _data->update(props);
+    _uniformBuffer->update(&props);
 }

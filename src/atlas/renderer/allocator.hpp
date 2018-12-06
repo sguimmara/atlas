@@ -26,17 +26,24 @@ namespace atlas::renderer
         static void write(vk::Buffer, void* data, size_t size, size_t offset = 0);
         static void free(vk::Buffer);
         static void free(vk::Image);
+        static vk::DescriptorSet getDescriptorSet(vk::DescriptorSetLayout layout);
+        static void free(vk::DescriptorSet set);
+
 
     private:
         static std::shared_ptr<spdlog::logger> _log;
         static vk::Device _device;
         static vk::CommandPool _commandPool;
+        static vk::DescriptorPool _descriptorPool;
         static vk::Queue _transferQueue;
         static vk::PhysicalDevice _physicalDevice;
         static std::unordered_map<vk::Buffer, VmaAllocation> _allocatedBuffers;
         static std::unordered_map<vk::Image, VmaAllocation> _allocatedImages;
 
         static VmaAllocator _vma;
+
+
+        static void createDescriptorPool();
     };
 }
 
