@@ -5,7 +5,7 @@ endif()
 
 set(PROJECT_NAME atlas)
 
-set(LIBNAME ${PROJECT_NAME})
+set(LIBNAME lib${PROJECT_NAME})
 
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX)
 
@@ -74,5 +74,5 @@ include_directories(src)
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(lib)
-# add_subdirectory(apps)
+add_subdirectory(apps)
 add_subdirectory(shaders)
