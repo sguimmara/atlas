@@ -20,7 +20,7 @@ namespace atlas::io
 
         inline std::string filename() const noexcept { return _filename; }
 
-        Region region() const noexcept { return _region; }
+        Region region() const noexcept override { return _region; }
 
     private:
         Region _region;

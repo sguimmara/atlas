@@ -139,7 +139,8 @@ vk::Image Allocator::getImage(vk::Extent2D extents, vk::Format format, vk::Image
 
     VkImage image;
     VmaAllocation alloc;
-    vmaCreateImage(_vma, &(VkImageCreateInfo)imageInfo, &allocInfo, &image, &alloc, nullptr);
+    auto info = (VkImageCreateInfo)imageInfo;
+    vmaCreateImage(_vma, &info, &allocInfo, &image, &alloc, nullptr);
 
     _allocatedImages.insert({ image, alloc });
 

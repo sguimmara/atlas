@@ -1,5 +1,4 @@
 #include "instance.hpp"
-#include <filesystem>
 
 using namespace atlas::renderer;
 
@@ -67,16 +66,9 @@ std::string Instance::shaderDirectory() noexcept { return _shaderDirectory; }
 
 void Instance::setShaderDirectory(const std::string& path)
 {
-    if (std::filesystem::exists(path))
-    {
-        _log->debug("shader directory set to {0}", path);
-        _shaderDirectory = path;
-    }
-    else
-    {
-        _log->critical("invalid shader directory: " + path);
-        throw std::runtime_error("invalid shader directory");
-    }
+    // TODO check if file exists
+    _log->debug("shader directory set to {0}", path);
+    _shaderDirectory = path;
 }
 
 void Instance::createInstance()

@@ -40,8 +40,7 @@ void Globe::update()
             // first, create the tile if it doesn't exist
             if (_tiles.count(node.key()) == 0)
             {
-                auto key = node.key();
-                auto tile = std::make_unique<Tile>(node.region(), _ellipsoid);
+                auto tile = std::make_shared<Tile>(node.region(), _ellipsoid);
 
                 // request its image
                 _imageRequests.push_back(

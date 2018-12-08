@@ -17,9 +17,9 @@ Entity::Entity(std::shared_ptr<Material> material, std::shared_ptr<Mesh> mesh) :
 }
 
 Entity::Entity(Entity& rhs) :
-    _mesh(rhs._mesh),
-    _material(rhs._material),
     _transform(rhs._transform),
+    _material(rhs._material),
+    _mesh(rhs._mesh),
     _properties(rhs._properties),
     _uniformBuffer(std::make_unique<UniformBuffer>(sizeof(EntityProperties), 1, Pipeline::entityPropertyLayout()))
 {

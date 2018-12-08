@@ -27,8 +27,8 @@ Material::Material() :
 {}
 
 Material::Material(Material&& rhs) :
-    _descriptorSet(rhs._descriptorSet),
-    _pipeline(rhs._pipeline)
+    _pipeline(rhs._pipeline),
+    _descriptorSet(rhs._descriptorSet)
 {
     rhs._pipeline = nullptr;
     rhs._descriptorSet = nullptr;
@@ -36,14 +36,13 @@ Material::Material(Material&& rhs) :
 
 Material Material::instantiate() const
 {
-    return std::move(Material(_pipeline));
+    return Material(_pipeline);
 }
 
 Material::~Material()
 {
     if (_descriptorSet)
     {
-        auto set = _descriptorSet;
         Allocator::free(_descriptorSet);
     }
 }

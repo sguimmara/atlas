@@ -1,6 +1,5 @@
 #include "texture.hpp"
 #include "instance.hpp"
-#include <filesystem>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
@@ -30,9 +29,9 @@ vk::Sampler defaultSampler()
 }
 
 Texture::Texture() :
-    _image(nullptr),
     _view(nullptr),
-    _sampler(nullptr)
+    _sampler(nullptr),
+    _image(nullptr)
 {}
 
 Texture::Texture(const Image& image)
@@ -46,6 +45,8 @@ Texture::Texture(const Image& image)
     case ImageFormat::RGBA32:
         format = vk::Format::eR8G8B8A8Unorm;
         break;
+    default:
+        throw std::runtime_error("unrecognized image format");
     }
 
     create((int)image.width(), (int)image.height(), format, (void*)image.data());
@@ -53,15 +54,11 @@ Texture::Texture(const Image& image)
 
 Texture::Texture(const std::string& filename)
 {
-    if (!std::filesystem::exists(filename))
-    {
-        throw std::runtime_error("no such file: " + filename);
-    }
+    // TODO check if file exists
 
     int width, height, channels;
 
     auto srcFormat = STBI_rgb_alpha;
-    int bpp = 4;
 
     unsigned char* rgba = stbi_load(filename.c_str(), &width, &height, &channels, srcFormat);
     if (!rgba)
@@ -82,9 +79,9 @@ Texture::Texture(uint32_t width, uint32_t height, void* rgba)
 }
 
 Texture::Texture(Texture&& rhs) :
-    _image(rhs._image),
     _view(rhs._view),
-    _sampler(rhs._sampler)
+    _sampler(rhs._sampler),
+    _image(rhs._image)
 {
     rhs._sampler = nullptr;
     rhs._image = nullptr;

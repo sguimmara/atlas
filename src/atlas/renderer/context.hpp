@@ -28,7 +28,6 @@ namespace atlas::renderer
     private:
         // global context
         vk::SurfaceKHR _surface;
-        GLFWwindow* _window;
         std::shared_ptr<spdlog::logger> _log;
         vk::Extent2D _size;
         vk::Viewport _viewport;

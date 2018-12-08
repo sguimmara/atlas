@@ -58,7 +58,6 @@ Context::Context(GLFWwindow * window, vk::SurfaceKHR surface,
     vk::SurfaceFormatKHR surfaceFormat,
     vk::Device device, vk::PhysicalDevice physicalDevice) :
     _surface(surface),
-    _window(window),
     _device(device),
     _physicalDevice(physicalDevice)
 {
@@ -209,7 +208,8 @@ void Context::draw(vk::DescriptorSet globalSet, vk::DescriptorSet instanceSet, v
 
     auto const vOffset = mesh.vertexOffset();
 
-    cmd.bindVertexBuffers(0, 1, &mesh.buffer(), &vOffset);
+    auto const buffer = mesh.buffer();
+    cmd.bindVertexBuffers(0, 1, &buffer, &vOffset);
     if (mesh.indexCount() > 0)
     {
         cmd.bindIndexBuffer(mesh.buffer(), mesh.indexOffset(), vk::IndexType::eUint16);
@@ -224,18 +224,20 @@ void Context::draw(vk::DescriptorSet globalSet, vk::DescriptorSet instanceSet, v
 void Context::endFrame()
 {
     Framebuffer& fb = _framebuffers[_currentSwapchainImage];
-    auto framebuffer = fb.framebuffer();
     auto buffer = fb.cmdBuffer();
 
     buffer.endRenderPass();
     buffer.end();
+
+    auto const renderComplete = fb.renderComplete();
+    auto const ownershipTransfer = fb.ownershipTransfer();
 
     vk::PipelineStageFlags const pipeStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     auto const info = vk::SubmitInfo()
         .setWaitSemaphoreCount(1)
         .setPWaitSemaphores(&_imageAcquired)
         .setSignalSemaphoreCount(1)
-        .setPSignalSemaphores(&fb.renderComplete())
+        .setPSignalSemaphores(&renderComplete)
         .setCommandBufferCount(1)
         .setPCommandBuffers(&buffer)
         .setPWaitDstStageMask(&pipeStage);
@@ -248,10 +250,10 @@ void Context::endFrame()
         auto const presentInfo = vk::SubmitInfo()
             .setPWaitDstStageMask(&pipeStage)
             .setWaitSemaphoreCount(1)
-            .setPWaitSemaphores(&fb.renderComplete())
+            .setPWaitSemaphores(&renderComplete)
             .setCommandBufferCount(0)
             .setSignalSemaphoreCount(1)
-            .setPSignalSemaphores(&fb.ownershipTransfer());
+            .setPSignalSemaphores(&ownershipTransfer);
 
         check(Instance::presentQueue.submit(1, &presentInfo, vk::Fence()));
     }
@@ -260,7 +262,7 @@ void Context::endFrame()
 
     auto const presentInfo = vk::PresentInfoKHR()
         .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(separateQueues ? &fb.ownershipTransfer() : &fb.renderComplete())
+        .setPWaitSemaphores(separateQueues ? &ownershipTransfer : &renderComplete)
         .setSwapchainCount(1)
         .setPSwapchains(&_swapchain)
         .setPImageIndices(&_currentSwapchainImage);

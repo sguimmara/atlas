@@ -37,7 +37,7 @@ namespace atlas::scene
         std::vector<std::future<Response<Image>>> _imageRequests;
         std::unique_ptr<Quadtree> _quadtree;
         std::shared_ptr<ImageSource> _imageSource;
-        std::unordered_map<QuadtreeNode::Key, std::unique_ptr<Tile>> _tiles;
+        std::unordered_map<QuadtreeNode::Key, std::shared_ptr<Tile>> _tiles;
     };
 }
 

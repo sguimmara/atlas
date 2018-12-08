@@ -5,8 +5,8 @@
 using namespace atlas::scene;
 
 Camera::Camera() :
-    _fov(60),
     _viewport({0, 0, 800, 600}),
+    _fov(60),
     _nearClip(0.1f),
     _farClip(10.0f)
 {}
@@ -23,7 +23,7 @@ void Camera::setNearClip(float v)
     else throw std::runtime_error("invalid near clip. Must be strictly greater than zero.");
 }
 
-inline float Camera::setFarClip(float v)
+inline void Camera::setFarClip(float v)
 {
     if (v > 0) { _farClip = v; }
     else throw std::runtime_error("invalid far clip. Must be strictly greater than zero.");

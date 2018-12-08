@@ -25,12 +25,12 @@ namespace atlas::core
 
         // returns the size in bytes of the image buffer.
         inline size_t size() const noexcept { return _data->size(); }
-        inline const std::byte* data() const noexcept { return _data.get()->data(); }
+        inline const char* data() const noexcept { return _data.get()->data(); }
     private:
         size_t _width;
         size_t _height;
         ImageFormat _format;
-        std::unique_ptr<std::vector<std::byte>> _data;
+        std::unique_ptr<std::vector<char>> _data;
     };
 }
 

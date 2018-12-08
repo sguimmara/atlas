@@ -8,11 +8,11 @@ Mesh::Mesh()
 
 Mesh::Mesh(Mesh&& rhs) :
     _buffer(rhs._buffer),
-    _bounds(rhs._bounds),
+    _vertexOffset(rhs._vertexOffset),
+    _indexOffset(rhs._indexOffset),
     _indexCount(rhs._indexCount),
     _vertexCount(rhs._vertexCount),
-    _vertexOffset(rhs._vertexOffset),
-    _indexOffset(rhs._indexOffset)
+    _bounds(rhs._bounds)
 {
     rhs._buffer = nullptr;
 }

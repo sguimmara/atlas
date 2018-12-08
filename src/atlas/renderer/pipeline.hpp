@@ -40,7 +40,7 @@ namespace atlas::renderer
         inline vk::PipelineLayout layout() const noexcept { return _layout; }
 
     private:
-        static std::unordered_map<std::string, std::unique_ptr<Pipeline>> _cache;
+        static std::unordered_map<std::string, std::shared_ptr<Pipeline>> _cache;
         static std::shared_ptr<spdlog::logger> _log;
         static spdlog::logger* getLog();
         static vk::DescriptorSetLayout _globalPropertyLayout;

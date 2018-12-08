@@ -11,16 +11,6 @@ namespace atlas::core
         RGB24,
         RGBA32
     };
-
-    static size_t getBpp(ImageFormat format)
-    {
-        switch (format)
-        {
-        case atlas::core::RGB24: return 3;
-        case atlas::core::RGBA32: return 4;
-        default: throw std::runtime_error("unimplemented image format");
-        }
-    }
 }
 
 #endif

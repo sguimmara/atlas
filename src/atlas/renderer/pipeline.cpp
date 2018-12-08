@@ -10,7 +10,7 @@
 using namespace atlas::renderer;
 using namespace spirv_cross;
 
-std::unordered_map<std::string, std::unique_ptr<Pipeline>> Pipeline::_cache;
+std::unordered_map<std::string, std::shared_ptr<Pipeline>> Pipeline::_cache;
 std::shared_ptr<spdlog::logger> Pipeline::_log = nullptr;
 vk::DescriptorSetLayout Pipeline::_globalPropertyLayout;
 vk::DescriptorSetLayout Pipeline::_entityPropertyLayout;
@@ -97,11 +97,10 @@ Pipeline * Pipeline::get(const std::string & name)
 
 Pipeline * Pipeline::create(const std::string & json)
 {
-    auto pipeline = std::make_unique<Pipeline>(json);
-    auto ptr = pipeline.get();
-    getLog()->debug("pipeline '{0}' created successfully", ptr->_name);
-    _cache.insert({ pipeline->_name, std::move(pipeline) });
-    return ptr;
+    Pipeline* result = new Pipeline(json);
+    getLog()->debug("pipeline '{0}' created successfully", result->_name);
+    _cache.insert({ result->_name, std::shared_ptr<Pipeline>(result) });
+    return result;
 }
 
 spdlog::logger* Pipeline::getLog()
@@ -294,7 +293,8 @@ std::vector<vk::PushConstantRange> getPushConstantRanges(
 {
     auto result = std::vector<vk::PushConstantRange>();
 
-    for (const auto& buf : resources.push_constant_buffers)
+    // TODO
+    // for (const auto& buf : resources.push_constant_buffers)
     {
         //auto name = comp.get_name(buf.id);
         //if (name == "instance")

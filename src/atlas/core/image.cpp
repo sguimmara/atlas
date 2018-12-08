@@ -1,8 +1,17 @@
 #include "image.hpp"
-#include <filesystem>
 #include <stb/stb_image.h>
 
 using namespace atlas::core;
+
+static size_t getBpp(ImageFormat format)
+{
+    switch (format)
+    {
+    case atlas::core::RGB24: return 3;
+    case atlas::core::RGBA32: return 4;
+    default: throw std::runtime_error("unimplemented image format");
+    }
+}
 
 Image::Image() :
     _width(0),
@@ -13,10 +22,7 @@ Image::Image() :
 
 Image::Image(std::string filename)
 {
-    if (!std::filesystem::exists(filename))
-    {
-        throw std::runtime_error("no such file: " + filename);
-    }
+    // TODO check if file exists
 
     int width, height, channels;
 
@@ -44,7 +50,7 @@ Image::Image(std::string filename)
 
     _width = (size_t)width;
     _height = (size_t)height;
-    _data = std::make_unique<std::vector<std::byte>>(_width * _height * bpp);
+    _data = std::make_unique<std::vector<char>>(_width * _height * bpp);
     memcpy(_data->data(), rgba, _data->size());
     stbi_image_free(rgba);
 }
@@ -54,7 +60,7 @@ Image::Image(Image& other) :
     _height(other._height),
     _format(other._format)
 {
-    _data = std::make_unique<std::vector<std::byte>>(other._data->size());
+    _data = std::make_unique<std::vector<char>>(other._data->size());
     memcpy((void*)_data->data(), other._data->data(), other._data->size());
 }
 
@@ -75,5 +81,5 @@ Image::Image(size_t width, size_t height, ImageFormat format) :
     _height(height),
     _format(format)
 {
-    _data = std::make_unique<std::vector<std::byte>>(_width * _height * getBpp(format));
+    _data = std::make_unique<std::vector<char>>(_width * _height * getBpp(format));
 }
