@@ -19,10 +19,10 @@ namespace atlas::core
         f64vec3 position(double lat, double lon, double height = 0) const noexcept;
         f64vec3 position(Cartographic p) const noexcept;
 
-        f64vec3 normalDouble(double lat, double lon, double height = 0) const;
+        f64vec3 normalDouble(double lat, double lon, double height = 0) const noexcept;
 
         /* return the normal vector for a given geographic position */
-        vec3 normal(double lat, double lon) const;
+        vec3 normal(double lat, double lon) const noexcept;
 
     private:
         double _semimajorAxis;

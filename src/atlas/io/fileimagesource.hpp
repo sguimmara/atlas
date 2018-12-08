@@ -10,7 +10,8 @@ namespace atlas::io
 {
     using namespace atlas::core;
 
-    // A data source that reads from a simple, non georeferenced file
+    // A data source that reads from a single, non georeferenced file.
+    // The file must be in the equirectangular projection (EPSG:4326).
     class FileImageSource final : public ImageSource
     {
     public:
@@ -26,6 +27,9 @@ namespace atlas::io
         Region _region;
         std::string _filename;
         std::shared_ptr<Image> _image;
+        std::vector<std::unique_ptr<std::promise<Response<Image>>>> _promises;
+        
+        Response<Image> readRegion(Request<Region> request);
     };
 }
 

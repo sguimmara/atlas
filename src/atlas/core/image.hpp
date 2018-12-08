@@ -2,6 +2,7 @@
 #define ATLAS_CORE_IMAGE_HPP
 
 #include "common.hpp"
+#include "rect.hpp"
 #include "imageformat.hpp"
 
 namespace atlas::core
@@ -13,6 +14,7 @@ namespace atlas::core
         Image(std::string filename);
         Image(Image&);
         Image(Image&&);
+        Image(size_t width, size_t height, ImageFormat format, std::vector<char> data);
         Image(size_t width, size_t height, ImageFormat format);
 
         // returns the width in pixels of the image.
@@ -22,6 +24,9 @@ namespace atlas::core
         inline size_t height() const noexcept { return _height; }
 
         inline ImageFormat format() const noexcept { return _format; }
+
+        // return an image
+        std::shared_ptr<Image> subImage(const Rect&) const;
 
         // returns the size in bytes of the image buffer.
         inline size_t size() const noexcept { return _data->size(); }

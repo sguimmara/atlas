@@ -154,6 +154,8 @@ int main(int argc, char* argv[])
         //scene.addEntity(&triangle5);
         //scene.addEntity(&triangle6);
 
+        FrameInfo frame;
+
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
@@ -165,7 +167,7 @@ int main(int argc, char* argv[])
             //triangle5.transform.move(0.01f, 0.01f, 0);
             //triangle6.transform.move(-0.01f, 0.01f, 0);
 
-            scene.render();
+            scene.render(frame);
         }
     }
     uint32_t exitCode = atlas::renderer::Instance::terminate();

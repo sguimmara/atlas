@@ -19,6 +19,7 @@ namespace atlas::scene
         inline float farClip() const noexcept { return _farClip; }
         void setFarClip(float v);
         inline Viewport& viewport() noexcept { return _viewport; }
+        inline void setViewport(Viewport viewport) noexcept { _viewport = viewport; }
         mat4 viewMatrix() const noexcept;
         mat4 projectionMatrix() const noexcept;
 

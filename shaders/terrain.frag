@@ -18,7 +18,5 @@ void main()
     vec3 lightColor = globals.sunColorAndIntensity.xyz;
     float lightIntensity = globals.sunColorAndIntensity.w;
 
-    vec3 finalColor = color * lightColor * lightIntensity * diff;
-
-    fragColor = finalColor;
+    fragColor = color * lightColor * lightIntensity * diff;;
 }

@@ -9,6 +9,7 @@
 #include "globe.hpp"
 #include "view.hpp"
 #include "camera.hpp"
+#include "frameinfo.hpp"
 #include <vector>
 #include <unordered_map>
 
@@ -20,7 +21,7 @@ namespace atlas::scene
         Scene(std::string name);
         ~Scene();
         void addEntity(Entity*);
-        void render();
+        void render(const FrameInfo&);
     private:
         std::string _name;
         std::shared_ptr<spdlog::logger> _log;

@@ -14,8 +14,10 @@ Globe::Globe(Ellipsoid ellipsoid) :
     _ellipsoid(ellipsoid),
     _quadtree(std::make_unique<Quadtree>(Region::world(), 8, 4))
 {
+    _defaultImage = std::make_unique<Image>(8, 8, ImageFormat::RGBA32);
+
     // TODO: inject
-    _imageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Pictures/dog.jpg");
+    _imageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Documents/work/c++/atlas/images/blue_marble.jpg");
 
     if (!Pipeline::get("terrain"))
     {
@@ -33,6 +35,13 @@ Globe::Globe(Ellipsoid ellipsoid) :
 
 void Globe::update()
 {
+    updateQuadtree();
+
+    processPendingImages();
+}
+
+void Globe::updateQuadtree()
+{
     for (auto& node : *_quadtree)
     {
         if (node.isleaf())
@@ -40,7 +49,12 @@ void Globe::update()
             // first, create the tile if it doesn't exist
             if (_tiles.count(node.key()) == 0)
             {
+                auto k = node.key();
+                auto r = node.region();
+
                 auto tile = std::make_shared<Tile>(node.region(), _ellipsoid);
+
+                tile->setImage(_defaultImage.get());
 
                 // request its image
                 _imageRequests.push_back(
@@ -50,15 +64,28 @@ void Globe::update()
             }
         }
     }
+}
 
+void Globe::processPendingImages()
+{
+    bool canClear = true;
     for (auto& request : _imageRequests)
     {
-        if (request.valid())
+        if (request.valid() && (request.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready))
         {
             auto response = request.get();
             Tile* tile = reinterpret_cast<Tile*>(response.userData());
             tile->setImage(response.data().get());
         }
+        else
+        {
+            canClear = false;
+        }
+    }
+
+    if (canClear)
+    {
+        _imageRequests.clear();
     }
 }
 

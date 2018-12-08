@@ -14,19 +14,9 @@ Scene::Scene(std::string name) : _name(name)
 
     _globe = std::make_unique<Globe>(Ellipsoid::unitSphere());
 
-    View* front = new View();
-    auto frontCam = front->camera();
-    frontCam->transform().move(0, 0, 3);
-    frontCam->viewport().height = 1;
-    frontCam->viewport().width = 0.5f;
-    _views.push_back(std::unique_ptr<View>(front));
-
     View* side = new View();
-    auto sideCam = side->camera();
-    sideCam->transform().move(3, 0, 0);
-    sideCam->viewport().height = 1;
-    sideCam->viewport().width = 0.5f;
-    sideCam->viewport().x = 0.5f;
+    side->camera()->setViewport(Viewport{ 0.0f, 0.0f, 1.0f, 1.0f });
+    side->camera()->transform().move(0, 0, 2.5f);
     _views.push_back(std::unique_ptr<View>(side));
 }
 
@@ -35,7 +25,7 @@ Scene::~Scene()
     _log->info("destroyed");
 }
 
-void Scene::render()
+void Scene::render(const FrameInfo& frameInfo)
 {
     auto ctx = renderer::Instance::context();
     if (!ctx)

@@ -34,10 +34,14 @@ namespace atlas::scene
 
     private:
         Ellipsoid _ellipsoid;
+        std::unique_ptr<Image> _defaultImage;
         std::vector<std::future<Response<Image>>> _imageRequests;
         std::unique_ptr<Quadtree> _quadtree;
         std::shared_ptr<ImageSource> _imageSource;
         std::unordered_map<QuadtreeNode::Key, std::shared_ptr<Tile>> _tiles;
+        
+        void updateQuadtree();
+        void processPendingImages();
     };
 }
 

@@ -76,10 +76,44 @@ Image::Image(Image&& other) :
     other._height = 0;
 }
 
+Image::Image(size_t width, size_t height, ImageFormat format, std::vector<char> data) :
+    _width(width),
+    _height(height),
+    _format(format),
+    _data(std::make_unique<std::vector<char>>(data))
+{}
+
 Image::Image(size_t width, size_t height, ImageFormat format) :
     _width(width),
     _height(height),
     _format(format)
 {
     _data = std::make_unique<std::vector<char>>(_width * _height * getBpp(format));
+}
+
+std::shared_ptr<Image> Image::subImage(const Rect& rect) const
+{
+    assert(rect.x + rect.width <= _width);
+    assert(rect.y + rect.height <= _height);
+
+    // TODO handle BPP
+    std::vector<char> sub(rect.width * rect.height * 4);
+
+    size_t start = rect.x * 4;
+    size_t end = start + rect.width * 4;
+    size_t row = _width * 4;
+
+    size_t k = 0;
+    for (size_t j = rect.y; j < rect.y + rect.height; j++)
+    {
+        for (size_t i = start; i < end; i += 4)
+        {
+            sub[k++] = (*_data)[i + 0 + j * row];
+            sub[k++] = (*_data)[i + 1 + j * row];
+            sub[k++] = (*_data)[i + 2 + j * row];
+            sub[k++] = (*_data)[i + 3 + j * row];
+        }
+    }
+
+    return std::make_shared<Image>(rect.width, rect.height, ImageFormat::RGBA32, sub);
 }
