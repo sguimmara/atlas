@@ -9,6 +9,7 @@ namespace atlas::core
     class Ellipsoid
     {
     public:
+        Ellipsoid();
         Ellipsoid(double semimajorAxis, double semiminorAxis);
         inline double semimajorAxis() const noexcept { return _semimajorAxis; }
         inline double semiminorAxis() const noexcept { return _semiminorAxis; }

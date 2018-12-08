@@ -9,7 +9,7 @@ namespace atlas::io
     class Request
     {
     public:
-        Request(T key, void* userData);
+        Request(T key, void* userData) : _key(key), _userData(userData) {}
 
         inline T key() const noexcept { return _key; }
         inline void* userData() const noexcept { return _userData; }

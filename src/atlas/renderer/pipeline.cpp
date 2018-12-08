@@ -35,7 +35,7 @@ const std::unordered_set<std::string> acceptedSamplerNamesVS
 };
 const std::unordered_set<std::string> acceptedSamplerNamesFS
 {
-    "diffuse", "specular"
+    "diffuse", "specular", "image"
 };
 const std::unordered_map<std::string, BindingInfoDescription> recognizedUniformsGlobals
 {

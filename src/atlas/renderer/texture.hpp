@@ -2,6 +2,7 @@
 #define ATLAS_RENDERER_TEXTURE_HPP
 
 #include "common.hpp"
+#include "atlas/core/image.hpp"
 
 namespace atlas::renderer
 {
@@ -9,6 +10,7 @@ namespace atlas::renderer
     {
     public:
         Texture();
+        Texture(const core::Image&);
         Texture(const std::string& filename);
         Texture(uint32_t width, uint32_t height, void* rgba);
         Texture(Texture&& rhs);

@@ -5,6 +5,7 @@
 #include <stb/stb_image.h>
 
 using namespace atlas::renderer;
+using namespace atlas::core;
 
 vk::Sampler defaultSampler()
 {
@@ -33,6 +34,22 @@ Texture::Texture() :
     _view(nullptr),
     _sampler(nullptr)
 {}
+
+Texture::Texture(const Image& image)
+{
+    vk::Format format;
+    switch (image.format())
+    {
+    case ImageFormat::RGB24:
+        format = vk::Format::eR8G8B8Unorm;
+        break;
+    case ImageFormat::RGBA32:
+        format = vk::Format::eR8G8B8A8Unorm;
+        break;
+    }
+
+    create((int)image.width(), (int)image.height(), format, (void*)image.data());
+}
 
 Texture::Texture(const std::string& filename)
 {

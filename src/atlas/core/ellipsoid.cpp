@@ -2,6 +2,9 @@
 
 using namespace atlas::core;
 
+Ellipsoid::Ellipsoid() : _semimajorAxis(0), _semiminorAxis(0)
+{}
+
 Ellipsoid::Ellipsoid(double semimajorAxis, double semiminorAxis) :
     _semimajorAxis(semimajorAxis),
     _semiminorAxis(semiminorAxis)

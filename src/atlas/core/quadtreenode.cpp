@@ -2,8 +2,8 @@
 
 using namespace atlas::core;
 
-QuadtreeNode::QuadtreeNode(Region region, Coord coord, QuadtreeNode* parent) :
-    _coord(coord),
+QuadtreeNode::QuadtreeNode(Region region, Key coord, QuadtreeNode* parent) :
+    _key(coord),
     _region(region),
     _parent(parent),
     _rightSibling(nullptr)
@@ -16,9 +16,9 @@ void QuadtreeNode::subdivide(uint32_t x, uint32_t y)
 
     _children.clear();
 
-    uint32_t col = _coord.col * 2;
-    uint32_t row = _coord.row * 2;
-    uint32_t depth = _coord.depth + 1;
+    uint32_t col = _key.col * 2;
+    uint32_t row = _key.row * 2;
+    uint32_t depth = _key.depth + 1;
 
     auto subregions = _region.subdivide(x, y);
 
@@ -27,7 +27,7 @@ void QuadtreeNode::subdivide(uint32_t x, uint32_t y)
         for (uint32_t j = 0; j < y; j++)
         {
             auto const subregion = subregions[i + j * x];
-            auto const coord = Coord{ col + i, row + j, depth };
+            auto const coord = Key{ col + i, row + j, depth };
             _children.emplace_back(std::make_unique<QuadtreeNode>(subregion, coord, this));
         }
     }
@@ -45,9 +45,9 @@ void QuadtreeNode::split()
 {
     if (_children.empty())
     {
-        uint32_t col = _coord.col * 2;
-        uint32_t row = _coord.row * 2;
-        uint32_t depth = _coord.depth + 1;
+        uint32_t col = _key.col * 2;
+        uint32_t row = _key.row * 2;
+        uint32_t depth = _key.depth + 1;
 
         QuadtreeNode* nw = new QuadtreeNode(_region.northWest(), { col, row, depth }, this);
         QuadtreeNode* ne = new QuadtreeNode(_region.northEast(), { col + 1, row, depth }, this);

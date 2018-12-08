@@ -9,14 +9,15 @@ namespace atlas::io
     class Response
     {
     public:
-        Response(T data, void* userData) : _data(data), _userData(userData) {}
+        Response() : _data(nullptr), _userData(nullptr) {}
+        Response(std::shared_ptr<T> data, void* userData) : _data(data), _userData(userData) {}
 
+        inline std::shared_ptr<T> data() const noexcept { return _data; }
         inline void* userData() const noexcept { return _userData; }
-        inline T data() const noexcept { return _data; }
 
     private:
+        std::shared_ptr<T> _data;
         void* _userData;
-        T _data;
     };
 }
 

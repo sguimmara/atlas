@@ -1,51 +1,75 @@
 #include "globe.hpp"
 #include "meshbuilder.hpp"
 #include "atlas/renderer/texture.hpp"
+#include "atlas/io/fileimagesource.hpp"
 
 using namespace atlas::scene;
+using namespace atlas::core;
 using namespace atlas::renderer;
 
-Globe::Globe() :
+Globe::Globe()
+{}
+
+Globe::Globe(Ellipsoid ellipsoid) :
+    _ellipsoid(ellipsoid),
     _quadtree(std::make_unique<Quadtree>(Region::world(), 8, 4))
 {
-    _TEMPterrainMaterial = std::make_shared<Material>(R"%(
+    // TODO: inject
+    _imageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Pictures/dog.jpg");
+
+    if (!Pipeline::get("terrain"))
+    {
+        Pipeline::create(R"%(
         {
             "name": "terrain",
             "vertex": "default.vert.spv",
-            "fragment": "default.frag.spv",
+            "fragment": "terrain.frag.spv",
             "rasterizer": {
                 "frontFace": "ccw"
             }
         })%");
+    }
+}
 
-    // TODO cleanup material allocations.
-    _TEMPtexture = std::make_unique<Texture>("C:/Users/sguimmara/Documents/work/c++/atlas/images/uv_grid.jpg");
-    _TEMPterrainMaterial->setTexture("diffuse", _TEMPtexture.get());
-    _TEMPterrainMaterial->setTexture("specular", _TEMPtexture.get());
-
-    // TODO allocate tiles dynamically after each quadtree update.
-    // 1. nodes that became leaves : allocate tile
-    // 2. nodes that became non-leaves : hide them, keep them for a while as cache
+void Globe::update()
+{
     for (auto& node : *_quadtree)
     {
         if (node.isleaf())
         {
-            auto tile = std::make_shared<Entity>(
-                _TEMPterrainMaterial,
-                MeshBuilder::terrain(node.region(), 16, Ellipsoid::unitSphere()));
-            _tiles.push_back(tile);
-            _tiles.push_back(Entity::createDebugEntity(*tile));
+            // first, create the tile if it doesn't exist
+            if (_tiles.count(node.key()) == 0)
+            {
+                auto key = node.key();
+                auto tile = std::make_unique<Tile>(node.region(), _ellipsoid);
+
+                // request its image
+                _imageRequests.push_back(
+                    _imageSource->get(Request<Region>(node.region(), tile.get())));
+
+                _tiles.insert({ node.key(), std::move(tile) });
+            }
+        }
+    }
+
+    for (auto& request : _imageRequests)
+    {
+        if (request.valid())
+        {
+            auto response = request.get();
+            Tile* tile = reinterpret_cast<Tile*>(response.userData());
+            tile->setImage(response.data().get());
         }
     }
 }
 
-std::vector<Entity*> Globe::tiles() noexcept
+std::vector<const Entity*> Globe::tiles() noexcept
 {
-    std::vector<Entity*> result;
+    std::vector<const Entity*> result;
     result.reserve(_tiles.size());
     for (auto& t : _tiles)
     {
-        result.push_back(t.get());
+        result.push_back(t.second->entity());
     }
     return result;
 }

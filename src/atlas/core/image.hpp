@@ -10,6 +10,7 @@ namespace atlas::core
     {
     public:
         Image();
+        Image(std::string filename);
         Image(Image&);
         Image(Image&&);
         Image(size_t width, size_t height, ImageFormat format);

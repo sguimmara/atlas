@@ -9,11 +9,22 @@ namespace atlas::core
     class QuadtreeNode
     {
     public:
-        struct Coord
+        // the key of a quadtree node in the tree
+        struct Key
         {
             uint32_t col;
             uint32_t row;
             uint32_t depth;
+
+            bool operator==(const Key& rhs) const
+            {
+                return rhs.col == col && rhs.row == row && rhs.depth == depth;
+            }
+
+            bool operator!=(const Key& rhs) const
+            {
+                return !(*this == rhs);
+            }
         };
 
         class iterator
@@ -33,18 +44,18 @@ namespace atlas::core
         };
 
     public:
-        QuadtreeNode(Region region, Coord coord, QuadtreeNode* parent);
+        QuadtreeNode(Region region, Key coord, QuadtreeNode* parent);
 
         inline Region region() const noexcept { return _region; }
         inline QuadtreeNode* parent() const noexcept { return _parent; }
-        inline Coord coord() const noexcept { return _coord; }
+        inline Key key() const noexcept { return _key; }
         bool isleaf() const noexcept { return _children.empty(); }
 
         void subdivide(uint32_t x, uint32_t y);
         void split();
 
     private:
-        Coord _coord;
+        Key _key;
         Region _region;
         QuadtreeNode* _parent;
         QuadtreeNode* _rightSibling;
@@ -54,7 +65,7 @@ namespace atlas::core
 
 namespace std
 {
-    typedef atlas::core::QuadtreeNode::Coord item;
+    typedef atlas::core::QuadtreeNode::Key item;
     template <>
     struct hash<item>
     {

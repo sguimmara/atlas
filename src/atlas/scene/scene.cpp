@@ -12,7 +12,7 @@ Scene::Scene(std::string name) : _name(name)
     }
     _log->info("initialized");
 
-    _globe = std::make_unique<Globe>();
+    _globe = std::make_unique<Globe>(Ellipsoid::unitSphere());
 
     View* front = new View();
     auto frontCam = front->camera();
@@ -57,6 +57,8 @@ void Scene::render()
 
 void Scene::renderGlobe(atlas::renderer::Context* ctx, View& view)
 {
+    _globe->update();
+
     for (auto const& tile : _globe->tiles())
     {
         ctx->bind(tile->material().pipeline());
