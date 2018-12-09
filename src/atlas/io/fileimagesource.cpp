@@ -12,9 +12,6 @@ FileImageSource::FileImageSource(Region region, const std::string filename) :
 
 Response<Image> FileImageSource::readRegion(Request<Region> request)
 {
-    // TODO remove
-    //std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
     auto region = request.key();
 
     Rect rect;

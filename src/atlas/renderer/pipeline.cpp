@@ -83,6 +83,11 @@ void Pipeline::initialize()
     _entityPropertyLayout = Instance::device.createDescriptorSetLayout(instanceLayoutInfo);
 }
 
+bool Pipeline::exists(const std::string& name)
+{
+    return _cache.count(name) != 0;
+}
+
 Pipeline * Pipeline::get(const std::string & name)
 {
     if (_cache.count(name) == 0)
@@ -139,7 +144,7 @@ vk::PipelineRasterizationStateCreateInfo defaultRasterizer()
 {
     return vk::PipelineRasterizationStateCreateInfo()
         .setCullMode(vk::CullModeFlagBits::eBack)
-        .setFrontFace(vk::FrontFace::eClockwise)
+        .setFrontFace(vk::FrontFace::eCounterClockwise)
         .setLineWidth(1)
         .setPolygonMode(vk::PolygonMode::eFill);
 }

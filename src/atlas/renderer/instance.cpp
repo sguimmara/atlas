@@ -12,6 +12,7 @@ const std::vector<const char*> validationLayersNames =
     "VK_LAYER_LUNARG_standard_validation"
 };
 
+bool Instance::_debugMarkerSupported = false;
 std::shared_ptr<spdlog::logger> Instance::_log = nullptr;
 vk::Instance Instance::_instance = vk::Instance();
 vk::SurfaceKHR Instance::_surface = vk::SurfaceKHR();
@@ -71,6 +72,19 @@ void Instance::setShaderDirectory(const std::string& path)
     _shaderDirectory = path;
 }
 
+bool isSupportedExtension(vk::PhysicalDevice physicalDevice, const char* name)
+{
+    auto extensions = physicalDevice.enumerateDeviceExtensionProperties();
+    for (auto ext : extensions)
+    {
+        if (!strcmp(name, ext.extensionName))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Instance::createInstance()
 {
     auto const appInfo = vk::ApplicationInfo()
@@ -79,7 +93,7 @@ void Instance::createInstance()
         .setPEngineName(APP_NAME)
         .setApiVersion(VK_API_VERSION_1_0);
 
-    auto const extensions = getRequiredExtensions();
+    auto extensions = getRequiredExtensions();
 
     _log->debug("enabled extensions: {0}", extensions.size());
     for (const auto ex : extensions)
@@ -365,10 +379,19 @@ void Instance::createDevice()
     {
         queueInfos.push_back(queue.second);
     }
+    
+    std::vector<const char*> extensions = { swapchainExtension };
+
+    if (isSupportedExtension(physicalDevice, VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
+    {
+        extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+        _debugMarkerSupported = true;
+        _log->debug("enable {0} extension", VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+    }
 
     auto deviceInfo = vk::DeviceCreateInfo()
-        .setEnabledExtensionCount(1)
-        .setPpEnabledExtensionNames(&swapchainExtension)
+        .setEnabledExtensionCount((uint32_t)extensions.size())
+        .setPpEnabledExtensionNames(extensions.data())
         .setQueueCreateInfoCount((uint32_t)queueInfos.size())
         .setPQueueCreateInfos(queueInfos.data());
 

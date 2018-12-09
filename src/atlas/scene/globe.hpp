@@ -1,7 +1,7 @@
 #ifndef ATLAS_SCENE_GLOBE_HPP
 #define ATLAS_SCENE_GLOBE_HPP
 
-#include "atlas/core/ellipsoid.hpp"
+#include "atlas/core/srs/spatialreference.hpp"
 #include "atlas/core/quadtree.hpp"
 #include "atlas/io/imagesource.hpp"
 #include "atlas/renderer/material.hpp"
@@ -12,6 +12,7 @@
 namespace atlas::scene
 {
     using namespace atlas::core;
+    using namespace atlas::core::srs;
     using namespace atlas::io;
     using namespace atlas::renderer;
 
@@ -22,7 +23,7 @@ namespace atlas::scene
         Globe();
         Globe(Globe&) = delete;
         Globe(Globe&&) = delete;
-        Globe(Ellipsoid);
+        Globe(SpatialReference*);
 
         // performs an update cycle :
         // 1. the quadtree is updated with the view position
@@ -33,7 +34,7 @@ namespace atlas::scene
         std::vector<const Entity*> tiles() noexcept;
 
     private:
-        Ellipsoid _ellipsoid;
+        SpatialReference* _srs;
         std::unique_ptr<Image> _defaultImage;
         std::vector<std::future<Response<Image>>> _imageRequests;
         std::unique_ptr<Quadtree> _quadtree;

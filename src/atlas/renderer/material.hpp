@@ -4,6 +4,8 @@
 #include "common.hpp"
 #include "pipeline.hpp"
 #include "texture.hpp"
+#include "materialproperties.hpp"
+#include "uniformbuffer.hpp"
 
 namespace atlas::renderer
 {
@@ -37,6 +39,8 @@ namespace atlas::renderer
 
     private:
         Pipeline* _pipeline;
+        MaterialProperties _properties;
+        std::unique_ptr<UniformBuffer> _propertyBuffer;
         vk::DescriptorSet _descriptorSet;
 
         void createDescriptorSet();

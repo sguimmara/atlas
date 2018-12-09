@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "camera.hpp"
+#include "time.hpp"
 #include "atlas/renderer/globalproperties.hpp"
 #include "atlas/renderer/uniformbuffer.hpp"
 
@@ -15,7 +16,7 @@ namespace atlas::scene
     public:
         View();
         ~View();
-        void update();
+        void update(const Time&);
         inline const UniformBuffer* properties() const noexcept { return _uniformBuffer.get(); }
         inline Camera* camera() noexcept { return _camera.get(); }
         inline const Camera* camera() const noexcept { return _camera.get(); }

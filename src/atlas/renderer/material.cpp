@@ -13,6 +13,8 @@ Material::Material(const std::string& json)
 void Material::createDescriptorSet()
 {
     _descriptorSet = Allocator::getDescriptorSet(_pipeline->descriptorSetLayout());
+    _propertyBuffer = std::make_unique<UniformBuffer>(sizeof(MaterialProperties), 0, _descriptorSet);
+    _propertyBuffer->update(&_properties);
 }
 
 Material::Material(Pipeline* pipeline) :
@@ -28,10 +30,12 @@ Material::Material() :
 
 Material::Material(Material&& rhs) :
     _pipeline(rhs._pipeline),
-    _descriptorSet(rhs._descriptorSet)
+    _descriptorSet(rhs._descriptorSet),
+    _propertyBuffer(std::move(rhs._propertyBuffer))
 {
     rhs._pipeline = nullptr;
     rhs._descriptorSet = nullptr;
+    rhs._propertyBuffer = nullptr;
 }
 
 Material Material::instantiate() const

@@ -3,15 +3,16 @@
 #include "atlas/renderer/texture.hpp"
 #include "atlas/io/fileimagesource.hpp"
 
-using namespace atlas::scene;
 using namespace atlas::core;
+using namespace atlas::core::srs;
+using namespace atlas::scene;
 using namespace atlas::renderer;
 
 Globe::Globe()
 {}
 
-Globe::Globe(Ellipsoid ellipsoid) :
-    _ellipsoid(ellipsoid),
+Globe::Globe(SpatialReference* srs) :
+    _srs(srs),
     _quadtree(std::make_unique<Quadtree>(Region::world(), 8, 4))
 {
     _defaultImage = std::make_unique<Image>(8, 8, ImageFormat::RGBA32);
@@ -19,16 +20,13 @@ Globe::Globe(Ellipsoid ellipsoid) :
     // TODO: inject
     _imageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Documents/work/c++/atlas/images/blue_marble.jpg");
 
-    if (!Pipeline::get("terrain"))
+    if (!Pipeline::exists("terrain"))
     {
         Pipeline::create(R"%(
         {
             "name": "terrain",
             "vertex": "default.vert.spv",
-            "fragment": "terrain.frag.spv",
-            "rasterizer": {
-                "frontFace": "ccw"
-            }
+            "fragment": "terrain.frag.spv"
         })%");
     }
 }
@@ -52,7 +50,7 @@ void Globe::updateQuadtree()
                 auto k = node.key();
                 auto r = node.region();
 
-                auto tile = std::make_shared<Tile>(node.region(), _ellipsoid);
+                auto tile = std::make_shared<Tile>(node.region(), *_srs);
 
                 tile->setImage(_defaultImage.get());
 

@@ -47,6 +47,7 @@ namespace atlas::renderer
         static vk::DescriptorPool descriptorPool;
 
     private:
+        static bool _debugMarkerSupported;
         static std::shared_ptr<spdlog::logger> _log;
         static VkDebugReportCallbackEXT _debugCallback;
         static vk::Instance _instance;

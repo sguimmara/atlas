@@ -153,7 +153,7 @@ void Context::beginFrame()
     _currentSwapchainImage = img.value;
 
     vk::ClearValue const clearValues[2] = {
-         vk::ClearColorValue(std::array<float, 4>({0.2f, 0.2f, 0.5f, 1})),
+         vk::ClearColorValue(std::array<float, 4>({0.0f, 0.0f, 0.0f, 1})),
          vk::ClearDepthStencilValue(1.0f, 0u) };
 
     auto const scissor = vk::Rect2D({ 0, 0 }, _size);

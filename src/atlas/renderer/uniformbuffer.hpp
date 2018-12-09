@@ -10,6 +10,7 @@ namespace atlas::renderer
     public:
         UniformBuffer(UniformBuffer&) = delete;
         UniformBuffer(UniformBuffer&& rhs);
+        UniformBuffer(size_t size, uint32_t binding, vk::DescriptorSet);
         UniformBuffer(size_t size, uint32_t binding, vk::DescriptorSetLayout);
         ~UniformBuffer();
 
@@ -22,6 +23,7 @@ namespace atlas::renderer
         uint32_t _size;
         uint32_t _binding;
         vk::Buffer _buffer;
+        bool _ownsDescriptorSet;
         vk::DescriptorSet _descriptorSet;
     };
 }

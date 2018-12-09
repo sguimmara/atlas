@@ -15,6 +15,9 @@ namespace atlas::renderer
     public:
         static void initialize();
 
+        // returns true if a pipeline with the given name exists.
+        static bool exists(const std::string& name);
+
         // returns the Pipeline with the given name, if any.
         static Pipeline* get(const std::string& name);
 

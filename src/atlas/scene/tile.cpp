@@ -3,11 +3,11 @@
 
 using namespace atlas::scene;
 
-Tile::Tile(Region region, const Ellipsoid& ellipsoid) : _region(region)
+Tile::Tile(Region region, const SpatialReference& srs) : _region(region)
 {
     _entity = std::make_unique<Entity>(
         std::make_shared<Material>(Pipeline::get("terrain")),
-        MeshBuilder::terrain(region, 16, Ellipsoid::unitSphere()));
+        MeshBuilder::terrain(region, 32, srs));
 }
 
 void Tile::setImage(const Image* image)

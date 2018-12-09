@@ -7,19 +7,28 @@ UniformBuffer::UniformBuffer(UniformBuffer&& rhs) :
     _size(rhs._size),
     _binding(rhs._binding),
     _buffer(rhs._buffer),
-    _descriptorSet(rhs._descriptorSet)
+    _descriptorSet(rhs._descriptorSet),
+    _ownsDescriptorSet(rhs._ownsDescriptorSet)
 {
     rhs._buffer = nullptr;
     rhs._descriptorSet = nullptr;
 }
 
+UniformBuffer::UniformBuffer(size_t size, uint32_t binding, vk::DescriptorSet set) :
+    _size((uint32_t)size),
+    _binding(binding),
+    _descriptorSet(set),
+    _ownsDescriptorSet(false),
+    _buffer(Allocator::getBuffer((uint32_t)size, vk::BufferUsageFlagBits::eUniformBuffer))
+{}
+
 UniformBuffer::UniformBuffer(size_t size, uint32_t binding, vk::DescriptorSetLayout layout) :
     _size((uint32_t)size),
-    _binding(binding)
-{
-    _descriptorSet = Allocator::getDescriptorSet(layout);
-    _buffer = Allocator::getBuffer((uint32_t)size, vk::BufferUsageFlagBits::eUniformBuffer);
-}
+    _binding(binding),
+    _descriptorSet(Allocator::getDescriptorSet(layout)),
+    _ownsDescriptorSet(true),
+    _buffer(Allocator::getBuffer((uint32_t)size, vk::BufferUsageFlagBits::eUniformBuffer))
+{}
 
 UniformBuffer::~UniformBuffer()
 {
@@ -27,7 +36,7 @@ UniformBuffer::~UniformBuffer()
     {
         Allocator::free(_buffer);
     }
-    if (_descriptorSet)
+    if (_ownsDescriptorSet && _descriptorSet)
     {
         Allocator::free(_descriptorSet);
     }

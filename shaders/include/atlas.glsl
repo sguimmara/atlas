@@ -1,4 +1,7 @@
-#define ecef mat4(0, 0, 1, 0, 1, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 1)
+//#define ecef mat4(0,0,1,0,  1,0,0,0,  0,-1,0,0,  0,0,0,1)
+//#define ecef mat4(0,0,-1,0,   1,0,0,0,  0,-1,0,0,  0,0,0,1)
+// #define ecef mat4(0,1,0,0,   0,0,-1,0,  -1,0,0,0,  0,0,0,1)
+#define ecef mat4(1,0,0,0,  0,-1,0,0,  0,0,1,0,  0,0,0,1)
 
 #define GLOBALS 0
 #define INSTANCE 1
@@ -24,10 +27,12 @@ layout(set = INSTANCE, binding = INSTANCE) uniform InstanceProperties
 
 vec3 transformToViewSpace(vec4 v)
 {
-    return (globals.view * instance.model * ecef * v).xyz;
+    v.y = -v.y;
+    return (globals.view * instance.model * v).xyz;
 }
 
 vec4 atl_transformPos(vec3 position)
 {
-    return globals.proj * globals.view * instance.model * ecef * vec4(position, 1.0);
+    position.y = -position.y;
+    return globals.proj * globals.view * instance.model * vec4(position, 1.0);
 }

@@ -2,10 +2,11 @@
 #include "atlas/renderer/vertex.hpp"
 
 using namespace atlas::core;
+using namespace atlas::core::srs;
 using namespace atlas::scene;
 using namespace atlas::renderer;
 
-std::shared_ptr<Mesh> MeshBuilder::terrain(const Region& region, uint16_t subdivs, const Ellipsoid& ellipsoid)
+std::shared_ptr<Mesh> MeshBuilder::terrain(const Region& region, uint16_t subdivs, const SpatialReference& srs)
 {
     if (subdivs < 2)
     {
@@ -34,9 +35,9 @@ std::shared_ptr<Mesh> MeshBuilder::terrain(const Region& region, uint16_t subdiv
             double lat = region.south() + row * yStep;
             double lon = region.west() + col * xStep;
 
-            v.position = ellipsoid.position(lat, lon, 0);
-            v.normal = ellipsoid.normal(lat, lon);
-            v.st = vec2(1 - (col * stStep), row * stStep);
+            v.position = srs.position(lat, lon, 0);
+            v.normal = srs.normal(lat, lon);
+            v.st = vec2(col * stStep, row * stStep);
 
             vertices.push_back(v);
 
@@ -48,12 +49,12 @@ std::shared_ptr<Mesh> MeshBuilder::terrain(const Region& region, uint16_t subdiv
                 uint16_t d = col + j1ww;
 
                 indices.push_back(a);
-                indices.push_back(b);
                 indices.push_back(c);
+                indices.push_back(b);
 
                 indices.push_back(c);
-                indices.push_back(d);
                 indices.push_back(a);
+                indices.push_back(d);
             }
         }
     }
@@ -88,6 +89,21 @@ std::shared_ptr<Mesh> MeshBuilder::bounds(const Bounds& bounds)
     };
 
     std::vector<uint16_t> indices(0);
+
+    return std::make_shared<Mesh>(vertices, indices);
+}
+
+std::shared_ptr<Mesh> MeshBuilder::tripodPyramid()
+{
+    std::vector<Vertex> vertices
+    {
+        Vertex{vec3(0, 0, 0), vec3(1, 1, 1) },
+        Vertex{vec3(1, 0, 0), vec3(1, 0, 0) },
+        Vertex{vec3(0, 1, 0), vec3(0, 1, 0) },
+        Vertex{vec3(0, 0, 1), vec3(0, 0, 1) },
+    };
+
+    std::vector<uint16_t> indices{ 3,1,2,3,0,1,1,0,2,3,2,0 };
 
     return std::make_shared<Mesh>(vertices, indices);
 }
