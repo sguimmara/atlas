@@ -16,6 +16,7 @@ namespace atlas::core::srs
         inline double semiminorAxis() const noexcept { return _semiminorAxis; }
         static Ellipsoid WGS84();
         static Ellipsoid unitSphere();
+        static Ellipsoid spherical(double radius);
 
         f64vec3 position(double lat, double lon, double height = 0) const noexcept override;
         f64vec3 position(const Cartographic& p) const noexcept override;

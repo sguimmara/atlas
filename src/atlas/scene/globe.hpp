@@ -6,6 +6,7 @@
 #include "atlas/io/imagesource.hpp"
 #include "atlas/renderer/material.hpp"
 #include "entity.hpp"
+#include "layer.hpp"
 #include "tile.hpp"
 #include <unordered_map>
 
@@ -17,7 +18,7 @@ namespace atlas::scene
     using namespace atlas::renderer;
 
     // manages the rendering of the globe surface
-    class Globe
+    class Globe final : public Layer
     {
     public:
         Globe();
@@ -29,9 +30,9 @@ namespace atlas::scene
         // 1. the quadtree is updated with the view position
         // 2. newly created terrain tiles are generated
         // 3. imagery is fetched from the datasources
-        void update();
+        void update() override;
 
-        std::vector<const Entity*> tiles() noexcept;
+        std::vector<const Entity*> entities() const override;
 
     private:
         SpatialReference* _srs;

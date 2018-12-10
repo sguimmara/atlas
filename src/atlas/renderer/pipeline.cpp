@@ -201,6 +201,7 @@ vk::PrimitiveTopology parsePrimitiveTopology(Json::Value json)
     if (json.empty()) { return vk::PrimitiveTopology::eTriangleList; }
     if (json.asString() == "triangleList") { return vk::PrimitiveTopology::eTriangleList; }
     if (json.asString() == "lineList") { return vk::PrimitiveTopology::eLineList; }
+    if (json.asString() == "lineStrip") { return vk::PrimitiveTopology::eLineStrip; }
     return vk::PrimitiveTopology::eTriangleList;
 }
 

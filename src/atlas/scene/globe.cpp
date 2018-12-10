@@ -8,12 +8,13 @@ using namespace atlas::core::srs;
 using namespace atlas::scene;
 using namespace atlas::renderer;
 
-Globe::Globe()
+Globe::Globe() : Layer("globe")
 {}
 
 Globe::Globe(SpatialReference* srs) :
     _srs(srs),
-    _quadtree(std::make_unique<Quadtree>(Region::world(), 8, 4))
+    _quadtree(std::make_unique<Quadtree>(Region::world(), 8, 4)),
+    Layer("globe")
 {
     _defaultImage = std::make_unique<Image>(8, 8, ImageFormat::RGBA32);
 
@@ -36,6 +37,17 @@ void Globe::update()
     updateQuadtree();
 
     processPendingImages();
+}
+
+std::vector<const Entity*> Globe::entities() const
+{
+    std::vector<const Entity*> result;
+    result.reserve(_tiles.size());
+    for (auto& t : _tiles)
+    {
+        result.push_back(t.second->entity());
+    }
+    return result;
 }
 
 void Globe::updateQuadtree()
@@ -85,15 +97,4 @@ void Globe::processPendingImages()
     {
         _imageRequests.clear();
     }
-}
-
-std::vector<const Entity*> Globe::tiles() noexcept
-{
-    std::vector<const Entity*> result;
-    result.reserve(_tiles.size());
-    for (auto& t : _tiles)
-    {
-        result.push_back(t.second->entity());
-    }
-    return result;
 }

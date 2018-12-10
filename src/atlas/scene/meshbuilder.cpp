@@ -93,6 +93,23 @@ std::shared_ptr<Mesh> MeshBuilder::bounds(const Bounds& bounds)
     return std::make_shared<Mesh>(vertices, indices);
 }
 
+std::shared_ptr<Mesh> MeshBuilder::parallel(double latitude, const SpatialReference& srs)
+{
+    const size_t subdivs = 360;
+    std::vector<Vertex> vertices(subdivs + 1);
+    std::vector<uint16_t> indices(0);
+    for (size_t i = 0; i < subdivs; i++)
+    {
+        Vertex v{ srs.position(Cartographic::fromDegrees(latitude, (double)i, 0)) };
+        vertices[i] = v;
+    }
+    vertices[subdivs] = vertices[0];
+
+    auto result = std::make_shared<Mesh>(vertices, indices);
+    result->topology = vk::PrimitiveTopology::eLineStrip;
+    return result;
+}
+
 std::shared_ptr<Mesh> MeshBuilder::tripodPyramid()
 {
     std::vector<Vertex> vertices

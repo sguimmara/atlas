@@ -8,7 +8,7 @@ Camera::Camera() :
     _viewport({0, 0, 800, 600}),
     _fov(60),
     _nearClip(0.1f),
-    _farClip(10.0f)
+    _farClip(5.0f)
 {}
 
 void Camera::setFov(float degrees)

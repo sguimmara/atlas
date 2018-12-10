@@ -1,5 +1,6 @@
 #include "scene.hpp"
 #include "meshbuilder.hpp"
+#include "geographicgrid.hpp"
 
 using namespace atlas::scene;
 
@@ -16,26 +17,13 @@ Scene::Scene(std::string name) :
     }
     _log->info("initialized");
 
-    _globe = std::make_unique<Globe>(_srs.get());
+    _layers.push_back(std::make_unique<Globe>(_srs.get()));
+    _layers.push_back(std::make_unique<GeographicGrid>(_srs.get()));
 
     View* side = new View();
     side->camera()->setViewport(Viewport{ 0.0f, 0.0f, 1.0f, 1.0f });
     side->camera()->transform().move(2, 2, 0);
     _views.push_back(std::unique_ptr<View>(side));
-
-    //auto vertexColor = Pipeline::create(R"%(
-    //    {
-    //        "name": "vertexcolor",
-    //        "vertex": "default.vert.spv",
-    //        "fragment": "vertexcolor.frag.spv",
-    //        "rasterizer":{
-    //            "cullMode": "none",
-    //            "frontFace": "ccw"
-    //        }
-    //    })%");
-
-    //Entity* tripod = new Entity(std::make_shared<Material>(vertexColor), MeshBuilder::tripodPyramid());
-    //_entities.push_back(std::unique_ptr<Entity>(tripod));
 }
 
 Scene::~Scene()
@@ -57,24 +45,17 @@ void Scene::render(const Time& time)
         {
             setupView(*view, time);
 
-            renderGlobe(ctx, *view);
-            for (auto const& ent : _entities)
+            for (auto const& layer : _layers)
             {
-                drawEntity(ctx, *ent, *view);
+                layer->update();
+                for (auto const& entity : layer->entities())
+                {
+                    drawEntity(ctx, *entity, *view);
+                }
             }
         }
     }
     ctx->endFrame();
-}
-
-void Scene::renderGlobe(atlas::renderer::Context* ctx, View& view)
-{
-    _globe->update();
-
-    for (auto const& tile : _globe->tiles())
-    {
-        drawEntity(ctx, *tile, view);
-    }
 }
 
 void Scene::drawEntity(atlas::renderer::Context* ctx, const Entity& entity, View& view)

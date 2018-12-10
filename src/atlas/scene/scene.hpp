@@ -25,19 +25,16 @@ namespace atlas::scene
     public:
         Scene(std::string name);
         ~Scene();
-        void addEntity(Entity*);
         void render(const Time&);
     private:
         std::string _name;
         std::unique_ptr<SpatialReference> _srs;
         std::shared_ptr<spdlog::logger> _log;
 
-        std::unique_ptr<Globe> _globe;
-        std::vector<std::unique_ptr<Entity>> _entities;
+        std::vector<std::unique_ptr<Layer>> _layers;
         std::vector<std::unique_ptr<View>> _views;
 
         void setupView(View&, const Time&);
-        void renderGlobe(atlas::renderer::Context*, View&);
         void drawEntity(atlas::renderer::Context* ctx, const Entity& entity, View& view);
     };
 }

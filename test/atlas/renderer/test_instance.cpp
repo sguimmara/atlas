@@ -19,14 +19,6 @@ using namespace atlas::core;
 using namespace atlas::scene;
 using namespace atlas::renderer;
 
-int main2(int argc, char* argv[])
-{
-    atlas::viewer::Viewer viewer;
-
-    atlas::renderer::Texture tex("C:/Users/sguimmara/Pictures/casimir.jpg");
-
-    return 0;
-}
 int main(int argc, char* argv[])
 {
     spdlog::set_level(spdlog::level::trace);

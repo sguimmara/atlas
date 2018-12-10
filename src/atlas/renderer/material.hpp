@@ -21,12 +21,14 @@ namespace atlas::renderer
 
         // constructs a material from the given pipeline.
         Material(Pipeline*);
-
+        
         // constructs a material from transferring ownership of resources from
         // the specified material. The old material becomes empty.
         Material(Material&& rhs);
 
         ~Material();
+        
+        static std::shared_ptr<Material> create(const std::string name);
 
         // returns a material with its own copy of the resources.
         Material instantiate() const;
@@ -36,6 +38,11 @@ namespace atlas::renderer
         inline Pipeline* pipeline() const noexcept { return _pipeline; }
 
         inline vk::DescriptorSet descriptorSet() const noexcept { return _descriptorSet; }
+
+        inline MaterialProperties& properties() noexcept { return _properties; }
+        inline const MaterialProperties& properties() const noexcept { return _properties; }
+
+        void update() noexcept;
 
     private:
         Pipeline* _pipeline;

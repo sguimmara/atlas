@@ -22,6 +22,11 @@ Ellipsoid Ellipsoid::unitSphere()
     return Ellipsoid(1, 1);
 }
 
+Ellipsoid Ellipsoid::spherical(double radius)
+{
+    return Ellipsoid(radius, radius);
+}
+
 f64vec3 Ellipsoid::position(double lat, double lon, double height) const noexcept
 {
     // Implementation taken from the book "3D Engine design
