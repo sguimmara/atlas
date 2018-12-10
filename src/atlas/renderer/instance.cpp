@@ -67,9 +67,18 @@ std::string Instance::shaderDirectory() noexcept { return _shaderDirectory; }
 
 void Instance::setShaderDirectory(const std::string& path)
 {
+    char last = path[path.size() - 1];
+    if (last != '\\' && last != '/')
+    {
+        _shaderDirectory = path + '/';
+    }
+    else
+    {
+        _shaderDirectory = path;
+    }
+
     // TODO check if file exists
-    _log->debug("shader directory set to {0}", path);
-    _shaderDirectory = path;
+    _log->debug("shader directory set to {0}", _shaderDirectory);
 }
 
 bool isSupportedExtension(vk::PhysicalDevice physicalDevice, const char* name)
