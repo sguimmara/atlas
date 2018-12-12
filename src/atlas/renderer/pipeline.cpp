@@ -229,6 +229,8 @@ vk::PipelineDepthStencilStateCreateInfo defaultStencilState()
     return vk::PipelineDepthStencilStateCreateInfo()
         .setDepthTestEnable(VK_TRUE)
         .setDepthWriteEnable(VK_TRUE)
+        .setMaxDepthBounds(1)
+        .setMinDepthBounds(0)
         .setDepthCompareOp(vk::CompareOp::eLess)
         .setStencilTestEnable(VK_FALSE);
 }

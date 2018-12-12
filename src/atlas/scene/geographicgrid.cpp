@@ -40,34 +40,64 @@ void GeographicGrid::createEntities()
     equator->properties().color = vec4(1, 0, 0, 1);
     equator->update();
 
+    auto greenwich = Material::create("grid");
+    greenwich->properties().color = vec4(0, 1, 0, 1);
+    greenwich->update();
+
     auto tropic = Material::create("grid");
     tropic->properties().color = vec4(51 / 255.0, 179 / 255.0, 1, 1);
     tropic->update();
 
-    auto parallel = Material::create("grid");
-    parallel->properties().color = vec4(0.5, 0.5, 0.5, 1);
-    parallel->update();
+    auto gridLine = Material::create("grid");
+    gridLine->properties().color = vec4(0.5, 0.5, 0.5, 1);
+    gridLine->update();
+
+    auto polarCircle = Material::create("grid");
+    polarCircle->properties().color = vec4(0.9, 0.9, 1, 1);
+    polarCircle->update();
 
     // TODO replace with proper height management in referential
-    auto srs = Ellipsoid::spherical(1.05);
+    auto srs = Ellipsoid::spherical(1.001f);
 
     _parallels.push_back(std::make_unique<Entity>(equator,
         MeshBuilder::parallel(0, srs)));
 
     _parallels.push_back(std::make_unique<Entity>(tropic,
-        MeshBuilder::parallel(23.26, srs)));
+        MeshBuilder::parallel(Cartographic::dmsToDD(23, 26, 12.6), srs)));
 
     _parallels.push_back(std::make_unique<Entity>(tropic,
-        MeshBuilder::parallel(-23.26, srs)));
+        MeshBuilder::parallel(-Cartographic::dmsToDD(23, 26, 12.6), srs)));
+
+    _parallels.push_back(std::make_unique<Entity>(polarCircle,
+        MeshBuilder::parallel(Cartographic::dmsToDD(66, 33, 47.4), srs)));
+
+    _parallels.push_back(std::make_unique<Entity>(polarCircle,
+        MeshBuilder::parallel(-Cartographic::dmsToDD(66, 33, 47.4), srs)));
 
     for (int i = -90; i < 90; i += (int)_latitudeInterval)
     {
         if (i == 0)
         {
-            continue;
+            _parallels.push_back(std::make_unique<Entity>(gridLine,
+                MeshBuilder::parallel((double)i, srs)));
         }
 
-        _parallels.push_back(std::make_unique<Entity>(parallel,
+        _parallels.push_back(std::make_unique<Entity>(gridLine,
             MeshBuilder::parallel((double)i, srs)));
+    }
+
+    for (int i = -180; i < 180; i += (int)_longitudeInterval)
+    {
+        if (i == 0)
+        {
+            _parallels.push_back(std::make_unique<Entity>(greenwich,
+                MeshBuilder::meridian((double)i, srs)));
+        }
+        else
+        {
+            _parallels.push_back(std::make_unique<Entity>(gridLine,
+                MeshBuilder::meridian((double)i, srs)));
+        }
+
     }
 }

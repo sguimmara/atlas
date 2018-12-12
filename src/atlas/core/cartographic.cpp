@@ -16,6 +16,16 @@ Cartographic::Cartographic(double latitude, double longitude, double height) :
 {
 }
 
+double Cartographic::dmsToDD(double d, double m, double s)
+{
+    return d + m / 60 + s / 3600;
+}
+
+Cartographic Cartographic::fromDMS(double latD, double latM, double latS, double lonD, double lonM, double lonS, double height)
+{
+    return Cartographic(dmsToDD(latD, latM, latS), dmsToDD(lonD, lonM, lonS), height);
+}
+
 Cartographic Cartographic::fromDegrees(double latitude, double longitude, double height)
 {
     return Cartographic(latitude * DegToRad, longitude * DegToRad, height);

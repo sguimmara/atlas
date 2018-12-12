@@ -75,6 +75,8 @@ Context::Context(GLFWwindow * window, vk::SurfaceKHR surface,
     auto const surfaceCapabilities = _physicalDevice.getSurfaceCapabilitiesKHR(surface);
     _size = chooseSwapExtent(surfaceCapabilities, window);
     _viewport = vk::Viewport(0, 0, (float)_size.width, (float)_size.height);
+    _viewport.setMaxDepth(1);
+    _viewport.setMinDepth(0);
     auto const presentMode = chooseSwapPresentMode(_physicalDevice.getSurfacePresentModesKHR(surface));
     auto const imageCount = chooseImageCount(surfaceCapabilities);
 
@@ -182,6 +184,8 @@ void Context::beginFrame()
 
 void Context::setViewport(vk::Viewport viewport)
 {
+    viewport.setMaxDepth(1);
+    viewport.setMinDepth(0);
     auto const cmd = _framebuffers[_currentSwapchainImage].cmdBuffer();
     cmd.setViewport(0, 1, &viewport);
 }
