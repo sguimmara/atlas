@@ -25,6 +25,10 @@ namespace atlas::core
 
         inline const Cartographic min() const noexcept { return _min; }
         inline const Cartographic max() const noexcept { return _max; }
+        const Cartographic topLeft() const noexcept;
+        const Cartographic topRight() const noexcept;
+        const Cartographic bottomLeft() const noexcept;
+        const Cartographic bottomRight() const noexcept;
         inline const double width() const noexcept { return std::abs(_max.longitude - _min.longitude); }
         inline const double height() const noexcept { return std::abs(_max.latitude - _min.latitude); }
         inline const double east() const noexcept { return _max.longitude; }

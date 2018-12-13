@@ -53,6 +53,17 @@ std::vector<const Entity*> Globe::entities() const
     return result;
 }
 
+std::vector<const Entity*> Globe::debugEntities() const
+{
+    std::vector<const Entity*> result;
+    result.reserve(_tiles.size());
+    for (auto& t : _tiles)
+    {
+        result.push_back(t.second->debugEntity());
+    }
+    return result;
+}
+
 void Globe::updateQuadtree()
 {
     for (auto& node : *_quadtree)

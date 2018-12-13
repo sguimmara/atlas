@@ -27,7 +27,6 @@ vk::Queue Instance::graphicsQueue = vk::Queue();
 vk::Queue Instance::presentQueue = vk::Queue();
 vk::Queue Instance::computeQueue = vk::Queue();
 vk::Queue Instance::transferQueue = vk::Queue();
-std::string Instance::_shaderDirectory = "";
 VkDebugReportCallbackEXT Instance::_debugCallback = {};
 
 const uint32_t NVIDIA = 0x10DE;
@@ -61,24 +60,6 @@ void Instance::raiseValidationError(const std::string& msg)
 {
     _log->error(msg);
     _exitCode = 1;
-}
-
-std::string Instance::shaderDirectory() noexcept { return _shaderDirectory; }
-
-void Instance::setShaderDirectory(const std::string& path)
-{
-    char last = path[path.size() - 1];
-    if (last != '\\' && last != '/')
-    {
-        _shaderDirectory = path + '/';
-    }
-    else
-    {
-        _shaderDirectory = path;
-    }
-
-    // TODO check if file exists
-    _log->debug("shader directory set to {0}", _shaderDirectory);
 }
 
 bool isSupportedExtension(vk::PhysicalDevice physicalDevice, const char* name)
@@ -398,9 +379,14 @@ void Instance::createDevice()
         _log->debug("enable {0} extension", VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
     }
 
+    auto const features = vk::PhysicalDeviceFeatures()
+        .setFillModeNonSolid(VK_TRUE)
+        .setSampleRateShading(VK_TRUE);
+
     auto deviceInfo = vk::DeviceCreateInfo()
         .setEnabledExtensionCount((uint32_t)extensions.size())
         .setPpEnabledExtensionNames(extensions.data())
+        .setPEnabledFeatures(&features)
         .setQueueCreateInfoCount((uint32_t)queueInfos.size())
         .setPQueueCreateInfos(queueInfos.data());
 
@@ -486,7 +472,7 @@ void Instance::createRenderPass()
     renderPass = device.createRenderPass(renderPassInfo);
 }
 
-void Instance::initialize(GLFWwindow* window)
+void Instance::initialize(GLFWwindow* window, const std::string& shaderDirectory)
 {
     _window = window;
 
@@ -505,7 +491,7 @@ void Instance::initialize(GLFWwindow* window)
     createDevice();
     _surfaceFormat = pickSurfaceFormat(physicalDevice.getSurfaceFormatsKHR(_surface));
     createRenderPass();
-    Pipeline::initialize();
+    Pipeline::initialize(shaderDirectory);
     createContext();
 }
 

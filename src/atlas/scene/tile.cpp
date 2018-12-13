@@ -8,6 +8,10 @@ Tile::Tile(Region region, const SpatialReference& srs) : _region(region)
     _entity = std::make_unique<Entity>(
         std::make_shared<Material>(Pipeline::get("terrain")),
         MeshBuilder::terrain(region, 32, srs));
+
+    _debugEntity = std::make_unique<Entity>(
+        std::make_shared<Material>(Pipeline::get("debug")),
+        MeshBuilder::region(region, srs));
 }
 
 void Tile::setImage(const Image* image)

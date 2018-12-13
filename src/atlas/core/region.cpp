@@ -96,6 +96,26 @@ std::vector<Region> Region::subdivide(size_t xCells, size_t yCell) const noexcep
     return result;
 }
 
+const Cartographic Region::topLeft() const noexcept
+{
+    return Cartographic(_max.latitude, _min.longitude, _min.height);
+}
+
+const Cartographic Region::topRight() const noexcept
+{
+    return Cartographic(_max.latitude, _max.longitude, _min.height);
+}
+
+const Cartographic Region::bottomLeft() const noexcept
+{
+    return Cartographic(_min.latitude, _min.longitude, _min.height);
+}
+
+const Cartographic Region::bottomRight() const noexcept
+{
+    return Cartographic(_min.latitude, _max.longitude, _min.height);
+}
+
 Region Region::northWest() const noexcept
 {
     double w = width() / 2;

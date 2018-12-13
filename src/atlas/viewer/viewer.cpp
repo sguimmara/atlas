@@ -28,8 +28,7 @@ Viewer::Viewer(Parameters params) :
 
     _log->debug("create window");
 
-    Instance::initialize(_window);
-    Instance::setShaderDirectory(params.shaderDirectory);
+    Instance::initialize(_window, params.shaderDirectory);
 
     _scene = std::make_unique<scene::Scene>("main");
 

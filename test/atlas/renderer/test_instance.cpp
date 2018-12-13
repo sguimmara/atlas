@@ -34,9 +34,9 @@ int main(int argc, char* argv[])
 
     Time time;
 
-    Instance::initialize(window);
+    Instance::initialize(window, "C:/Users/sguimmara/Documents/work/c++/atlas4/.build/bin/shaders/");
     {
-        Instance::setShaderDirectory("C:/Users/sguimmara/Documents/work/c++/atlas4/.build/bin/shaders/");
+        //Instance::setShaderDirectory("C:/Users/sguimmara/Documents/work/c++/atlas4/.build/bin/shaders/");
 
         Scene scene("main");
 

@@ -15,7 +15,7 @@ namespace atlas::renderer
     {
     public:
         // Initialize the instance to render on the provided window.
-        static void initialize(GLFWwindow*);
+        static void initialize(GLFWwindow*, const std::string& shaderDirectory);
 
         // Release all Vulkan resources associated with this instance.
         // This should be the last method to be called. A non-zero return value
@@ -32,9 +32,6 @@ namespace atlas::renderer
         static std::unique_ptr<UniformBuffer> getGlobalPropertyBuffer();
 
         static void raiseValidationError(const std::string&);
-
-        static void setShaderDirectory(const std::string&);
-        static std::string shaderDirectory() noexcept;
 
         static vk::PhysicalDevice physicalDevice;
         static vk::Device device;

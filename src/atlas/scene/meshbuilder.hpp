@@ -17,6 +17,7 @@ namespace atlas::scene
     public:
         static std::shared_ptr<renderer::Mesh> terrain(const core::Region&, uint16_t subdivs, const SpatialReference&);
         static std::shared_ptr<renderer::Mesh> bounds(const core::Bounds&);
+        static std::shared_ptr<renderer::Mesh> region(const core::Region&, const SpatialReference&);
         static std::shared_ptr<renderer::Mesh> meridian(double longitude, const SpatialReference&);
         static std::shared_ptr<renderer::Mesh> parallel(double latitude, const SpatialReference&);
         static std::shared_ptr<renderer::Mesh> tripodPyramid();

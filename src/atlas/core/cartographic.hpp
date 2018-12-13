@@ -20,6 +20,7 @@ namespace atlas::core
                                     double height = 0);
         static Cartographic fromDegrees(double latitude, double longitude, double height = 0);
         static Cartographic midpoint(const Cartographic& start, const Cartographic& end);
+        static Cartographic lerp(const Cartographic& from, const Cartographic& to, double t);
     };
 }
 

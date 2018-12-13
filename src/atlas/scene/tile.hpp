@@ -20,6 +20,7 @@ namespace atlas::scene
     public:
         Tile(Region, const SpatialReference&);
 
+        inline const Entity* debugEntity() const noexcept { return _debugEntity.get(); }
         inline const Entity* entity() const noexcept { return _entity.get(); }
         inline const Region region() const noexcept { return _region; }
         void setImage(const Image*);
@@ -28,6 +29,7 @@ namespace atlas::scene
         std::unique_ptr<Texture> _image;
         Region _region;
         std::unique_ptr<Entity> _entity;
+        std::shared_ptr<Entity> _debugEntity;
     };
 }
 

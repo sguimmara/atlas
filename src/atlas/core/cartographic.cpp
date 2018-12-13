@@ -1,4 +1,5 @@
 #include "cartographic.hpp"
+#include "math.hpp"
 
 using namespace atlas::core;
 
@@ -36,6 +37,15 @@ Cartographic Cartographic::midpoint(const Cartographic& start, const Cartographi
     double lat = start.latitude + (end.latitude - start.latitude) * 0.5;
     double lon = start.longitude + (end.longitude - start.longitude) * 0.5;
     double hgt = start.height + (end.height - start.height) * 0.5;
+
+    return Cartographic(lat, lon, hgt);
+}
+
+Cartographic Cartographic::lerp(const Cartographic& from, const Cartographic& to, double t)
+{
+    double lat = Math::lerp(from.latitude, to.latitude, t);
+    double lon = Math::lerp(from.longitude, to.longitude, t);
+    double hgt = Math::lerp(from.height, to.height, t);
 
     return Cartographic(lat, lon, hgt);
 }

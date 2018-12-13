@@ -13,7 +13,7 @@ namespace atlas::renderer
     class Pipeline
     {
     public:
-        static void initialize();
+        static void initialize(const std::string& shaderDirectory);
 
         // returns true if a pipeline with the given name exists.
         static bool exists(const std::string& name);
@@ -48,6 +48,9 @@ namespace atlas::renderer
         static spdlog::logger* getLog();
         static vk::DescriptorSetLayout _globalPropertyLayout;
         static vk::DescriptorSetLayout _entityPropertyLayout;
+        static std::string _shaderDirectory;
+
+        static void createDefaultPipelines();
 
         std::string _json;
         std::string _name;
@@ -57,12 +60,12 @@ namespace atlas::renderer
         vk::ShaderModule _vertexShader;
         vk::DescriptorSetLayout _descriptorSetLayout;
         std::vector<vk::VertexInputAttributeDescription> _attributes;
+        std::unordered_set<BindingInfo> _bindings;
+
         vk::DescriptorSetLayoutBinding getSampler(const spirv_cross::Compiler&, const spirv_cross::Resource&, const vk::ShaderStageFlagBits&);
         vk::DescriptorSetLayoutBinding getUniform(const spirv_cross::Compiler&, const spirv_cross::Resource&, const vk::ShaderStageFlagBits&);
         std::vector<vk::DescriptorSetLayoutBinding> getLayout(const spirv_cross::Compiler&, const spirv_cross::ShaderResources&, const vk::ShaderStageFlagBits&);
         void add(BindingInfo u) noexcept;
-
-        std::unordered_set<BindingInfo> _bindings;
     };
 }
 

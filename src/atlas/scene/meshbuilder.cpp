@@ -93,6 +93,49 @@ std::shared_ptr<Mesh> MeshBuilder::bounds(const Bounds& bounds)
     return std::make_shared<Mesh>(vertices, indices);
 }
 
+std::shared_ptr<Mesh> MeshBuilder::region(const Region& region, const SpatialReference& srs)
+{
+    std::vector<Vertex> vertices;
+    std::vector<uint16_t> indices;
+
+    size_t subdivs = 6;
+    double step = 1.0 / subdivs;
+
+    // north row
+    double t = 0;
+    for (size_t i = 0; i < subdivs; i++)
+    {
+        vertices.push_back(Vertex{ srs.position(Cartographic::lerp(region.topLeft(), region.topRight(), t)) });
+        t += step;
+    }
+    // east column
+    t = 0;
+    for (size_t i = 0; i < subdivs; i++)
+    {
+        vertices.push_back(Vertex{ srs.position(Cartographic::lerp(region.topRight(), region.bottomRight(), t)) });
+        t += step;
+    }
+    // south row
+    t = 0;
+    for (size_t i = 0; i < subdivs; i++)
+    {
+        vertices.push_back(Vertex{ srs.position(Cartographic::lerp(region.bottomRight(), region.bottomLeft(), t)) });
+        t += step;
+    }
+    // west column
+    t = 0;
+    for (size_t i = 0; i < subdivs; i++)
+    {
+        vertices.push_back(Vertex{ srs.position(Cartographic::lerp(region.bottomLeft(), region.topLeft(), t)) });
+        t += step;
+    }
+
+    vertices.push_back(vertices[0]);
+    auto result = std::make_shared<Mesh>(vertices, indices);
+    result->topology = vk::PrimitiveTopology::eLineStrip;
+    return result;
+}
+
 std::shared_ptr<Mesh> MeshBuilder::meridian(double longitude, const SpatialReference& srs)
 {
     const size_t subdivs = 180;

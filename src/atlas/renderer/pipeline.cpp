@@ -12,6 +12,7 @@ using namespace spirv_cross;
 
 std::unordered_map<std::string, std::shared_ptr<Pipeline>> Pipeline::_cache;
 std::shared_ptr<spdlog::logger> Pipeline::_log = nullptr;
+std::string Pipeline::_shaderDirectory = "";
 vk::DescriptorSetLayout Pipeline::_globalPropertyLayout;
 vk::DescriptorSetLayout Pipeline::_entityPropertyLayout;
 
@@ -56,8 +57,21 @@ const std::unordered_map<std::string, InputInfo> recognizedInputsVS
     { "in_st",       { sizeof(glm::vec2), 2, SPIRType::BaseType::Float, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, st) } }
 };
 
-void Pipeline::initialize()
+void Pipeline::initialize(const std::string& shaderDirectory)
 {
+    char last = shaderDirectory[shaderDirectory.size() - 1];
+    if (last != '\\' && last != '/')
+    {
+        _shaderDirectory = shaderDirectory + '/';
+    }
+    else
+    {
+        _shaderDirectory = shaderDirectory;
+    }
+
+    // TODO check if file exists
+    getLog()->debug("shader directory set to {0}", _shaderDirectory);
+
     auto binding = vk::DescriptorSetLayoutBinding()
         .setBinding(0)
         .setDescriptorCount(1)
@@ -81,6 +95,8 @@ void Pipeline::initialize()
         .setPBindings(&instanceBinding);
 
     _entityPropertyLayout = Instance::device.createDescriptorSetLayout(instanceLayoutInfo);
+
+    createDefaultPipelines();
 }
 
 bool Pipeline::exists(const std::string& name)
@@ -115,6 +131,23 @@ spdlog::logger* Pipeline::getLog()
         _log = spdlog::stdout_color_mt("pipeline");
     }
     return _log.get();
+}
+
+void Pipeline::createDefaultPipelines()
+{
+    create(R"%(
+        {
+            "name": "debug",
+            "vertex": "default.vert.spv",
+            "fragment": "debug.frag.spv",
+            "assemblyState": {
+                "topology": "lineStrip"
+            },
+            "rasterizer": {
+                "frontFace": "ccw",
+                "polygonMode": "line"
+            }
+        })%");
 }
 
 vk::ShaderModule createShaderModule(std::vector<char> code)
@@ -242,11 +275,13 @@ vk::PipelineMultisampleStateCreateInfo defaultMultisampleState()
         .setRasterizationSamples(vk::SampleCountFlagBits::e1);
 }
 
-vk::PipelineViewportStateCreateInfo defaultViewportState(vk::Viewport viewport)
+vk::PipelineViewportStateCreateInfo defaultViewportState()
 {
     auto const scissor = vk::Rect2D(
         vk::Offset2D(0, 0),
-        vk::Extent2D(static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)));
+        vk::Extent2D(100, 100));
+
+    auto const viewport = vk::Viewport(0, 0, 1, 1);
 
     return vk::PipelineViewportStateCreateInfo()
         .setPScissors(&scissor)
@@ -509,8 +544,8 @@ Pipeline::Pipeline(const std::string& json) :
     if (reader->parse(json.c_str(), json.c_str() + json.size(), &root, &errs))
     {
         _name = root["name"].asString();
-        auto const vertexShaderPath = Instance::shaderDirectory() + root["vertex"].asString();
-        auto const fragmentShaderPath = Instance::shaderDirectory() + root["fragment"].asString();
+        auto const vertexShaderPath = _shaderDirectory + root["vertex"].asString();
+        auto const fragmentShaderPath = _shaderDirectory + root["fragment"].asString();
 
         auto const vsSpirv = atlas::io::Utils::read(vertexShaderPath);
         auto const fsSpirv = atlas::io::Utils::read(fragmentShaderPath);
@@ -557,7 +592,7 @@ Pipeline::Pipeline(const std::string& json) :
         const auto rasterizer = parseRasterizer(root["rasterizer"]);
         const auto stencil = defaultStencilState();
         const auto msaa = defaultMultisampleState();
-        const auto viewportState = defaultViewportState(Instance::context()->viewport());
+        const auto viewportState = defaultViewportState();
 
         // shader stages
         auto const vsInfo = vk::PipelineShaderStageCreateInfo()

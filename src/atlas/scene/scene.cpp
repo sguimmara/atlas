@@ -57,6 +57,10 @@ void Scene::render(const Time& time)
                     layer->update();
                     for (auto const& entity : layer->entities())
                     {
+                        //drawEntity(ctx, *entity, *view);
+                    }
+                    for (auto const& entity : layer->debugEntities())
+                    {
                         drawEntity(ctx, *entity, *view);
                     }
                 }

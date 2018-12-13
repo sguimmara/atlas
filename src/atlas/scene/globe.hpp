@@ -36,6 +36,7 @@ namespace atlas::scene
         void update() override;
 
         std::vector<const Entity*> entities() const override;
+        std::vector<const Entity*> debugEntities() const override;
 
     private:
         SpatialReference* _srs;

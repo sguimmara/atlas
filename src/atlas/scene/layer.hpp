@@ -21,6 +21,10 @@ namespace atlas::scene
             return std::vector<const Entity*>();
         }
 
+        virtual std::vector<const Entity*> debugEntities() const {
+            return std::vector<const Entity*>();
+        }
+
         virtual void update() {}
 
         // determines whether the layer should be drawn or not.
