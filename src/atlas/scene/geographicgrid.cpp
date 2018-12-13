@@ -35,7 +35,6 @@ void GeographicGrid::createEntities()
             }
         })%");
 
-    // TODO
     auto equator = Material::create("grid");
     equator->properties().color = vec4(1, 0, 0, 1);
     equator->update();

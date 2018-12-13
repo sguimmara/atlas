@@ -15,6 +15,8 @@ namespace atlas::scene
         Layer(std::string name) : _name(name) {}
         virtual ~Layer() {}
 
+        inline std::string name() const noexcept { return _name; }
+
         virtual std::vector<const Entity*> entities() const {
             return std::vector<const Entity*>();
         }

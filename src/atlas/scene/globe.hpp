@@ -26,6 +26,9 @@ namespace atlas::scene
         Globe(Globe&&) = delete;
         Globe(SpatialReference*);
 
+        // Sets the current image source for the globe.
+        void setImageSource(ImageSource*);
+
         // performs an update cycle :
         // 1. the quadtree is updated with the view position
         // 2. newly created terrain tiles are generated
@@ -39,7 +42,7 @@ namespace atlas::scene
         std::unique_ptr<Image> _defaultImage;
         std::vector<std::future<Response<Image>>> _imageRequests;
         std::unique_ptr<Quadtree> _quadtree;
-        std::shared_ptr<ImageSource> _imageSource;
+        ImageSource* _imageSource;
         std::unordered_map<QuadtreeNode::Key, std::shared_ptr<Tile>> _tiles;
         
         void updateQuadtree();

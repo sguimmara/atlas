@@ -8,6 +8,7 @@
 #include "atlas/renderer/instance.hpp"
 #include "atlas/renderer/pipeline.hpp"
 #include "atlas/renderer/context.hpp"
+#include "atlas/io/fileimagesource.hpp"
 #include "entity.hpp"
 #include "globe.hpp"
 #include "view.hpp"
@@ -19,6 +20,7 @@
 namespace atlas::scene
 {
     using namespace atlas::core::srs;
+    using namespace atlas::io;
 
     class Scene
     {
@@ -26,6 +28,11 @@ namespace atlas::scene
         Scene(std::string name);
         ~Scene();
         void render(const Time&);
+
+        Globe* globe() const noexcept;
+
+        // Returns a pointer to the layer with the given name if any, null otherwise.
+        Layer* getLayer(const std::string&) const;
     private:
         std::string _name;
         std::unique_ptr<SpatialReference> _srs;
@@ -33,6 +40,8 @@ namespace atlas::scene
 
         std::vector<std::unique_ptr<Layer>> _layers;
         std::vector<std::unique_ptr<View>> _views;
+
+        std::unique_ptr<ImageSource> _TMP_ImageSource;
 
         void setupView(View&, const Time&);
         void drawEntity(atlas::renderer::Context* ctx, const Entity& entity, View& view);

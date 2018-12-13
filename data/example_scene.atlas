@@ -1,0 +1,24 @@
+{
+    "scenes": [
+        {
+            "name": "main",
+            "srs": "ecef",
+            "active": true,
+            "layers": [
+                {
+                    "name": "globe",
+                    "type": "Globe",
+                    "imageSource":
+                    {
+                        "type": "FileImageSource",
+                        "file": "C:\\Users\\sguimmara\\Documents\\work\\c++\\atlas\\images\\Earth.jpg"
+                    }
+                },
+                {
+                    "name": "grid",
+                    "type": "Grid"
+                }
+            ]
+        }
+    ]
+}

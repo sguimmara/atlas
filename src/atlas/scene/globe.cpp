@@ -18,9 +18,6 @@ Globe::Globe(SpatialReference* srs) :
 {
     _defaultImage = std::make_unique<Image>(8, 8, ImageFormat::RGBA32);
 
-    // TODO: inject
-    _imageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Documents/work/c++/atlas/images/blue_marble.jpg");
-
     if (!Pipeline::exists("terrain"))
     {
         Pipeline::create(R"%(
@@ -30,6 +27,12 @@ Globe::Globe(SpatialReference* srs) :
             "fragment": "terrain.frag.spv"
         })%");
     }
+}
+
+void Globe::setImageSource(ImageSource* src)
+{
+    _imageRequests.clear();
+    _imageSource = src;
 }
 
 void Globe::update()

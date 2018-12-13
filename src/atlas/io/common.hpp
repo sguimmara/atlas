@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <cmath>
 #include "atlas/core/constants.hpp"
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
 using namespace glm;
 

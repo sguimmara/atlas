@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "framebuffer.hpp"
+#include "viewport.hpp"
 #include "mesh.hpp"
 #include "material.hpp"
 #include "globalproperties.hpp"
@@ -20,7 +21,7 @@ namespace atlas::renderer
         inline const vk::Viewport viewport() const noexcept { return _viewport; }
 
         void beginFrame();
-        void setViewport(vk::Viewport);
+        void setViewport(const Viewport&);
         void bind(Pipeline*);
         void draw(vk::DescriptorSet globals, vk::DescriptorSet instanceSet, vk::DescriptorSet materialSet, const Mesh & mesh);
         void endFrame();

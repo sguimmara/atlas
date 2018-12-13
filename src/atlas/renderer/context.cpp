@@ -182,12 +182,18 @@ void Context::beginFrame()
     }
 }
 
-void Context::setViewport(vk::Viewport viewport)
+void Context::setViewport(const Viewport& viewport)
 {
-    viewport.setMaxDepth(1);
-    viewport.setMinDepth(0);
+    auto vp = vk::Viewport()
+        .setX(_viewport.width * viewport.x)
+        .setY(_viewport.height * viewport.y)
+        .setWidth(_viewport.width * viewport.width)
+        .setHeight(_viewport.height * viewport.height)
+        .setMinDepth(0)
+        .setMaxDepth(1);
+
     auto const cmd = _framebuffers[_currentSwapchainImage].cmdBuffer();
-    cmd.setViewport(0, 1, &viewport);
+    cmd.setViewport(0, 1, &vp);
 }
 
 void Context::bind(Pipeline* pipeline)
