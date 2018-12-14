@@ -32,6 +32,8 @@ Viewer::Viewer(Parameters params) :
 
     _scene = std::make_unique<scene::Scene>("main");
 
+    _scene->getLayer("grid")->setActive(false);
+
     _sessionStart = std::chrono::steady_clock::now();
 }
 

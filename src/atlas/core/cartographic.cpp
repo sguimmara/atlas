@@ -10,24 +10,24 @@ Cartographic::Cartographic() :
 {
 }
 
-Cartographic::Cartographic(double latitude, double longitude, double height) :
+Cartographic::Cartographic(rad latitude, rad longitude, meters height) :
     latitude(latitude),
     longitude(longitude),
     height(height)
 {
 }
 
-double Cartographic::dmsToDD(double d, double m, double s)
+double Cartographic::dmsToDD(deg d, deg m, deg s)
 {
     return d + m / 60 + s / 3600;
 }
 
-Cartographic Cartographic::fromDMS(double latD, double latM, double latS, double lonD, double lonM, double lonS, double height)
+Cartographic Cartographic::fromDMS(deg latD, deg latM, deg latS, deg lonD, deg lonM, deg lonS, meters height)
 {
     return Cartographic(dmsToDD(latD, latM, latS), dmsToDD(lonD, lonM, lonS), height);
 }
 
-Cartographic Cartographic::fromDegrees(double latitude, double longitude, double height)
+Cartographic Cartographic::fromDegrees(deg latitude, deg longitude, meters height)
 {
     return Cartographic(latitude * DegToRad, longitude * DegToRad, height);
 }

@@ -11,7 +11,7 @@ namespace atlas::core
     public:
         Region();
         Region(Cartographic min, Cartographic max);
-        Region(Cartographic min, double width, double height);
+        Region(Cartographic min, rad width, meters height);
 
         static Region combine(Region a, Region b);
         static Region world();
@@ -19,6 +19,9 @@ namespace atlas::core
         void expand(Region& other);
         bool intersects(Region& other);
         bool contains(Cartographic point);
+
+        // returns a region whose altitudes are raised by the specified amount.
+        Region raise(meters height) const noexcept;
 
         // subdivide the region in a grid of x horizontal cells in width, and y vertical cells.
         std::vector<Region> subdivide(size_t x, size_t y) const noexcept;

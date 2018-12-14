@@ -3,7 +3,6 @@
 
 #include "common.hpp"
 #include "entity.hpp"
-#include "atlas/core/quadtreenode.hpp"
 #include "atlas/core/srs/spatialreference.hpp"
 #include "atlas/core/region.hpp"
 #include "atlas/core/image.hpp"

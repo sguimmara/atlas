@@ -1,5 +1,4 @@
 #include "atlas/renderer/instance.hpp"
-#include "atlas/core/quadtree.hpp"
 #include "atlas/renderer/pipeline.hpp"
 #include "atlas/renderer/mesh.hpp"
 #include "atlas/scene/entity.hpp"

@@ -2,7 +2,7 @@
 #define ATLAS_SCENE_GLOBE_HPP
 
 #include "atlas/core/srs/spatialreference.hpp"
-#include "atlas/core/quadtree.hpp"
+#include "atlas/core/spatialindex/quadtree.hpp"
 #include "atlas/io/imagesource.hpp"
 #include "atlas/renderer/material.hpp"
 #include "entity.hpp"
@@ -13,6 +13,7 @@
 namespace atlas::scene
 {
     using namespace atlas::core;
+    using namespace atlas::core::spatialindex;
     using namespace atlas::core::srs;
     using namespace atlas::io;
     using namespace atlas::renderer;

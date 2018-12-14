@@ -11,7 +11,7 @@ Tile::Tile(Region region, const SpatialReference& srs) : _region(region)
 
     _debugEntity = std::make_unique<Entity>(
         std::make_shared<Material>(Pipeline::get("debug")),
-        MeshBuilder::region(region, srs));
+        MeshBuilder::region(region.raise(0.01), srs));
 }
 
 void Tile::setImage(const Image* image)

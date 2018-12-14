@@ -17,8 +17,6 @@ namespace atlas::renderer
         Mesh(std::vector<Vertex>, std::vector<uint16_t>);
         ~Mesh();
 
-        vk::PrimitiveTopology topology;
-
         inline core::Bounds bounds() const noexcept { return _bounds; }
         inline vk::Buffer buffer() const noexcept { return _buffer; }
 

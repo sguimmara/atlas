@@ -4,6 +4,7 @@
 #include "atlas/io/fileimagesource.hpp"
 
 using namespace atlas::core;
+using namespace atlas::core::spatialindex;
 using namespace atlas::core::srs;
 using namespace atlas::scene;
 using namespace atlas::renderer;
@@ -13,7 +14,7 @@ Globe::Globe() : Layer("globe")
 
 Globe::Globe(SpatialReference* srs) :
     _srs(srs),
-    _quadtree(std::make_unique<Quadtree>(Region::world(), 8, 4)),
+    _quadtree(std::make_unique<Quadtree>(Region::world(), 2, 1)),
     Layer("globe")
 {
     _defaultImage = std::make_unique<Image>(8, 8, ImageFormat::RGBA32);
@@ -64,25 +65,49 @@ std::vector<const Entity*> Globe::debugEntities() const
     return result;
 }
 
+bool arbitraryEvaluator(const QuadtreeNode& node)
+{
+    return node.key().depth() < 3;
+
+    if (node.key().depth() > 3)
+    {
+        return false;
+    }
+    else if (node.key().depth() < 3)
+    {
+        return true;
+    }
+    else
+    {
+        return node.key().row() % 2 == 0;
+    }
+}
+
 void Globe::updateQuadtree()
 {
+    _quadtree->evaluate(arbitraryEvaluator);
+
+    auto list = std::vector<QuadtreeNode::Key> ();
+
     for (auto& node : *_quadtree)
     {
+        // TODO cleanup this debug list
+        list.push_back(node.key());
+
         if (node.isleaf())
         {
             // first, create the tile if it doesn't exist
             if (_tiles.count(node.key()) == 0)
             {
-                auto k = node.key();
                 auto r = node.region();
 
-                auto tile = std::make_shared<Tile>(node.region(), *_srs);
+                auto tile = std::make_shared<Tile>(r, *_srs);
 
                 tile->setImage(_defaultImage.get());
 
                 // request its image
                 _imageRequests.push_back(
-                    _imageSource->get(Request<Region>(node.region(), tile.get())));
+                    _imageSource->get(Request<Region>(r, tile.get())));
 
                 _tiles.insert({ node.key(), std::move(tile) });
             }

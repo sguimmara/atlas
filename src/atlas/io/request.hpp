@@ -1,6 +1,7 @@
 #ifndef ATLAS_IO_IMAGEREQUEST_HPP
 #define ATLAS_IO_IMAGEREQUEST_HPP
 
+#include "atlas/core/common.hpp"
 #include "atlas/core/region.hpp"
 
 namespace atlas::io

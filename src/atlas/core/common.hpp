@@ -8,4 +8,14 @@
 
 using namespace glm;
 
+// alias for double
+using meters = double;
+
+// radians
+using rad = double;
+
+using deg = double;
+
+using pixels = size_t;
+
 #endif // ATLAS_CORE_COMMON_HPP

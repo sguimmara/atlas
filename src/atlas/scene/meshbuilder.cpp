@@ -98,7 +98,7 @@ std::shared_ptr<Mesh> MeshBuilder::region(const Region& region, const SpatialRef
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
 
-    size_t subdivs = 6;
+    size_t subdivs = 16;
     double step = 1.0 / subdivs;
 
     // north row
@@ -132,7 +132,6 @@ std::shared_ptr<Mesh> MeshBuilder::region(const Region& region, const SpatialRef
 
     vertices.push_back(vertices[0]);
     auto result = std::make_shared<Mesh>(vertices, indices);
-    result->topology = vk::PrimitiveTopology::eLineStrip;
     return result;
 }
 
@@ -143,13 +142,12 @@ std::shared_ptr<Mesh> MeshBuilder::meridian(double longitude, const SpatialRefer
     std::vector<uint16_t> indices(0);
     for (int i = -90; i < 90; i++)
     {
-        Vertex v{ srs.position(Cartographic::fromDegrees((double)i, longitude, 0)) };
+        Vertex v{ srs.position(Cartographic::fromDegrees((double)i, longitude, 0.01)) };
         vertices[i+90] = v;
     }
     vertices[subdivs] = vertices[0];
 
     auto result = std::make_shared<Mesh>(vertices, indices);
-    result->topology = vk::PrimitiveTopology::eLineStrip;
     return result;
 }
 
@@ -160,13 +158,12 @@ std::shared_ptr<Mesh> MeshBuilder::parallel(double latitude, const SpatialRefere
     std::vector<uint16_t> indices(0);
     for (size_t i = 0; i < subdivs; i++)
     {
-        Vertex v{ srs.position(Cartographic::fromDegrees(latitude, (double)i, 0)) };
+        Vertex v{ srs.position(Cartographic::fromDegrees(latitude, (double)i, 0.01)) };
         vertices[i] = v;
     }
     vertices[subdivs] = vertices[0];
 
     auto result = std::make_shared<Mesh>(vertices, indices);
-    result->topology = vk::PrimitiveTopology::eLineStrip;
     return result;
 }
 

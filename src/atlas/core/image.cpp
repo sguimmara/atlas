@@ -76,14 +76,14 @@ Image::Image(Image&& other) :
     other._height = 0;
 }
 
-Image::Image(size_t width, size_t height, ImageFormat format, std::vector<char> data) :
+Image::Image(pixels width, pixels height, ImageFormat format, std::vector<char> data) :
     _width(width),
     _height(height),
     _format(format),
     _data(std::make_unique<std::vector<char>>(data))
 {}
 
-Image::Image(size_t width, size_t height, ImageFormat format) :
+Image::Image(pixels width, pixels height, ImageFormat format) :
     _width(width),
     _height(height),
     _format(format)

@@ -12,13 +12,13 @@ namespace atlas::core
         double height;
 
         Cartographic();
-        Cartographic(double latitude, double longitude, double height = 0);
+        Cartographic(rad latitude, rad longitude, meters height = 0);
 
-        static double dmsToDD(double d, double m, double s);
-        static Cartographic fromDMS(double latD, double latM, double latS,
-                                    double lonD, double lonM, double lonS,
-                                    double height = 0);
-        static Cartographic fromDegrees(double latitude, double longitude, double height = 0);
+        static double dmsToDD(deg d, deg m, deg s);
+        static Cartographic fromDMS(deg latD, deg latM, deg latS,
+                                    deg lonD, deg lonM, deg lonS,
+                                    meters height = 0);
+        static Cartographic fromDegrees(deg latitude, deg longitude, meters height = 0);
         static Cartographic midpoint(const Cartographic& start, const Cartographic& end);
         static Cartographic lerp(const Cartographic& from, const Cartographic& to, double t);
     };

@@ -55,8 +55,7 @@ void GeographicGrid::createEntities()
     polarCircle->properties().color = vec4(0.9, 0.9, 1, 1);
     polarCircle->update();
 
-    // TODO replace with proper height management in referential
-    auto srs = Ellipsoid::spherical(1.001f);
+    auto srs = Ellipsoid::unitSphere();
 
     _parallels.push_back(std::make_unique<Entity>(equator,
         MeshBuilder::parallel(0, srs)));

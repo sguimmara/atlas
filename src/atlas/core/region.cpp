@@ -17,7 +17,7 @@ Region::Region(Cartographic min, Cartographic max) :
     }
 }
 
-Region::Region(Cartographic min, double width, double height) :
+Region::Region(Cartographic min, rad width, meters height) :
     _min(min),
     _max(Cartographic(min.latitude + height, min.longitude + width))
 {
@@ -71,6 +71,15 @@ bool Region::contains(Cartographic point)
         && _max.latitude >= point.latitude;
 }
 
+Region Region::raise(meters height) const noexcept
+{
+    auto min = _min;
+    min.height += height;
+    auto max = _max;
+    max.height += height;
+    return Region(min, max);
+}
+
 std::vector<Region> Region::subdivide(size_t xCells, size_t yCell) const noexcept
 {
     auto result = std::vector<Region>();
@@ -118,29 +127,29 @@ const Cartographic Region::bottomRight() const noexcept
 
 Region Region::northWest() const noexcept
 {
-    double w = width() / 2;
-    double h = height() / 2;
+    rad w = width() / 2;
+    rad h = height() / 2;
     return Region(Cartographic(south() + h, west()), w, h);
 }
 
 Region Region::northEast() const noexcept
 {
-    double w = width() / 2;
-    double h = height() / 2;
+    rad w = width() / 2;
+    rad h = height() / 2;
     return Region(Cartographic(south() + h, west() + w), w, h);
 }
 
 Region Region::southWest() const noexcept
 {
-    double w = width() / 2;
-    double h = height() / 2;
+    rad w = width() / 2;
+    rad h = height() / 2;
     return Region(Cartographic(south(), west()), w, h);
 }
 
 Region Region::southEast() const noexcept
 {
-    double w = width() / 2;
-    double h = height() / 2;
+    rad w = width() / 2;
+    rad h = height() / 2;
     return Region(Cartographic(south(), west() + w), w, h);
 }
 

@@ -1,6 +1,7 @@
 #include "quadtreenode.hpp"
 
 using namespace atlas::core;
+using namespace atlas::core::spatialindex;
 
 QuadtreeNode::QuadtreeNode(Region region, Key coord, QuadtreeNode* parent) :
     _key(coord),
@@ -16,9 +17,9 @@ void QuadtreeNode::subdivide(uint32_t x, uint32_t y)
 
     _children.clear();
 
-    uint32_t col = _key.col * 2;
-    uint32_t row = _key.row * 2;
-    uint32_t depth = _key.depth + 1;
+    uint32_t col = _key.col() * 2;
+    uint32_t row = _key.row() * 2;
+    uint32_t depth = _key.depth() + 1;
 
     auto subregions = _region.subdivide(x, y);
 
@@ -27,7 +28,7 @@ void QuadtreeNode::subdivide(uint32_t x, uint32_t y)
         for (uint32_t j = 0; j < y; j++)
         {
             auto const subregion = subregions[i + j * x];
-            auto const coord = Key{ col + i, row + j, depth };
+            auto const coord = Key(col + i, row + j, depth);
             _children.emplace_back(std::make_unique<QuadtreeNode>(subregion, coord, this));
         }
     }
@@ -45,14 +46,14 @@ void QuadtreeNode::split()
 {
     if (_children.empty())
     {
-        uint32_t col = _key.col * 2;
-        uint32_t row = _key.row * 2;
-        uint32_t depth = _key.depth + 1;
+        uint32_t col = _key.col() * 2;
+        uint32_t row = _key.row() * 2;
+        uint32_t depth = _key.depth() + 1;
 
-        QuadtreeNode* nw = new QuadtreeNode(_region.northWest(), { col, row, depth }, this);
-        QuadtreeNode* ne = new QuadtreeNode(_region.northEast(), { col + 1, row, depth }, this);
-        QuadtreeNode* sw = new QuadtreeNode(_region.southWest(), { col, row, depth }, this);
-        QuadtreeNode* se = new QuadtreeNode(_region.northEast(), { col + 1, row + 1, depth }, this);
+        QuadtreeNode* nw = new QuadtreeNode(_region.northWest(), Key(col, row, depth), this);
+        QuadtreeNode* ne = new QuadtreeNode(_region.northEast(), Key(col + 1, row, depth), this);
+        QuadtreeNode* sw = new QuadtreeNode(_region.southWest(), Key(col, row + 1, depth), this);
+        QuadtreeNode* se = new QuadtreeNode(_region.southEast(), Key(col + 1, row + 1, depth), this);
 
         nw->_rightSibling = ne;
         ne->_rightSibling = sw;
@@ -75,6 +76,18 @@ void QuadtreeNode::split()
     }
 }
 
+void QuadtreeNode::evaluate(std::function<bool(const QuadtreeNode&)> predicate)
+{
+    if (predicate(*this))
+    {
+        split();
+        for (auto& child : _children)
+        {
+            child->evaluate(predicate);
+        }
+    }
+}
+
 QuadtreeNode::iterator::iterator(QuadtreeNode * current) : _current(current)
 {}
 
@@ -85,19 +98,29 @@ void QuadtreeNode::iterator::operator++()
         return;
     }
 
-    if (_current->isleaf())
+    if (!_current->_parent && _current->isleaf())
+    {
+        _current = nullptr;
+    }
+    else if (_current->isleaf())
     {
         if (_current->_rightSibling)
         {
             _current = _current->_rightSibling;
         }
-        else
+        else if (_current->_parent->_rightSibling)
         {
             _current = _current->_parent->_rightSibling;
+        }
+        else
+        {
+            _current = nullptr;
         }
     }
     else
     {
         _current = _current->_children[0].get();
     }
+
+
 }
