@@ -29,4 +29,7 @@ void main()
 
     fragColor = (color * lambertian * lightIntensity) +
     (lightIntensity * finalSpecular * lightColor);
+
+    // TODO only for debugging
+    fragColor = color;
 }

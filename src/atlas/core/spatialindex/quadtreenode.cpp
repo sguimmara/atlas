@@ -3,11 +3,9 @@
 using namespace atlas::core;
 using namespace atlas::core::spatialindex;
 
-QuadtreeNode::QuadtreeNode(Region region, Key coord, QuadtreeNode* parent) :
+QuadtreeNode::QuadtreeNode(Region region, Key coord) :
     _key(coord),
-    _region(region),
-    _parent(parent),
-    _rightSibling(nullptr)
+    _region(region)
 {}
 
 void QuadtreeNode::subdivide(uint32_t x, uint32_t y)
@@ -29,15 +27,9 @@ void QuadtreeNode::subdivide(uint32_t x, uint32_t y)
         {
             auto const subregion = subregions[i + j * x];
             auto const coord = Key(col + i, row + j, depth);
-            _children.emplace_back(std::make_unique<QuadtreeNode>(subregion, coord, this));
+            _children.emplace_back(subregion, coord);
         }
     }
-
-    for (size_t i = 0; i < _children.size() - 1; i++)
-    {
-        _children[i]->_rightSibling = _children[i + 1].get();
-    }
-    _children[_children.size() - 1]->_rightSibling = nullptr;
 
     assert(_children.size() == x * y);
 }
@@ -50,20 +42,10 @@ void QuadtreeNode::split()
         uint32_t row = _key.row() * 2;
         uint32_t depth = _key.depth() + 1;
 
-        QuadtreeNode* nw = new QuadtreeNode(_region.northWest(), Key(col, row, depth), this);
-        QuadtreeNode* ne = new QuadtreeNode(_region.northEast(), Key(col + 1, row, depth), this);
-        QuadtreeNode* sw = new QuadtreeNode(_region.southWest(), Key(col, row + 1, depth), this);
-        QuadtreeNode* se = new QuadtreeNode(_region.southEast(), Key(col + 1, row + 1, depth), this);
-
-        nw->_rightSibling = ne;
-        ne->_rightSibling = sw;
-        sw->_rightSibling = se;
-        se->_rightSibling = nullptr;
-
-        _children.push_back(std::unique_ptr<QuadtreeNode>(nw));
-        _children.push_back(std::unique_ptr<QuadtreeNode>(ne));
-        _children.push_back(std::unique_ptr<QuadtreeNode>(sw));
-        _children.push_back(std::unique_ptr<QuadtreeNode>(se));
+        _children.emplace_back(_region.northWest(), Key(col, row, depth));
+        _children.emplace_back(_region.northEast(), Key(col + 1, row, depth));
+        _children.emplace_back(_region.southWest(), Key(col, row + 1, depth));
+        _children.emplace_back(_region.southEast(), Key(col + 1, row + 1, depth));
     }
     else
     {
@@ -71,56 +53,60 @@ void QuadtreeNode::split()
 
         for (auto& child : _children)
         {
-            child->split();
+            child.split();
         }
     }
 }
 
 void QuadtreeNode::evaluate(std::function<bool(const QuadtreeNode&)> predicate)
 {
+    clear();
     if (predicate(*this))
     {
         split();
-        for (auto& child : _children)
-        {
-            child->evaluate(predicate);
-        }
+        evaluateChildren(predicate);
     }
 }
 
-QuadtreeNode::iterator::iterator(QuadtreeNode * current) : _current(current)
-{}
+void QuadtreeNode::evaluateChildren(std::function<bool(const QuadtreeNode&)> predicate)
+{
+    for (auto& child : _children)
+    {
+        child.evaluate(predicate);
+    }
+}
+
+QuadtreeNode::iterator::iterator(QuadtreeNode * current) :
+    _current(current)
+{
+    _stack.emplace(current, 0);
+}
 
 void QuadtreeNode::iterator::operator++()
 {
-    if (!_current)
+    if (_current->isleaf())
     {
-        return;
-    }
-
-    if (!_current->_parent && _current->isleaf())
-    {
-        _current = nullptr;
-    }
-    else if (_current->isleaf())
-    {
-        if (_current->_rightSibling)
+        if (_stack.empty())
         {
-            _current = _current->_rightSibling;
-        }
-        else if (_current->_parent->_rightSibling)
-        {
-            _current = _current->_parent->_rightSibling;
+            // end of iterator
+            _current = nullptr;
+            return;
         }
         else
         {
-            _current = nullptr;
+            auto top = _stack.top();
+            _stack.pop();
+            top.second++;
+            if (top.second < top.first->_children.size())
+            {
+                _stack.push(top);
+                _current = &top.first->_children[top.second];
+            }
         }
     }
     else
     {
-        _current = _current->_children[0].get();
+        _stack.push({ _current, 0 });
+        _current = &_current->_children[0];
     }
-
-
 }

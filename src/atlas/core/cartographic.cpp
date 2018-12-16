@@ -24,7 +24,7 @@ double Cartographic::dmsToDD(deg d, deg m, deg s)
 
 Cartographic Cartographic::fromDMS(deg latD, deg latM, deg latS, deg lonD, deg lonM, deg lonS, meters height)
 {
-    return Cartographic(dmsToDD(latD, latM, latS), dmsToDD(lonD, lonM, lonS), height);
+    return Cartographic(radians(dmsToDD(latD, latM, latS)), radians(dmsToDD(lonD, lonM, lonS)), height);
 }
 
 Cartographic Cartographic::fromDegrees(deg latitude, deg longitude, meters height)

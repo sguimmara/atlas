@@ -49,7 +49,10 @@ std::vector<const Entity*> Globe::entities() const
     result.reserve(_tiles.size());
     for (auto& t : _tiles)
     {
-        result.push_back(t.second->entity());
+        if (t.second->visible())
+        {
+            result.push_back(t.second->entity());
+        }
     }
     return result;
 }
@@ -60,42 +63,40 @@ std::vector<const Entity*> Globe::debugEntities() const
     result.reserve(_tiles.size());
     for (auto& t : _tiles)
     {
-        result.push_back(t.second->debugEntity());
+        if (t.second->visible())
+        {
+            result.push_back(t.second->debugEntity());
+        }
     }
     return result;
 }
 
+static size_t foo = 0;
 bool arbitraryEvaluator(const QuadtreeNode& node)
 {
-    return node.key().depth() < 3;
-
-    if (node.key().depth() > 3)
+    if (node.key().depth() < 2)
     {
-        return false;
-    }
-    else if (node.key().depth() < 3)
-    {
-        return true;
+        return foo % 2 == 0;
+        //return std::rand() % 3 == 0;
     }
     else
     {
-        return node.key().row() % 2 == 0;
+        return false;
     }
 }
 
 void Globe::updateQuadtree()
 {
+    foo++;
     _quadtree->evaluate(arbitraryEvaluator);
 
-    auto list = std::vector<QuadtreeNode::Key> ();
+    auto list = std::vector<QuadtreeNode>();
 
     for (auto& node : *_quadtree)
     {
-        // TODO cleanup this debug list
-        list.push_back(node.key());
-
         if (node.isleaf())
         {
+        list.push_back(node);
             // first, create the tile if it doesn't exist
             if (_tiles.count(node.key()) == 0)
             {
@@ -111,6 +112,11 @@ void Globe::updateQuadtree()
 
                 _tiles.insert({ node.key(), std::move(tile) });
             }
+        }
+
+        if (_tiles.count(node.key()) != 0)
+        {
+            _tiles[node.key()]->setVisible(node.isleaf());
         }
     }
 }

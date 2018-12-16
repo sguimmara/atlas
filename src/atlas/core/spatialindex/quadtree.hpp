@@ -19,20 +19,19 @@ namespace atlas::core::spatialindex
         // false otherwise. Before each traversal, the tree is reset, all nodes
         // are removed, except for the root node. Once completed, leaf nodes can
         // be retrieved.
-        void evaluate(std::function<bool(const QuadtreeNode&)>);
+        iterator evaluate(std::function<bool(const QuadtreeNode&)>);
         
         // removes all nodes from the tree, except for the root nodes.
         void clear();
 
-        inline iterator begin() noexcept { return iterator(_root.get()); }
+        inline iterator begin() noexcept { return iterator(&_root); }
         inline iterator end() noexcept { return iterator(nullptr); }
 
     private:
+        bool _isIrregular;
         uint32_t _subdivX;
         uint32_t _subdivY;
-        std::unique_ptr<QuadtreeNode> _root;
-
-        void evaluate(QuadtreeNode&, std::function<bool(const QuadtreeNode&)>);
+        QuadtreeNode _root;
     };
 }
 

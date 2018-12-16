@@ -4,21 +4,32 @@ using namespace atlas::core;
 using namespace atlas::core::spatialindex;
 
 Quadtree::Quadtree(const Region& region, uint32_t subdivX, uint32_t subdivY) :
+    _isIrregular(subdivX > 1 || subdivY > 1),
     _subdivX(subdivX),
     _subdivY(subdivY),
-    _root(std::make_unique<QuadtreeNode>(region, QuadtreeNode::Key(0, 0, 0), nullptr))
+    _root(QuadtreeNode(region, QuadtreeNode::Key(0, 0, 0)))
 {
-    //_root->subdivide(subdivX, subdivY);
+    if (_isIrregular)
+    {
+        _root.subdivide(subdivX, subdivY);
+    }
 }
 
-void Quadtree::evaluate(std::function<bool(const QuadtreeNode&)> predicate)
+QuadtreeNode::iterator Quadtree::evaluate(std::function<bool(const QuadtreeNode&)> predicate)
 {
-    clear();
+    if (_isIrregular)
+    {
+        _root.evaluateChildren(predicate);
+    }
+    else
+    {
+        _root.evaluate(predicate);
+    }
 
-    _root->evaluate(predicate);
+    return QuadtreeNode::iterator(&_root);
 }
 
 void Quadtree::clear()
 {
-    _root->clear();
+    _root.clear();
 }

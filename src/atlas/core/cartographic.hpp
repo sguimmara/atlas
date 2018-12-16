@@ -20,6 +20,11 @@ namespace atlas::core
                                     meters height = 0);
         static Cartographic fromDegrees(deg latitude, deg longitude, meters height = 0);
         static Cartographic midpoint(const Cartographic& start, const Cartographic& end);
+        inline bool operator==(const Cartographic& rhs) const noexcept
+        { return latitude == rhs.latitude && longitude == rhs.longitude && height == rhs.height; }
+        inline bool operator!=(const Cartographic& rhs) const noexcept { return !(*this == rhs); }
+
+        // interpolates linearly between to coordinates, in a plate carrée projection.
         static Cartographic lerp(const Cartographic& from, const Cartographic& to, double t);
     };
 }

@@ -3,6 +3,7 @@
 
 #include "../common.hpp"
 #include "../region.hpp"
+#include <stack>
 
 namespace atlas::core::spatialindex
 {
@@ -51,13 +52,13 @@ namespace atlas::core::spatialindex
 
         private:
             QuadtreeNode* _current;
+            std::stack<std::pair<QuadtreeNode*, size_t>> _stack;
         };
 
     public:
-        QuadtreeNode(Region region, Key coord, QuadtreeNode* parent);
+        QuadtreeNode(Region region, Key coord);
 
         inline Region region() const noexcept { return _region; }
-        inline QuadtreeNode* parent() const noexcept { return _parent; }
         inline Key key() const noexcept { return _key; }
         bool isleaf() const noexcept { return _children.empty(); }
         void clear() noexcept { _children.clear(); }
@@ -67,13 +68,12 @@ namespace atlas::core::spatialindex
         void subdivide(uint32_t x, uint32_t y);
         void split();
         void evaluate(std::function<bool(const QuadtreeNode&)> predicate);
+        void evaluateChildren(std::function<bool(const QuadtreeNode&)> predicate);
 
     private:
         Key _key;
         Region _region;
-        QuadtreeNode* _parent;
-        QuadtreeNode* _rightSibling;
-        std::vector<std::unique_ptr<QuadtreeNode>> _children;
+        std::vector<QuadtreeNode> _children;
     };
 }
 
