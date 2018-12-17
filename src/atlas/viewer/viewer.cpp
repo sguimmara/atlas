@@ -44,7 +44,7 @@ void Viewer::update()
     glfwPollEvents();
 
     // TODO framerate limiting
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
     auto now = std::chrono::steady_clock::now();
     time.elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - _sessionStart);

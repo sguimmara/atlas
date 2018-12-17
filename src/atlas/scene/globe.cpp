@@ -76,13 +76,13 @@ bool arbitraryEvaluator(const QuadtreeNode& node)
 {
     if (node.key().depth() < 2)
     {
-        return foo % 2 == 0;
-        //return std::rand() % 3 == 0;
+        return true;
     }
-    else
+    else if (node.key().depth() < 4)
     {
-        return false;
+        return std::rand() % 3 == 0;
     }
+    return false;
 }
 
 void Globe::updateQuadtree()
@@ -92,11 +92,16 @@ void Globe::updateQuadtree()
 
     auto list = std::vector<QuadtreeNode>();
 
+    for (auto const& t : _tiles)
+    {
+        t.second->setVisible(false);
+    }
+
     for (auto& node : *_quadtree)
     {
         if (node.isleaf())
         {
-        list.push_back(node);
+            list.push_back(node);
             // first, create the tile if it doesn't exist
             if (_tiles.count(node.key()) == 0)
             {
@@ -112,12 +117,14 @@ void Globe::updateQuadtree()
 
                 _tiles.insert({ node.key(), std::move(tile) });
             }
+
+            _tiles[node.key()]->setVisible(true);
         }
 
-        if (_tiles.count(node.key()) != 0)
-        {
-            _tiles[node.key()]->setVisible(node.isleaf());
-        }
+        //if (_tiles.count(node.key()) != 0)
+        //{
+        //    _tiles[node.key()]->setVisible(node.isleaf());
+        //}
     }
 }
 

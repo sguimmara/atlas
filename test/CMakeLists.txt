@@ -6,10 +6,8 @@ macro(add_sources DIRNAME GROUPNAME)
 endmacro()
 
 add_sources(core core)
-
-# add_sources(core core)
 # add_sources(core/srs core\\\\srs)
-# add_sources(core/spatialindex core\\\\spatialindex)
+add_sources(core/spatialindex core\\\\spatialindex)
 # add_sources(io io)
 # add_sources(renderer renderer)
 # add_sources(scene scene)

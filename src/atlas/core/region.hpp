@@ -26,6 +26,8 @@ namespace atlas::core
         // subdivide the region in a grid of x horizontal cells in width, and y vertical cells.
         std::vector<Region> subdivide(size_t x, size_t y) const noexcept;
 
+        inline bool operator==(const Region& rhs) const noexcept { return rhs._min == _min && rhs._max == _max; }
+        inline bool operator!=(const Region& rhs) const noexcept { return !(*this == rhs); }
         inline const Cartographic min() const noexcept { return _min; }
         inline const Cartographic max() const noexcept { return _max; }
         const Cartographic topLeft() const noexcept;

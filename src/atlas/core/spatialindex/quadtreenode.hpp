@@ -4,6 +4,7 @@
 #include "../common.hpp"
 #include "../region.hpp"
 #include <stack>
+#include <iterator>
 
 namespace atlas::core::spatialindex
 {
@@ -41,14 +42,17 @@ namespace atlas::core::spatialindex
         class iterator
         {
         public:
+            using iterator_category = std::forward_iterator_tag;
+            using value_type = QuadtreeNode;
+            using difference_type = std::ptrdiff_t;
+            using pointer = QuadtreeNode*;
+            using reference = QuadtreeNode&;
+
             iterator(QuadtreeNode* root);
             void operator++();
             inline QuadtreeNode& operator*() noexcept { return *_current; }
             inline bool operator==(const iterator& rhs) const noexcept { return _current == rhs._current; }
-            inline bool operator!=(const iterator& rhs) const noexcept
-            {
-                return _current != rhs._current;
-            }
+            inline bool operator!=(const iterator& rhs) const noexcept { return _current != rhs._current; }
 
         private:
             QuadtreeNode* _current;
@@ -65,6 +69,8 @@ namespace atlas::core::spatialindex
         inline bool operator==(const QuadtreeNode& rhs) { return rhs._key == _key; }
         inline bool operator!=(const QuadtreeNode& rhs) { return rhs._key != _key; }
 
+        iterator begin() noexcept { return iterator(this); }
+        iterator end() noexcept { return iterator(nullptr); }
         void subdivide(uint32_t x, uint32_t y);
         void split();
         void evaluate(std::function<bool(const QuadtreeNode&)> predicate);

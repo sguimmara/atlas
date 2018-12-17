@@ -649,7 +649,6 @@ Pipeline::Pipeline(const std::string& json) :
             .setRenderPass(Instance::renderPass);
 
         _pipeline = Instance::device.createGraphicsPipeline(nullptr, pipelineInfo);
-        getLog()->debug("pipeline successfully created");
     }
     else
     {

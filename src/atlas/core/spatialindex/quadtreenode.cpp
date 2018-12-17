@@ -5,7 +5,8 @@ using namespace atlas::core::spatialindex;
 
 QuadtreeNode::QuadtreeNode(Region region, Key coord) :
     _key(coord),
-    _region(region)
+    _region(region),
+    _children()
 {}
 
 void QuadtreeNode::subdivide(uint32_t x, uint32_t y)
@@ -76,11 +77,9 @@ void QuadtreeNode::evaluateChildren(std::function<bool(const QuadtreeNode&)> pre
     }
 }
 
-QuadtreeNode::iterator::iterator(QuadtreeNode * current) :
+QuadtreeNode::iterator::iterator(QuadtreeNode* current) :
     _current(current)
-{
-    _stack.emplace(current, 0);
-}
+{}
 
 void QuadtreeNode::iterator::operator++()
 {
