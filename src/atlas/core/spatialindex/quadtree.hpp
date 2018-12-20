@@ -14,12 +14,19 @@ namespace atlas::core::spatialindex
     public:
         Quadtree(const Region&, uint32_t subdivX, uint32_t subdivY);
 
-        // begin a traversal of the tree, applying the evaluation function on each
-        // node. The evaluation function returns true if the node must be subdivided,
-        // false otherwise. Before each traversal, the tree is reset, all nodes
-        // are removed, except for the root node. Once completed, leaf nodes can
-        // be retrieved.
-        iterator evaluate(std::function<bool(const QuadtreeNode&)>);
+        // evaluates the tree using the provided predicate. The predicate must
+        // return true whenever a given node must be splitted into four children
+        // otherwise false. Before the traversal, the tree is cleared (i.e only
+        // the root node is kept). If this tree is irregular, the predicate will
+        // not be applied to the root node, but instead on its children. Returns
+        // an iterator for this tree.
+        iterator evaluate(std::function<bool(const QuadtreeNode&)> predicate);
+
+        // returns true if this tree is a regular quadtree, i.e its root is
+        // split into four children. Some tiling schemes require an irregular
+        // quadtree, for example the GoogleCRS84Quad. Note that this only applies
+        // to the root node. Every other node must have four children.
+        inline bool regular() const noexcept { return _regular; }
         
         // removes all nodes from the tree, except for the root nodes.
         void clear();
@@ -28,7 +35,7 @@ namespace atlas::core::spatialindex
         inline iterator end() noexcept { return iterator(nullptr); }
 
     private:
-        bool _isIrregular;
+        bool _regular;
         uint32_t _subdivX;
         uint32_t _subdivY;
         QuadtreeNode _root;
