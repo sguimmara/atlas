@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_CORE_MATH_HPP
 #define ATLAS_CORE_MATH_HPP
 

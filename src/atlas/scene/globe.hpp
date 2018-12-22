@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_SCENE_GLOBE_HPP
 #define ATLAS_SCENE_GLOBE_HPP
 
@@ -46,7 +47,7 @@ namespace atlas::scene
         std::unique_ptr<Quadtree> _quadtree;
         ImageSource* _imageSource;
         std::unordered_map<QuadtreeNode::Key, std::shared_ptr<Tile>> _tiles;
-        
+
         void updateQuadtree();
         void processPendingImages();
     };

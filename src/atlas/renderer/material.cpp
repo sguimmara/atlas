@@ -35,8 +35,8 @@ Material::Material() :
 
 Material::Material(Material&& rhs) :
     _pipeline(rhs._pipeline),
-    _descriptorSet(rhs._descriptorSet),
-    _propertyBuffer(std::move(rhs._propertyBuffer))
+    _propertyBuffer(std::move(rhs._propertyBuffer)),
+    _descriptorSet(rhs._descriptorSet)
 {
     rhs._pipeline = nullptr;
     rhs._descriptorSet = nullptr;

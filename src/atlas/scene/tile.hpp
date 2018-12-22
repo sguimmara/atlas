@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_SCENE_TILE_HPP
 #define ATLAS_SCENE_TILE_HPP
 

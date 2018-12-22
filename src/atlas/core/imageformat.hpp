@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_CORE_IMAGEFORMAT_HPP
 #define ATLAS_CORE_IMAGEFORMAT_HPP
 

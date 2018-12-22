@@ -5,10 +5,10 @@
 using namespace atlas::scene;
 
 GeographicGrid::GeographicGrid(SpatialReference* srs) :
+    Layer("grid"),
     _latitudeInterval(10),
     _longitudeInterval(10),
-    _srs(srs),
-    Layer("grid")
+    _srs(srs)
 {
     createEntities();
 }
@@ -55,33 +55,31 @@ void GeographicGrid::createEntities()
     polarCircle->properties().color = vec4(0.9, 0.9, 1, 1);
     polarCircle->update();
 
-    auto srs = Ellipsoid::unitSphere();
-
     _parallels.push_back(std::make_unique<Entity>(equator,
-        MeshBuilder::parallel(0, srs)));
+        MeshBuilder::parallel(0, *_srs)));
 
     _parallels.push_back(std::make_unique<Entity>(tropic,
-        MeshBuilder::parallel(Cartographic::dmsToDD(23, 26, 12.6), srs)));
+        MeshBuilder::parallel(Cartographic::dmsToDD(23, 26, 12.6), *_srs)));
 
     _parallels.push_back(std::make_unique<Entity>(tropic,
-        MeshBuilder::parallel(-Cartographic::dmsToDD(23, 26, 12.6), srs)));
+        MeshBuilder::parallel(-Cartographic::dmsToDD(23, 26, 12.6), *_srs)));
 
     _parallels.push_back(std::make_unique<Entity>(polarCircle,
-        MeshBuilder::parallel(Cartographic::dmsToDD(66, 33, 47.4), srs)));
+        MeshBuilder::parallel(Cartographic::dmsToDD(66, 33, 47.4), *_srs)));
 
     _parallels.push_back(std::make_unique<Entity>(polarCircle,
-        MeshBuilder::parallel(-Cartographic::dmsToDD(66, 33, 47.4), srs)));
+        MeshBuilder::parallel(-Cartographic::dmsToDD(66, 33, 47.4), *_srs)));
 
     for (int i = -90; i < 90; i += (int)_latitudeInterval)
     {
         if (i == 0)
         {
             _parallels.push_back(std::make_unique<Entity>(gridLine,
-                MeshBuilder::parallel((double)i, srs)));
+                MeshBuilder::parallel((double)i, *_srs)));
         }
 
         _parallels.push_back(std::make_unique<Entity>(gridLine,
-            MeshBuilder::parallel((double)i, srs)));
+            MeshBuilder::parallel((double)i, *_srs)));
     }
 
     for (int i = -180; i < 180; i += (int)_longitudeInterval)
@@ -89,13 +87,12 @@ void GeographicGrid::createEntities()
         if (i == 0)
         {
             _parallels.push_back(std::make_unique<Entity>(greenwich,
-                MeshBuilder::meridian((double)i, srs)));
+                MeshBuilder::meridian((double)i, *_srs)));
         }
         else
         {
             _parallels.push_back(std::make_unique<Entity>(gridLine,
-                MeshBuilder::meridian((double)i, srs)));
+                MeshBuilder::meridian((double)i, *_srs)));
         }
-
     }
 }

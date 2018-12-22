@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_IO_FILEIMAGESOURCE_HPP
 #define ATLAS_IO_FILEIMAGESOURCE_HPP
 
@@ -28,7 +29,7 @@ namespace atlas::io
         std::string _filename;
         std::shared_ptr<Image> _image;
         std::vector<std::unique_ptr<std::promise<Response<Image>>>> _promises;
-        
+
         Response<Image> readRegion(Request<Region> request);
     };
 }

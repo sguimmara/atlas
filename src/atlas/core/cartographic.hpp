@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_CORE_CARTOGRAPHIC_HPP
 #define ATLAS_CORE_CARTOGRAPHIC_HPP
 

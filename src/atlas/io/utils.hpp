@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_IO_UTILS_HPP
 #define ATLAS_IO_UTILS_HPP
 

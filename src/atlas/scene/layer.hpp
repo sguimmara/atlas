@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_SCENE_LAYER_HPP
 #define ATLAS_SCENE_LAYER_HPP
 

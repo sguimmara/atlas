@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_RENDERER_ALLOCATOR_HPP
 #define ATLAS_RENDERER_ALLOCATOR_HPP
 

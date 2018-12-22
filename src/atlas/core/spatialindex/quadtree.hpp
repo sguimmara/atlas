@@ -27,7 +27,7 @@ namespace atlas::core::spatialindex
         // quadtree, for example the GoogleCRS84Quad. Note that this only applies
         // to the root node. Every other node must have four children.
         inline bool regular() const noexcept { return _regular; }
-        
+
         // removes all nodes from the tree, except for the root nodes.
         void clear();
 
@@ -36,8 +36,6 @@ namespace atlas::core::spatialindex
 
     private:
         bool _regular;
-        uint32_t _subdivX;
-        uint32_t _subdivY;
         QuadtreeNode _root;
     };
 }

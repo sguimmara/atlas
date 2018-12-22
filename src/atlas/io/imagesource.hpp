@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_IO_IMAGESOURCE_HPP
 #define ATLAS_IO_IMAGESOURCE_HPP
 
@@ -15,6 +16,8 @@ namespace atlas::io
     class ImageSource
     {
     public:
+        virtual ~ImageSource() {}
+
         // asynchronously fetches the given region in the data source.
         virtual std::future<Response<Image>> get(Request<Region>) = 0;
 

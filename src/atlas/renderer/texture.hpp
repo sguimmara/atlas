@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_RENDERER_TEXTURE_HPP
 #define ATLAS_RENDERER_TEXTURE_HPP
 
@@ -23,7 +24,7 @@ namespace atlas::renderer
         vk::ImageView _view;
         vk::Sampler _sampler;
         vk::Image _image;
-        
+
         void create(int width, int height, const vk::Format&, void*);
     };
 }

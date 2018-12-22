@@ -33,10 +33,6 @@ f64vec3 Ellipsoid::position(rad lat, rad lon, meters height) const noexcept
     // Implementation taken from the book "3D Engine design
     // for virtual globes", by Patrick Cozzi and Kevin Ring.
 
-    const double a = _semimajorAxis;
-    const double b = _semimajorAxis;
-    const double c = _semiminorAxis;
-
     // First, compute the surface normal vector.
     const f64vec3 n = normalDouble(lat, lon, height);
     const f64vec3 k = _radiiSquared * n;

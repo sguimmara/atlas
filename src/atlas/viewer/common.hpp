@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_VIEWER_COMMON_HPP
 #define ATLAS_VIEWER_COMMON_HPP
 

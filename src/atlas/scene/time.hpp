@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_SCENE_TIME_HPP
 #define ATLAS_SCENE_TIME_HPP
 

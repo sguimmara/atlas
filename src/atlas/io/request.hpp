@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_IO_IMAGEREQUEST_HPP
 #define ATLAS_IO_IMAGEREQUEST_HPP
 

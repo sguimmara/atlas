@@ -5,8 +5,6 @@ using namespace atlas::core::spatialindex;
 
 Quadtree::Quadtree(const Region& region, uint32_t subdivX, uint32_t subdivY) :
     _regular(subdivX == 1 || subdivY == 1),
-    _subdivX(subdivX),
-    _subdivY(subdivY),
     _root(QuadtreeNode(region, QuadtreeNode::Key(0, 0, 0)))
 {
     if (!_regular)

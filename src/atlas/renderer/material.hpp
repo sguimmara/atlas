@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_RENDERER_MATERIAL_HPP
 #define ATLAS_RENDERER_MATERIAL_HPP
 
@@ -21,13 +22,13 @@ namespace atlas::renderer
 
         // constructs a material from the given pipeline.
         Material(Pipeline*);
-        
+
         // constructs a material from transferring ownership of resources from
         // the specified material. The old material becomes empty.
         Material(Material&& rhs);
 
         ~Material();
-        
+
         static std::shared_ptr<Material> create(const std::string name);
 
         // returns a material with its own copy of the resources.

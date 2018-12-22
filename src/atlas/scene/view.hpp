@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_SCENE_VIEW_HPP
 #define ATLAS_SCENE_VIEW_HPP
 
