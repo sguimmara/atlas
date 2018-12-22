@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ATLAS_TEST_COMMON_HPP
 #define ATLAS_TEST_COMMON_HPP
 
