@@ -58,17 +58,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(GLFW REQUIRED)
 find_package(Vulkan REQUIRED)
 
-if (Vulkan_FOUND)
-    add_definitions(-DENABLE_VULKAN)
-    include_directories(${GLFW_INCLUDE_DIR})
-    include_directories(${Vulkan_INCLUDE_DIR})
-else()
-    message("Vulkan NOT SUPPORTED on this build. Using pseudorendering instead.")
-endif()
-
+include_directories(SYSTEM ${Vulkan_INCLUDE_DIR})
+include_directories(SYSTEM ${GLFW_INCLUDE_DIR})
 include_directories(SYSTEM lib)
 
-# include_directories(test)
 include_directories(src)
 
 add_subdirectory(src)
