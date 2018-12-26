@@ -2,18 +2,39 @@
 
 #include "atlas/renderer/instance.hpp"
 #include <chrono>
+#include <iostream>
 
 using namespace atlas::viewer;
 using namespace atlas::renderer;
+
+spdlog::level::level_enum selectLogLevel(int verbosity)
+{
+    assert(verbosity >= 0);
+
+    if (verbosity == 0)
+    {
+        return spdlog::level::warn;
+    }
+    else if (verbosity == 1)
+    {
+        return spdlog::level::info;
+    }
+    else if (verbosity == 2)
+    {
+        return spdlog::level::debug;
+    }
+    else
+    {
+        return spdlog::level::trace;
+    }
+}
 
 Viewer::Viewer(Parameters params) :
     _parameters(params)
 {
     _log = spdlog::stdout_color_mt(APP_NAME);
+    spdlog::set_level(selectLogLevel(params.verbosity));
     _log->info("initialize");
-#if DEBUG
-    spdlog::set_level(spdlog::level::debug);
-#endif
 
     _log->info("shader directory...{0}", params.shaderDirectory);
 

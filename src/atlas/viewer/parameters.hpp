@@ -11,6 +11,7 @@ namespace atlas::viewer
     {
         std::string shaderDirectory;
         std::string cacheDirectory;
+        int verbosity;
     };
 }
 
