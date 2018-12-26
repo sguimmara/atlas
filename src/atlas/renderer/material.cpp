@@ -10,18 +10,6 @@ Material::Material(const std::string& json)
     createDescriptorSet();
 }
 
-void Material::update() noexcept
-{
-    _propertyBuffer->update(&_properties);
-}
-
-void Material::createDescriptorSet()
-{
-    _descriptorSet = Allocator::getDescriptorSet(_pipeline->descriptorSetLayout());
-    _propertyBuffer = std::make_unique<UniformBuffer>(sizeof(MaterialProperties), 2, _descriptorSet);
-    _propertyBuffer->update(&_properties);
-}
-
 Material::Material(Pipeline* pipeline) :
     _pipeline(pipeline)
 {
@@ -54,6 +42,22 @@ Material::~Material()
     {
         Allocator::free(_descriptorSet);
     }
+}
+
+void Material::update() noexcept
+{
+    _propertyBuffer->update(&_properties);
+}
+
+void Material::createDescriptorSet()
+{
+    spdlog::get("instance")->trace("createDescriptorSet");
+    _descriptorSet = Allocator::getDescriptorSet(_pipeline->descriptorSetLayout());
+    spdlog::get("instance")->trace("uniform buffer");
+    _propertyBuffer = std::make_unique<UniformBuffer>(sizeof(MaterialProperties), 2, _descriptorSet);
+    spdlog::get("instance")->trace("update");
+    _propertyBuffer->update(&_properties);
+    spdlog::get("instance")->trace("update done");
 }
 
 std::shared_ptr<Material> Material::create(const std::string name)
