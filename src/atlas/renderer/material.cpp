@@ -51,13 +51,9 @@ void Material::update() noexcept
 
 void Material::createDescriptorSet()
 {
-    spdlog::get("instance")->trace("createDescriptorSet");
     _descriptorSet = Allocator::getDescriptorSet(_pipeline->descriptorSetLayout());
-    spdlog::get("instance")->trace("uniform buffer");
     _propertyBuffer = std::make_unique<UniformBuffer>(sizeof(MaterialProperties), 2, _descriptorSet);
-    spdlog::get("instance")->trace("update");
     _propertyBuffer->update(&_properties);
-    spdlog::get("instance")->trace("update done");
 }
 
 std::shared_ptr<Material> Material::create(const std::string name)
