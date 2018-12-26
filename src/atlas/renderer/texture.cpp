@@ -110,12 +110,14 @@ void Texture::create(int width, int height, const vk::Format &format, void* rgba
 
     int size = width * height * 4;
 
-    auto const stagingBuffer = Allocator::getStagingBuffer(size);
-    Allocator::write(stagingBuffer, rgba, size);
     Allocator::transition(_image, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-    Allocator::copyBufferToImage(stagingBuffer, _image, width, height);
+    {
+        auto const stagingBuffer = Allocator::getStagingBuffer(size);
+        Allocator::write(stagingBuffer, rgba, size);
+        Allocator::copyBufferToImage(stagingBuffer, _image, width, height);
+        Allocator::free(stagingBuffer);
+    }
     Allocator::transition(_image, format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-    Allocator::free(stagingBuffer);
 
     _view = Instance::device.createImageView(vk::ImageViewCreateInfo()
         .setImage(_image)
