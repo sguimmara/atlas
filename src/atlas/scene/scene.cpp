@@ -18,7 +18,7 @@ Scene::Scene(std::string name) :
     _log->info("initialized");
 
     //// TODO: inject
-    _TMP_ImageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Documents/work/c++/atlas/images/blue_marble.jpg");
+    _TMP_ImageSource = std::make_unique<FileImageSource>(Region::world(), "/home/sguimmara/Téléchargements/blue_marble.jpg");
 
     _layers.push_back(std::make_unique<Globe>(_srs.get()));
     _layers.push_back(std::make_unique<GeographicGrid>(_srs.get()));
