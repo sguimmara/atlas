@@ -101,6 +101,10 @@ void Instance::createInstance()
         info.setEnabledLayerCount((uint32_t)validationLayersNames.size());
         info.setPpEnabledLayerNames(validationLayersNames.data());
     }
+    else
+    {
+        _log->debug("validation layers are disabled");
+    }
 
     _instance = vk::createInstance(info);
     _log->debug("instance created.");
@@ -263,24 +267,23 @@ void Instance::pickPhysicalDevice()
         gpuIndex++;
     }
 
-    if (gpus.size() == 1)
+    auto properties = gpus[0].getProperties();
+    if (gpus.size() > 1)
     {
-        auto properties = gpus[0].getProperties();
-        _log->debug("selected device #0 ({0})", properties.deviceName);
-        physicalDevice = gpus[0];
+        // TODO select best device if more than one device is available
+        _log->warn("selecting first device");
     }
-    else
-    {
-        // TODO : select best physical device
-    }
+    _log->debug("selected device #0 ({0})", properties.deviceName);
+    physicalDevice = gpus[0];
 }
 
 void Instance::createDevice()
 {
     auto const swapchainExtension = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 
-    auto const queueFamilies = physicalDevice.getQueueFamilyProperties();
     _log->trace("examining device queues...");
+    auto const queueFamilies = physicalDevice.getQueueFamilyProperties();
+    _log->trace("found {0} queue familie(s)", queueFamilies.size());
 
     bool graphicsQueueFound = false;
     bool presentQueueFound = false;
