@@ -241,7 +241,7 @@ void Instance::pickPhysicalDevice()
         _log->trace("device #{0}", gpuIndex);
         _log->trace("\tID:..............{0}", properties.deviceID);
         _log->trace("\tname:............{0}", properties.deviceName);
-        _log->trace("\tvendor:..........{0} ({1})", properties.vendorID, getVendorName(properties.vendorID));
+        _log->trace("\tvendor:..........0x{0:x} ({1})", properties.vendorID, getVendorName(properties.vendorID));
         _log->trace("\ttype:............{0}", vk::to_string(properties.deviceType));
 
         uint32_t major, minor, patch;
