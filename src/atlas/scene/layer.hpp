@@ -13,7 +13,7 @@ namespace atlas::scene
     class Layer
     {
     public:
-        Layer(std::string name) : _name(name) {}
+        Layer(std::string name) : _active(true), _name(name) {}
         virtual ~Layer() {}
 
         inline std::string name() const noexcept { return _name; }
