@@ -14,6 +14,7 @@ namespace atlas::core::srs
     // and [-PI/2, PI/2] vertical (Z) range.
     class Equirectangular final : public SpatialReference
     {
+    public:
         f64vec3 position(const Cartographic&) const noexcept override;
         f64vec3 position(double lat, double lon, double height = 0) const noexcept override;
         vec3 normal(double lat, double lon) const noexcept override;
