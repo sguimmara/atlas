@@ -199,6 +199,7 @@ void Allocator::transition(vk::Image image, vk::Format format,
     }
     else
     {
+        _log->error("unsupported layout transition: {0} -> {1}", vk::to_string(oldLayout), vk::to_string(newLayout));
         throw std::invalid_argument("unsupported layout transition!");
     }
 
