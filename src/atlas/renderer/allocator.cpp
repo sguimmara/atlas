@@ -122,6 +122,7 @@ vk::Buffer Allocator::getStagingBuffer(vk::DeviceSize size)
 
 vk::Image Allocator::getImage(vk::Extent2D extents, vk::Format format, vk::ImageUsageFlags usage, vk::ImageTiling tiling)
 {
+    _log->trace("allocating image ({0}, {1}x{2})", vk::to_string(format), extents.width, extents.height);
     auto const imageInfo = vk::ImageCreateInfo()
         .setImageType(vk::ImageType::e2D)
         .setExtent(vk::Extent3D(extents, 1))
@@ -129,13 +130,14 @@ vk::Image Allocator::getImage(vk::Extent2D extents, vk::Format format, vk::Image
         .setTiling(tiling)
         .setMipLevels(1)
         .setArrayLayers(1)
-        .setUsage(usage) // vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
+        .setUsage(usage)
         .setSharingMode(vk::SharingMode::eExclusive)
         .setInitialLayout(vk::ImageLayout::eUndefined)
         .setSamples(vk::SampleCountFlagBits::e1);
 
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    allocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 
     VkImage image;
     VmaAllocation alloc;
