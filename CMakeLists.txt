@@ -5,7 +5,7 @@ endif()
 
 set(PROJECT_NAME atlas)
 
-set(LIBNAME lib${PROJECT_NAME})
+set(LIBNAME ${PROJECT_NAME})
 
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX)
 
