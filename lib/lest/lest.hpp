@@ -1024,9 +1024,6 @@ struct env
     }
 };
 
-// TEMPORARY HACK
-#undef lest_CPP17_OR_GREATER
-
 struct ctx
 {
     env & environment;
