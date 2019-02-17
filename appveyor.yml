@@ -1,0 +1,133 @@
+version: 0.1.{build}
+
+image:
+  - Ubuntu
+  - Visual Studio 2015
+build:
+  verbosity: minimal
+platform: x64
+
+environment:
+  GLFW_VERSION: 3.2.1
+  VULKAN_SDK_VERSION: 1.1.97.0
+
+notifications:
+  - provider: Email
+    on_build_success: false
+    on_build_failure: true
+    on_build_status_changed: false
+
+artifacts:
+  - path: .build/bin
+    name: atlas
+
+matrix:
+  fast_finish: true
+
+for:
+
+# Ubuntu
+-
+  matrix:
+    only:
+      - image: Ubuntu
+  environment:
+    CXX: clang++
+    CC: clang
+  cache:
+    - "$HOME/packages/vulkansdk-$VULKAN_SDK_VERSION.tar.gz"
+    - "$HOME/packages/glfw-$GLFW_VERSION.zip"
+  init:
+    - mkdir -p "$HOME/packages"
+    - mkdir -p "$HOME/libs"
+  install:
+    - git submodule update --init --recursive
+
+    - sudo apt-get install libglfw3-dev -y > /dev/null
+    #- sudo apt-get install xorg-dev libglu1-mesa-dev -y > /dev/null
+
+    # Vulkan SDK
+    - if [ ! -e "$HOME/packages/vulkansdk-$VULKAN_SDK_VERSION.tar.gz" ]; then wget -O "$HOME/packages/vulkansdk-$VULKAN_SDK_VERSION.tar.gz" "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VERSION.tar.gz?Human=true"; fi
+    - cd ~/libs
+    - tar xvf "$HOME/packages/vulkansdk-$VULKAN_SDK_VERSION.tar.gz" > /dev/null
+    - cd $VULKAN_SDK_VERSION
+    - source setup-env.sh
+
+    # GLFW
+    - if [ ! -e "$HOME/packages/glfw-$GLFW_VERSION.zip" ]; then wget -O "$HOME/packages/glfw-$GLFW_VERSION.zip" "https://github.com/glfw/glfw/releases/download/$GLFW_VERSION/glfw-$GLFW_VERSION.zip"; fi
+    - cd ~/libs
+    - unzip "$HOME/packages/glfw-$GLFW_VERSION.zip" > /dev/null
+    - cd glfw-$GLFW_VERSION
+    - mkdir build
+    - cd build
+    - >
+      cmake ..
+      -DCMAKE_BUILD_TYPE=Release
+      -DBUILD_SHARED_LIBS=ON
+      -DGLFW_BUILD_DOCS=OFF
+      -DGLFW_BUILD_EXAMPLES=OFF
+      -DGLFW_BUILD_TESTS=OFF
+    - cmake --build .
+
+  build_script:
+    - cd "$APPVEYOR_BUILD_FOLDER"
+    - mkdir .build
+    - cd .build
+    - >
+      cmake ..
+      -DCMAKE_BUILD_TYPE=RELEASE
+      -DGLFW_INCLUDE_DIR="$HOME/libs/glfw-$GLFW_VERSION/include"
+      -DGLFW_glfw_LIBRARY="$HOME/libs/glfw-$GLFW_VERSION/build/src/libglfw.so"
+    - cmake --build . --config Release
+  after_build:
+    - cp "$APPVEYOR_BUILD_FOLDER/.build/lib/libatlas.so" "$APPVEYOR_BUILD_FOLDER/.build/bin"
+  test_script:
+    - cd "$APPVEYOR_BUILD_FOLDER/.build/bin"
+    - ./atlastest
+
+# Visual Studio 2015
+-
+  matrix:
+    only:
+      - image: Visual Studio 2015
+  environment:
+    GLFW_FILE: glfw-%GLFW_VERSION%.bin.WIN64.zip
+  cache:
+    - C:\packages\VulkanSDK-%VULKAN_SDK_VERSION%-Installer.exe
+    - C:\packages\%GLFW_FILE%
+  init:
+    - set PATH=%PATH%;C:\VulkanSDK\%VULKAN_SDK_VERSION%\Bin
+    - set PATH=%PATH%;C:\temp\glfw-%GLFW_VERSION%.bin.WIN64\lib-vc2015
+    - mkdir C:\packages
+  install:
+    - git submodule update --init --recursive
+
+    - ps: mkdir C:\temp | out-null
+
+    # Install GLFW
+    - ps: (Test-Path "C:\packages\$env:GLFW_FILE" -PathType Leaf) -and ((new-object net.webclient).DownloadFile("https://github.com/glfw/glfw/releases/download/$env:GLFW_VERSION/$env:GLFW_FILE", "C:\packages\$env:GLFW_FILE"))
+    - ps: Expand-Archive "C:\packages\$env:GLFW_FILE" -DestinationPath C:\temp\
+
+    # Install Vulkan SDK
+    - ps: (Test-Path "C:\packages\VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe" -PathType Leaf) -and ((new-object net.webclient).DownloadFile("https://sdk.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe?u=", "C:\packages\VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe"))
+    - C:\packages\VulkanSDK-%VULKAN_SDK_VERSION%-Installer.exe /S
+
+  build_script:
+    - mkdir .build
+    - cd .build
+    - >
+      cmake ..
+      -G "Visual Studio 14 2015 Win64"
+      -DGLFW_INCLUDE_DIR="C:\temp\glfw-%GLFW_VERSION%.bin.WIN64\include"
+      -DGLFW_glfw_LIBRARY="C:\temp\glfw-%GLFW_VERSION%.bin.WIN64\lib-vc2015\glfw3dll.lib"
+      -DVulkan_INCLUDE_DIR="C:/VulkanSDK/%VULKAN_SDK_VERSION%/Include"
+      -DVulkan_LIBRARY="C:/VulkanSDK/%VULKAN_SDK_VERSION%/Lib/vulkan-1.lib"
+    - cmake --build . --config Release
+  after_build:
+    - copy "C:\temp\glfw-%GLFW_VERSION%.bin.WIN64\lib-vc2015\glfw3.dll" "%APPVEYOR_BUILD_FOLDER%\.build\bin\glfw3.dll"
+  test_script:
+    - "%APPVEYOR_BUILD_FOLDER%/.build/bin/atlastest"
+
+# Uncomment if you need to debug AppVeyor session (https://www.appveyor.com/docs/how-to/rdp-to-build-worker)
+#on_finish:
+#- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

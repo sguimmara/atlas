@@ -1,5 +1,7 @@
 # atlas
 
+[![Build status](https://ci.appveyor.com/api/projects/status/9fh5xc7vxhvx8ba5?svg=true)](https://ci.appveyor.com/project/sguimmara/atlas)
+
 ## What is atlas ?
 *atlas* is a cross platform (Windows and Linux) experimental globe renderer written against the Vulkan graphics API.
 
@@ -9,12 +11,14 @@ for massively parallel planet rendering.
 
 ## Build instructions
 
+The definitive guide to building atlas is located in the [appveyor](appveyor.yml) configuration file, for both Linux and Windows. By reproducing the steps located in the `install` and `build_script` sections for your configuration (Linux or Windows), you should be able to build atlas effortlessly.
+
 ### Preliminary
 Install the dependencies :
-* GLFW 3.2.1 or above : used to work with windows and peripheral inputs
-* The Vulkan SDK 1.1.92 or above : used to render the graphics
-* CMake 3.7.0 or above
-* A compiler with good C++ 17 support : clang 6.0, MSVC 15, or GCC 8
+* [GLFW](https://www.glfw.org/download.html) 3.2.1 or above : Provides windowing and peripheral support.
+* The [Vulkan SDK](https://vulkan.lunarg.com/) 1.1.92 or above : Provides the vulkan graphics API.
+* [CMake](https://cmake.org/download/) 3.7.0 or above is required for proper Vulkan support.
+* A [compiler](https://en.cppreference.com/w/cpp/compiler_support#cpp17) with good C++ 17 support : clang 6.0, MSVC 15, or GCC 8.
 
 Clone the repository, then initialize the submodules with
 
@@ -34,8 +38,10 @@ Then build the project:
 
     cmake --build .
 
-Note : if any compiling errors occur, it may indicate that the compiler
-used is not compatible with C++ 17. This can happen if there is an older
+The compiled binaries are located in the `.build/bin` folder.
+
+Note : On Linux, compiling errors occur may indicate that the compiler
+does not support C++17. This can happen if there is an older
 GCC version installed and used by default. In this case, set the
 `CC` and `CXX` environment variables to point to the compatible C and C++
 compiler executables, respectively. For example, if you wish to use Clang

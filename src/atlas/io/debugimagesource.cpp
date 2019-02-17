@@ -14,8 +14,6 @@ DebugImageSource::DebugImageSource(Region region) :
 
 Response<Image> DebugImageSource::readRegion(Request<Region> request)
 {
-    auto region = request.key();
-
     CImg<unsigned char> result(256, 256, 1, 4);
     result.fill(255, 0, 0, 255);
     auto data = result.data();
