@@ -10,6 +10,7 @@
 #include "atlas/renderer/pipeline.hpp"
 #include "atlas/renderer/context.hpp"
 #include "atlas/io/fileimagesource.hpp"
+#include "atlas/io/debugimagesource.hpp"
 #include "entity.hpp"
 #include "globe.hpp"
 #include "view.hpp"

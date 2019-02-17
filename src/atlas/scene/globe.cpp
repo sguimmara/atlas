@@ -77,10 +77,10 @@ bool arbitraryEvaluator(const QuadtreeNode& node)
     {
         return true;
     }
-    else if (node.key().depth() < 4)
-    {
-        return std::rand() % 3 == 0;
-    }
+    //else if (node.key().depth() < 4)
+    //{
+    //    return std::rand() % 3 == 0;
+    //}
     return false;
 }
 

@@ -18,7 +18,8 @@ Scene::Scene(std::string name) :
     _log->info("initialized");
 
     //// TODO: inject
-    _TMP_ImageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Documents/work/c++/atlas/images/equirectangular.jpg");
+    //_TMP_ImageSource = std::make_unique<FileImageSource>(Region::world(), "C:/Users/sguimmara/Documents/work/c++/atlas/images/equirectangular.jpg");
+    _TMP_ImageSource = std::make_unique<DebugImageSource>(Region::world());
 
     _layers.push_back(std::make_unique<Globe>(_srs.get()));
     _layers.push_back(std::make_unique<GeographicGrid>(_srs.get()));
