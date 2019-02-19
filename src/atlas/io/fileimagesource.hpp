@@ -18,11 +18,12 @@ namespace atlas::io
     public:
         FileImageSource(Region, const std::string filename);
 
-        std::future<Response<Image>> get(Request<Region>) override;
-
         inline std::string filename() const noexcept { return _filename; }
 
         Region region() const noexcept override { return _region; }
+
+    protected:
+        Response<Image> readRegion(Request<Region>) override;
 
     private:
         Region _region;
@@ -30,7 +31,6 @@ namespace atlas::io
         std::shared_ptr<Image> _image;
         std::vector<std::unique_ptr<std::promise<Response<Image>>>> _promises;
 
-        Response<Image> readRegion(Request<Region> request);
     };
 }
 

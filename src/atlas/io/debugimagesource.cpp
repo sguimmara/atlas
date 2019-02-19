@@ -28,12 +28,3 @@ Response<Image> DebugImageSource::readRegion(Request<Region> request)
 
     return Response<Image>(image, request.userData());
 }
-
-std::future<Response<Image>> DebugImageSource::get(Request<Region> request)
-{
-    std::future<Response<Image>> result(std::async(
-        std::launch::async,
-        [request, this]() { return readRegion(request); }));
-
-    return result;
-}

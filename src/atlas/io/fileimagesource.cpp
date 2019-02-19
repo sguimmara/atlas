@@ -29,11 +29,3 @@ Response<Image> FileImageSource::readRegion(Request<Region> request)
     return Response<Image>(_image->subImage(rect), request.userData());
 }
 
-std::future<Response<Image>> FileImageSource::get(Request<Region> request)
-{
-    std::future<Response<Image>> result(std::async(
-        std::launch::async,
-        [request, this]() { return readRegion(request); }));
-
-    return result;
-}

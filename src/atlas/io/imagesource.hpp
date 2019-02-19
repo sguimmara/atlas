@@ -19,10 +19,13 @@ namespace atlas::io
         virtual ~ImageSource() {}
 
         // asynchronously fetches the given region in the data source.
-        virtual std::future<Response<Image>> get(Request<Region>) = 0;
+        virtual std::future<Response<Image>> get(Request<Region>);
 
         // returns the region covered by the data source.
         virtual Region region() const noexcept = 0;
+
+    protected:
+        virtual Response<Image> readRegion(Request<Region>) = 0;
     };
 }
 

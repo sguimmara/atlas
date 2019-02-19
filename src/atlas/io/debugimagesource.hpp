@@ -17,15 +17,14 @@ namespace atlas::io
     public:
         DebugImageSource(Region);
 
-        std::future<Response<Image>> get(Request<Region>) override;
-
         Region region() const noexcept override { return _region; }
+
+    protected:
+        Response<Image> readRegion(Request<Region>) override;
 
     private:
         Region _region;
         std::vector<std::unique_ptr<std::promise<Response<Image>>>> _promises;
-
-        Response<Image> readRegion(Request<Region> request);
     };
 }
 
