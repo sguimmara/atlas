@@ -59,21 +59,21 @@ void QuadtreeNode::split()
     }
 }
 
-void QuadtreeNode::evaluate(std::function<bool(const QuadtreeNode&)> predicate)
+void QuadtreeNode::evaluate(const Evaluator<QuadtreeNode>& evaluator)
 {
     clear();
-    if (predicate(*this))
+    if (evaluator.subdivide(*this))
     {
         split();
-        evaluateChildren(predicate);
+        evaluateChildren(evaluator);
     }
 }
 
-void QuadtreeNode::evaluateChildren(std::function<bool(const QuadtreeNode&)> predicate)
+void QuadtreeNode::evaluateChildren(const Evaluator<QuadtreeNode>& evaluator)
 {
     for (auto& child : _children)
     {
-        child.evaluate(predicate);
+        child.evaluate(evaluator);
     }
 }
 

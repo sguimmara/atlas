@@ -5,6 +5,35 @@
 using namespace atlas::core;
 using namespace atlas::core::spatialindex;
 
+class TestEvaluator : public Evaluator<QuadtreeNode>
+{
+public:
+    TestEvaluator(
+        std::function<bool(const QuadtreeNode&)> discard,
+        std::function<bool(const QuadtreeNode&)> split) :
+        _discard(discard),
+        _split(split)
+    {
+    }
+
+    // returns true if the item must be discarded from the evaluation chain.
+    bool discard(const QuadtreeNode& node) const noexcept override
+    {
+        return _discard(node);
+    }
+
+    // returns true if the item must be subdivided.
+    // Note that discarded items cannot be subdivided.
+    bool subdivide(const QuadtreeNode& node) const noexcept override
+    {
+        return _split(node);
+    }
+
+private:
+    std::function<bool(const QuadtreeNode&)> _discard;
+    std::function<bool(const QuadtreeNode&)> _split;
+};
+
 CASE( "Constructor initializes key and region" "[pass]" )
 {
     QuadtreeNode node(Region::world(), QuadtreeNode::Key(9, 5, 2));
@@ -19,7 +48,9 @@ CASE("QuadtreeNode::evaluate() does not split root when predicate returns false"
 {
     QuadtreeNode node(Region::world(), QuadtreeNode::Key(0, 0, 0));
 
-    node.evaluate([](const QuadtreeNode& n) { return false; });
+    TestEvaluator evaluator([](const QuadtreeNode& n) { return false; }, [](const QuadtreeNode& n) { return false; });
+
+    node.evaluate(evaluator);
 
     std::vector<QuadtreeNode> nodes;
     for (auto& n : node)
@@ -35,7 +66,11 @@ CASE("QuadtreeNode::evaluate() for all nodes level 0-1" "[pass]")
 {
     QuadtreeNode node(Region::world(), QuadtreeNode::Key(0, 0, 0));
 
-    node.evaluate([](const QuadtreeNode& n) { return n.key().depth() < 1; });
+    TestEvaluator evaluator(
+        [](const QuadtreeNode& n) { return false; },
+        [](const QuadtreeNode& n) { return n.key().depth() < 1; });
+
+    node.evaluate(evaluator);
 
     std::unordered_map<QuadtreeNode::Key, QuadtreeNode> nodes;
     for (auto& n : node)

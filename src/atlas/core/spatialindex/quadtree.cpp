@@ -13,15 +13,15 @@ Quadtree::Quadtree(const Region& region, uint32_t subdivX, uint32_t subdivY) :
     }
 }
 
-QuadtreeNode::iterator Quadtree::evaluate(std::function<bool(const QuadtreeNode&)> predicate)
+QuadtreeNode::iterator Quadtree::evaluate(const Evaluator<QuadtreeNode>& evaluator)
 {
     if (!_regular)
     {
-        _root.evaluateChildren(predicate);
+        _root.evaluateChildren(evaluator);
     }
     else
     {
-        _root.evaluate(predicate);
+        _root.evaluate(evaluator);
     }
 
     return QuadtreeNode::iterator(&_root);

@@ -3,6 +3,7 @@
 
 #include "../common.hpp"
 #include "../region.hpp"
+#include "evaluator.hpp"
 #include <stack>
 #include <iterator>
 
@@ -73,8 +74,8 @@ namespace atlas::core::spatialindex
         iterator end() noexcept { return iterator(nullptr); }
         void subdivide(uint32_t x, uint32_t y);
         void split();
-        void evaluate(std::function<bool(const QuadtreeNode&)> predicate);
-        void evaluateChildren(std::function<bool(const QuadtreeNode&)> predicate);
+        void evaluate(const Evaluator<QuadtreeNode>& evaluator);
+        void evaluateChildren(const Evaluator<QuadtreeNode>& evaluator);
 
     private:
         Key _key;

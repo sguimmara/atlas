@@ -4,6 +4,7 @@
 #include "../common.hpp"
 #include "../region.hpp"
 #include "quadtreenode.hpp"
+#include "evaluator.hpp"
 
 namespace atlas::core::spatialindex
 {
@@ -20,7 +21,7 @@ namespace atlas::core::spatialindex
         // the root node is kept). If this tree is irregular, the predicate will
         // not be applied to the root node, but instead on its children. Returns
         // an iterator for this tree.
-        iterator evaluate(std::function<bool(const QuadtreeNode&)> predicate);
+        iterator evaluate(const Evaluator<QuadtreeNode>& evaluator);
 
         // returns true if this tree is a regular quadtree, i.e its root is
         // split into four children. Some tiling schemes require an irregular

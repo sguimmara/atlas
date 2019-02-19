@@ -6,6 +6,7 @@
 #include "atlas/core/spatialindex/quadtree.hpp"
 #include "atlas/io/imagesource.hpp"
 #include "atlas/renderer/material.hpp"
+#include "globeevaluator.hpp"
 #include "entity.hpp"
 #include "layer.hpp"
 #include "tile.hpp"
@@ -42,6 +43,7 @@ namespace atlas::scene
 
     private:
         SpatialReference* _srs;
+        GlobeEvaluator _evaluator;
         std::unique_ptr<Image> _defaultImage;
         std::vector<std::future<Response<Image>>> _imageRequests;
         std::unique_ptr<Quadtree> _quadtree;

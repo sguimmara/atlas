@@ -15,7 +15,8 @@ Globe::Globe() : Layer("globe")
 Globe::Globe(SpatialReference* srs) :
     Layer("globe"),
     _srs(srs),
-    _quadtree(std::make_unique<Quadtree>(Region::world(), 2, 1))
+    _quadtree(std::make_unique<Quadtree>(Region::world(), 2, 1)),
+    _evaluator(GlobeEvaluator())
 {
     _defaultImage = std::make_unique<Image>(8, 8, ImageFormat::RGBA32);
 
@@ -71,22 +72,9 @@ std::vector<const Entity*> Globe::debugEntities() const
     return result;
 }
 
-bool arbitraryEvaluator(const QuadtreeNode& node)
-{
-    if (node.key().depth() < 2)
-    {
-        return true;
-    }
-    //else if (node.key().depth() < 4)
-    //{
-    //    return std::rand() % 3 == 0;
-    //}
-    return false;
-}
-
 void Globe::updateQuadtree()
 {
-    _quadtree->evaluate(arbitraryEvaluator);
+    _quadtree->evaluate(_evaluator);
 
     auto list = std::vector<QuadtreeNode>();
 

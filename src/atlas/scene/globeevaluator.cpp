@@ -9,13 +9,13 @@ bool GlobeEvaluator::discard(const QuadtreeNode& node) const noexcept
 
 bool GlobeEvaluator::subdivide(const QuadtreeNode& node) const noexcept
 {
-    if (node.key().depth() < 2)
+    if (node.key().depth() < 1)
     {
         return true;
     }
-    else if (node.key().depth() < 4)
-    {
-        return std::rand() % 3 == 0;
-    }
+    //else if (node.key().depth() < 4)
+    //{
+    //    return std::rand() % 3 == 0;
+    //}
     return false;
 }
