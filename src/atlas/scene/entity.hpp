@@ -28,7 +28,6 @@ namespace atlas::scene
         inline const Transform& transform() const noexcept { return _transform; }
         inline Material& material() const noexcept { return *_material; }
         inline Mesh& mesh() const noexcept { return *_mesh; }
-        inline std::vector<std::unique_ptr<Entity>>& children() noexcept { return _children; }
         inline UniformBuffer* data() const noexcept { return _uniformBuffer.get(); }
 
         static std::shared_ptr<Entity> createDebugEntity(Entity& entity);
@@ -41,7 +40,6 @@ namespace atlas::scene
         std::shared_ptr<Mesh> _mesh;
         EntityProperties _properties;
         std::unique_ptr<UniformBuffer> _uniformBuffer;
-        std::vector<std::unique_ptr<Entity>> _children;
     };
 }
 
