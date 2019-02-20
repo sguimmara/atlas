@@ -46,7 +46,8 @@ namespace atlas::scene
         std::unique_ptr<ImageSource> _TMP_ImageSource;
 
         void setupView(View&, const Time&);
-        void drawEntity(atlas::renderer::Context* ctx, const Entity& entity, View& view);
+        void drawEntity(atlas::renderer::Context* ctx, const Entity& entity, const View& view);
+        void renderList(const std::vector<const Entity*>& queue, const View& view);
     };
 }
 

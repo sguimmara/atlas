@@ -45,11 +45,16 @@ void Scene::render(const Time& time)
         return;
     }
 
+    std::vector<const Entity*> renderQueue;
+    renderQueue.reserve(256);
+
     ctx->beginFrame();
     {
         for (auto const& view : _views)
         {
             setupView(*view, time);
+
+            renderQueue.clear();
 
             for (auto const& layer : _layers)
             {
@@ -58,17 +63,30 @@ void Scene::render(const Time& time)
                     layer->update();
                     for (auto const& entity : layer->entities())
                     {
-                        drawEntity(ctx, *entity, *view);
-                    }
-                    for (auto const& entity : layer->debugEntities())
-                    {
-                        drawEntity(ctx, *entity, *view);
+                        renderQueue.push_back(entity);
                     }
                 }
             }
+
+            renderList(renderQueue, *view);
         }
     }
+
     ctx->endFrame();
+}
+
+void Scene::renderList(const std::vector<const Entity*>& queue, const View& view)
+{
+    auto ctx = renderer::Instance::context();
+    if (!ctx)
+    {
+        return;
+    }
+
+    for (auto entity : queue)
+    {
+        drawEntity(ctx, *entity, view);
+    }
 }
 
 Globe* Scene::globe() const noexcept
@@ -88,7 +106,7 @@ Layer* atlas::scene::Scene::getLayer(const std::string& name) const
     return nullptr;
 }
 
-void Scene::drawEntity(atlas::renderer::Context* ctx, const Entity& entity, View& view)
+void Scene::drawEntity(atlas::renderer::Context* ctx, const Entity& entity, const View& view)
 {
     ctx->bind(entity.material().pipeline());
     ctx->draw(
